@@ -1,0 +1,85 @@
+
+[0.3.7 release] 
+
+2010-11-28 Vincent Gramoli <vincent.gramoli@epfl.ch>
+        * Fix the deallocation of memory in skiplist benchmark
+
+[0.3.6 release] 
+
+2010-02-23 Vincent Gramoli <vincent.gramoli@epfl.ch>
+        * double-ended queue sequential and STM-based benchs.
+        * rbtree wrappers for sequential and STM-based benchs.
+
+2010-01-03 Vincent Gramoli <vincent.gramoli@epfl.ch>
+        * update ratio made effective: a failed remove/add is a read-only
+	  tx no longer an update tx.
+
+[0.3.5 release] 
+
+2009-11-18  Vincent Gramoli  <vincent.gramoli@epfl.ch>	
+	* Fixed deque index in rightpush functions.
+	* Removed "break" points in the sequential code.
+
+[0.3.4 release] 
+
+2009-11-04  Vincent Gramoli  <vincent.gramoli@epfl.ch>
+	* Allowing spinlocks instead of mutexes in the lock-coupling 
+          linked list.
+	* Fixing lock coupling search of the linked list that wrongly 
+          acquired a single lock before releasing another: memory is 
+          cleanly freed.
+	* Extra function calls in the sequential case have been inlined.
+
+[0.3.3 release] 
+
+2009-09-25  Vincent Gramoli  <vincent.gramoli@epfl.ch>
+	* Always remove a randomly generated value.
+	  This produced update workloads executing faster than 
+	  read-only workloads.
+
+[0.3.2 release] 
+
+2009-09-25  Vincent Gramoli  <vincent.gramoli@epfl.ch>
+	* Herlihy's double-ended queue implementation.
+
+[0.3.1 release] 
+
+2009-09-25  Vincent Gramoli  <vincent.gramoli@epfl.ch>
+	* STM red-black tree benchmark added: it reuses the code of TL2 
+	  red-black tree but consecutive insert and delete do not get
+	  the same value (by default). Inserting/deleting the same 
+	  value consecutively is known as minimizing the tree 
+	  rebalancing (main source of contention). 
+	* red-black tree "-a" option allows consecutive insert and 
+	  deletes to have the same value as a parameter.
+
+[0.3.0 release]
+
+2009-09-01  Vincent Gramoli  <vincent.gramoli@epfl.ch>
+        * Fixing memory leaks
+
+2009-08-20  Vincent Gramoli  <vincent.gramoli@epfl.ch>
+        * Fixing some uninitialization bug of hashtable
+
+[0.2.0 release]
+
+2009-06-15  Vincent Gramoli  <vincent.gramoli@epfl.ch>
+        * Fixing the problem of RAND_MAX=32768 on Niagara 2
+        * Fixing some bad random generators
+
+2007-06-10  Vincent Gramoli  <vincent.gramoli@epfl.ch>
+	* Adapting hash table and skip list tests
+
+2007-04-25  Vincent Gramoli  <vincent.gramoli@epfl.ch>
+	* Added red-black tree test.
+
+2009-02-02  Vincent Gramoli  <vincent.gramoli@epfl.ch>
+	* Added skip list test.
+	* Added hash table test w/ move and sum operations.
+
+[0.1.0 release]
+
+2009-05-01 Vincent Gramoli  <vincent.gramoli@epfl.ch>
+       * First release with lock-based, lock-free, stm-based hashtable,
+         linked list.
+

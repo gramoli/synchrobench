@@ -1,0 +1,80 @@
+RELEASE NOTES
+-------------
+
+   * Microbench has been used to compare STM performance to lock-based 
+     and lock-free alternatives in Elastic Transactions, EPFL Tech. Rep. 
+     LPD-REPORT-2009-002. Also published at DISC'09. 
+     Pascal Felber, Vincent Gramoli, Rachid Guerraoui
+     Contact Vincent Gramoli <vincent.gramoli@epfl.ch> for any 
+     question.
+     Copyright 2009-2010. All Rights Reserved.
+
+   * Microbench is derived from the linked list testbed for TinySTM 
+     released by Pascal Felber.
+
+   * Transactional Primitives - API:
+     BEGIN_TX()    -- Marks the beginning of a regular transaction
+     END           -- Marks the attempt to commit the current transaction
+     READ(x)       -- Calls the transactional load a memory location x
+     WRITE(x,v)    -- Calls the transactional store of v at x
+     BEGIN_EL_TX() -- Marks the beginning of an elastic transaction
+
+
+REFERENCES
+----------
+
+   * Elastic Transactions
+     Pascal Felber, Vincent Gramoli, Rachid Guerraoui 
+     EPFL Tech. Rep. LPD-REPORT-2009-002 and DISC 2009
+
+   * Microbench includes the implementation of several algorithms:
+
+     Lock-free Linked List: 
+     A Pragmatic Implementation of Non-Blocking Linked Lists 
+     Tim Harris
+     Proc. of the 15th Int'l Symposium on Distributed Computing (DISC)
+     p. 300-314, 2001
+
+     Lock-based Linked List:
+     A Lazy Concurrent List-Based Set Algorithm
+     Steve Heller, Maurice Herlihy, Victor Luchangco, Mark Moir, 
+     William N. Scherer III and Nir Shavit
+     Proc. of the 9th Int'l Conf. on Principles of Dist. Systems (OPODIS)
+     p.3-16, 2005
+
+     Lock-free Skip List
+     Practical Lock Freedom
+     Keir Fraser
+     PhD dissertation, September 2003
+     Cambridge University Technical Report UCAM-CL-TR-579 
+
+     Lock-based Skip List
+     A Simple Optimistic Skiplist Algorithm. 
+     Maurice Herlihy, Yossi Lev, Victor Luchangco, Nir Shavit
+     Proc. of the 14th Int'l Colloquim on Structural Information and
+     Communication Complexity (SIROCCO)
+     p.124-138, 2007
+
+   * Here are three STMs that can be used directly with Microbench:
+     
+     TinySTM - Dynamic Performance Tuning of Word-Based Software 
+               Transactional Memory
+               Pascal Felber, Christof Fetzer and Torvald Riegel 
+               Proc. of the 13th ACM SIGPLAN Symposium on Principles and
+               Practice of Parallel Programming (PPoPP), 2008
+
+     SwissTM - Stretching Transactional Memory. 
+               Aleksandar Dragojevic, Rachid Guerraoui and Michal Kapalka 
+               PLDI 2009
+
+     E-STM   - Elastic Transactions
+               Pascal Felber, Vincent Gramoli and Rachid Guerraoui
+	       DISC 2009, Volume 5805 of LNCS, Springer
+               p.93-107, 2009
+
+
+USE
+---
+
+To use Microbench, take a look at the INSTALL file
+

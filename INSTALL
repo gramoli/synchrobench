@@ -1,0 +1,77 @@
+REQUIREMENTS
+------------
+
+   * Atomic_ops library is needed for Microbench. It provides
+     implementations for atomic memory update operations on a number of
+     architectures. It can be downloaded online: 
+     http://hplabs.hp.com/research/linux/atomic_ops/
+
+   * SPARC needs the atomic_ops patch to run Microbench. This patch 
+     can be downloaded here http://sourceforge.net/tracker/index.php?
+     func=detail&aid=2805831&group_id=144171&atid=757775
+
+   * STMs. Microbench aimed at testing an STM. Some are available online:
+     - TinySTM   http://tmware.org/tinystm
+     - SwissTM   http://lpd.epfl.ch/site/research/tmeval
+     - E-STM     http://lpd.epfl.ch/gramoli/php/estm
+
+   * To use red-black tree, download the rbtree.c and rbtree.h files of 
+     the STAMP release and place them into [microbench]/rbtree directory
+
+INSTALL
+-------  
+
+   1. Download an STM (e.g., http://lpd.epfl.ch/gramoli/php/estm) 
+      Compile the STM
+ 
+   2. Set ./common/Makefile.common
+      - libatomic_ops directory (LIBAO)
+      - STM directories (e.g., ESTMDIR)
+
+   3. Compile with E-STM using 
+        make estm
+
+   NB Alternatively, you can directly use the lock-based versions 
+      (without using any STM) by compiling the mutex or spinlock 
+      versions as follows:
+        make lock 
+        make spinlock
+
+
+RUN
+---
+
+   1. Executables for double-ended queue, hash table, linked list, 
+      red-black tree, skip list, lock-based linked list, lock-based
+      hashtable, lock-based skip list:
+      ./deque/lf-dq
+      ./hashtable/lf-ht
+      ./linkedlist/lf-ll
+      ./rbtree/lf-rt 
+      ./skiplist/lf-sl
+      ./hashtable/lb-ht
+      ./linkedlist/lb-ll
+      ./skiplist/lb-sl
+   2. Use parameter "--help" for the full list of parameters
+
+
+TESTED PLATFORMS
+----------------
+
+    Microbench has been successfully tested on:
+    1. i686
+       Intel core 2 duo 
+       Mac OS X
+       gcc version 4.0.1 (Apple Inc. build 5490)
+    2. x86_64
+       2 quad-core Intel Xeon 5365 
+       Linux 2.6.30-s2
+       gcc version 4.3.3 (Ubuntu 4.3.3-5ubuntu4)
+    3. x86_64
+       4 quad-core AMD Opteron
+       Linux 2.6.27.29-0.1-default 
+       gcc (SUSE Linux) 4.3.2 [gcc-4_3-branch revision 141291]
+    4. SPARC 
+       UltraSPARC 2 
+       Solaris 10
+       sparc-sun-solaris2.10-gcc (GCC) 4.2.1 (20081023) (gccfss)
