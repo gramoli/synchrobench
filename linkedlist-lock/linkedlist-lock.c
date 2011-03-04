@@ -35,7 +35,6 @@ node_l_t *new_node_l(val_t val, node_l_t *next, int transactional)
   node_l->val = val;
   node_l->next = next;
   INIT_LOCK(&node_l->lock);	
-  //LOCK(&node_l->lock);		
   return node_l;
 }
 
