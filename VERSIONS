@@ -1,3 +1,8 @@
+[0.3.8 release] 
+
+2011-03-04 Vincent Gramoli <vincent.gramoli@epfl.ch>
+        * Fix freeing the memory in the lock-coupling 
+	linked list upon removal in alternate mode
 
 [0.3.7 release] 
 
