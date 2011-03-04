@@ -45,13 +45,14 @@ int lockc_delete(intset_l_t *set, val_t val) {
 	}
 	found = (val == next->val);
 	if (found) {
-		curr->next = next->next;
-		UNLOCK(&next->lock);
-		node_delete_l(next);
-		UNLOCK(&curr->lock);
+	  curr->next = next->next;
+	  UNLOCK(&next->lock);
+	  node_delete_l(next);
+	  UNLOCK(&curr->lock);
+	} else {
+	  UNLOCK(&curr->lock);
+	  UNLOCK(&next->lock);
 	}
-	UNLOCK(&curr->lock);
-	UNLOCK(&next->lock);
 	return found;
 }
 
@@ -66,7 +67,7 @@ int lockc_find(intset_l_t *set, val_t val) {
 	while (next->val < val) {
 		UNLOCK(&curr->lock);
 		curr = next;
-		LOCK(&curr->next->lock);
+		LOCK(&next->next->lock);
 		next = curr->next;
 	}
 	UNLOCK(&curr->lock);
@@ -87,7 +88,7 @@ int lockc_insert(intset_l_t *set, val_t val) {
 		
 		UNLOCK(&curr->lock);
 		curr = next;
-		LOCK(&curr->next->lock);
+		LOCK(&next->next->lock);
 		next = curr->next;
 		
 	}
@@ -95,6 +96,7 @@ int lockc_insert(intset_l_t *set, val_t val) {
 	if (!found) {
 		newnode =  new_node_l(val, next, 0);
 		curr->next = newnode;
+		//UNLOCK(&newnode->lock);
 	}
 	UNLOCK(&curr->lock);
 	UNLOCK(&next->lock);
