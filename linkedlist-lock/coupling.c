@@ -46,10 +46,12 @@ int lockc_delete(intset_l_t *set, val_t val) {
 	found = (val == next->val);
 	if (found) {
 		curr->next = next->next;
+		UNLOCK(&next->lock);
+		node_delete_l(next);
+		UNLOCK(&curr->lock);
 	}
 	UNLOCK(&curr->lock);
 	UNLOCK(&next->lock);
-	node_delete_l(next);
 	return found;
 }
 

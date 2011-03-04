@@ -3,7 +3,7 @@
 ################
 
 # Paths
-LIBAO 		?= /home/gramoli/Desktop/Lib/libatomic1.2
+LIBAO 		?= /Users/gramoli/lib/libatomic12
 
 # STM
 ESTMDIR 	?= /home/gramoli/Desktop/Code/estm-0.2.6
