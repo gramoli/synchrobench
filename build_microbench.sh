@@ -1,15 +1,15 @@
 #!/bin/sh
 
 # list of stms to test
-TARGETS="estm wlpdstm tinystm sequential"
+TARGETS="estm tinystm sequential"
 # list of lock to test
 LOCKS="lock spinlock"
 # othe list for lockfree
 LFS="lockfree"
 # current microbench version
-MBENCH_VERSION=0.3.7.1
+MBENCH_VERSION=0.3.8
 # where to store binaries
-EXPERIMENT_BIN_DIR=/home/vincent/bench/microbench/microbench-0.3.7.1/bin
+EXPERIMENT_BIN_DIR=./bin
 # make or gmake
 MAKE="make"
 
