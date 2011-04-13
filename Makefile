@@ -1,6 +1,6 @@
 .PHONY:	all
 
-BENCHS = deque #linkedlist hashtable skiplist rbtree deque
+BENCHS = linkedlist hashtable skiplist rbtree #deque
 LBENCHS = linkedlist-lock hashtable-lock skiplist-lock
 
 .PHONY:	clean all $(BENCHS) $(LBENCHS)
