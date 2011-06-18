@@ -110,7 +110,7 @@ int set_add(intset_t *set, val_t val, int transactional)
 	  case 2: 	
 	  case 3:
 	  case 4:
-		  TX_START(NL);
+		  TX_START(EL);
 		  result = TMrbtree_insert(set, (void *)val, (void *)val);
 		  TX_END;
 		  break;
