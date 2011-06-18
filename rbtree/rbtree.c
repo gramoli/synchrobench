@@ -156,7 +156,7 @@ enum {
  *
  * Following Doug Lea's TreeMap example, we avoid the use of the magic
  * "nil" sentinel pointers.  The sentinel is simply a convenience and
- * is not fundamental to the algorithm.  We forgo the sentinel as
+ * is not fundamental to the algorithm.  We forgot the sentinel as
  * it is a source of false+ data conflicts in transactions.  Relatedly,
  * even with locks, use of a nil sentil can result in considerable
  * cache coherency traffic on traditional SMPs.

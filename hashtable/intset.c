@@ -59,7 +59,7 @@ int ht_remove(ht_intset_t *set, int val, int transactional) {
  *
  * This version allows the removal of val1 while insertion of val2 fails (e.g.
  * because val2 already present. (Despite this partial failure, the move returns 
- * true.) As a result, data structure size may decrease as moves execute.
+ * true.) As a result, the data structure size may decrease as moves execute.
  */
 int ht_move_naive(ht_intset_t *set, int val1, int val2, int transactional) {
 	int result = 0;
@@ -135,8 +135,6 @@ int ht_move(ht_intset_t *set, int val1, int val2, int transactional) {
 		
 	addr1 = val1 % maxhtlength;
 	addr2 = val2 % maxhtlength;
-	//result =  (set_remove(set->buckets[addr1], val1, transactional) && 
-	//		   set_add(set->buckets[addr2], val2, transactional));
 
 	if (set_remove(set->buckets[addr1], val1, 0)) 
 	  result = 1;
@@ -178,9 +176,7 @@ int ht_move(ht_intset_t *set, int val1, int val2, int transactional) {
 		  /* Physically removing */
 		  n = (node_t *)TX_LOAD(&next1->next);
 		  TX_STORE(&prev1->next, n);
- 		  //if (v != val2 && prev != prev1) {
-		    TX_STORE(&prev->next, new_node(val2, next, transactional));
-		    //}		  
+	      TX_STORE(&prev->next, new_node(val2, next, transactional));
 		  FREE(next1, sizeof(node_t));
 		}
 	} else result = 0;

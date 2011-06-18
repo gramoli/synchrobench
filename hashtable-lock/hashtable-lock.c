@@ -168,21 +168,9 @@ int ht_move(ht_intset_t *set, int val1, int val2, int transactional) {
 		newnode = new_node_l(val2, curr2, 0);
 		pred2->next = newnode;
 	}
-	/*if (addr1 < addr2 || (addr1 == addr2 && val1 < val2)) {
-	  UNLOCK(&pred1->lock);
-	  UNLOCK(&curr1->lock);
-	  UNLOCK(&pred2->lock);
-	  UNLOCK(&curr2->lock);
-	} else {
-	  // release locks in order
-	  UNLOCK(&pred2->lock);
-	  UNLOCK(&curr2->lock);
-	  UNLOCK(&pred1->lock);
-	  UNLOCK(&curr1->lock);
-	  }*/
 	// release locks in order
-        UNLOCK(&pred2->lock);
-        UNLOCK(&pred1->lock);
+	UNLOCK(&pred2->lock);
+	UNLOCK(&pred1->lock);
 	UNLOCK(&curr2->lock);
 	UNLOCK(&curr1->lock);
 		
