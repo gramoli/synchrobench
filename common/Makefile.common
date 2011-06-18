@@ -3,20 +3,20 @@
 ################
 
 # Paths
-LIBAO 		?= /home/gramoli/lib/libatomic64
+LIBAO 		?= SET_LIBATOMIC_PATH
 
 # STM
-ESTMDIR		?= /home/gramoli/svn/private/dev/stms/estm/trunk
-TINYSTMDIR 	?= /home/gramoli/stms/tinystm/tinySTM-0.9.9-64b
-TINY098DIR 	?= /Users/gramoli/Documents/Expe/stms/tinySTM/tinySTM-0.9.8
-WLPDSTMDIR	?= /home/vincent/stms/swisstm/wlpdstm_64
-TL2DIR		?= /home/vincent/stms/tl2/tl2-x86-0.9.6
-XBDIR 		?= /home/vincent/stms/tl2/tl2-x86-0.9.3-boosted 
+ESTMDIR		?= SET_ESTM_PATH
+TINYSTMDIR 	?= SET_TINYSTM_PATH
+TINY098DIR 	?= SET_TINY098_PATH
+WLPDSTMDIR	?= SET_SWISSTM_PATH
+TL2DIR		?= SET_TL2_PATH
+XBDIR 		?= SET_XBOOST_PATH
 
 # Debug/optimization flags
 #CFLAGS 	 	+= -g -DNDEBUG -O0
 CFLAGS          += -O3 -DNDEBUG
-SOLARIS_CC 	?= /home/vincent/gcc/bin/gcc
+SOLARIS_CC 	?= SET_PATH_TO_SOLARIS_CC
 ROOT 		?= ..
 
 ifndef STM
