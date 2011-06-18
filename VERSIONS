@@ -1,3 +1,9 @@
+[0.3.9 release]
+
+2011-06-18 Vincent Gramoli <vincent.gramoli@epfl.ch>
+        * Adding the choice between elastic and normal transactions
+        for the add operation in the red-black tree algorithm
+
 [0.3.8 release] 
 
 2011-03-04 Vincent Gramoli <vincent.gramoli@epfl.ch>
