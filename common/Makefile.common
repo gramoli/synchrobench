@@ -3,10 +3,12 @@
 ################
 
 # Paths
-LIBAO 		?= /home/gramoli/lib/libatomic32
+#LIBAO 		?= /home/gramoli/lib/libatomic32
+LIBAO 		?= /home/gramoli/lib/libatomic64
 
 # STM
-ESTMDIR		?= /home/gramoli/svn/private/dev/stms/estm/branches/cm-priority
+#ESTMDIR		?= /home/gramoli/svn/private/dev/stms/estm/branches/cm-priority
+ESTMDIR		?= /home/gramoli/svn/private/dev/stms/estm/trunk
 TINYSTMDIR 	?= /home/gramoli/stms/tinystm/tinySTM-0.9.9-64b
 #/home/vincent/stms/tinystm/tinySTM-0.9.9
 TINY098DIR 	?= /Users/gramoli/Documents/Expe/stms/tinySTM/tinySTM-0.9.8

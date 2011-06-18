@@ -95,7 +95,7 @@ int set_contains(intset_t *set, val_t val, int transactional)
 /* 
  * Adding to the rbtree may require rotations (at least in this implementation)  
  * This operation requires strong dependencies between numerous transactional 
- * operations, hence, the use of normal transaction is necessary for safety.
+ * operations, hence, the concurrency gain with elastic transactions is slight.
  */ 
 int set_add(intset_t *set, val_t val, int transactional)
 {
@@ -107,9 +107,13 @@ int set_add(intset_t *set, val_t val, int transactional)
 		  break;
 		  
 	  case 1:
-	  case 2: 	
+	  case 2: /* Normal transaction */	
+		  TX_START(NL);
+		  result = TMrbtree_insert(set, (void *)val, (void *)val);
+		  TX_END;
+		  break;
 	  case 3:
-	  case 4:
+	  case 4: /* Elastic transaction */
 		  TX_START(EL);
 		  result = TMrbtree_insert(set, (void *)val, (void *)val);
 		  TX_END;
