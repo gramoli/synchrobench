@@ -127,10 +127,10 @@ int ht_move_naive(ht_intset_t *set, int val1, int val2, int transactional) {
  * before updating it.
  */
 int ht_move(ht_intset_t *set, int val1, int val2, int transactional) {
-	int result = 0;
-	
+  int result = 0;
+
 #ifdef SEQUENTIAL
-	
+
 	int addr1, addr2;
 		
 	addr1 = val1 % maxhtlength;
@@ -142,11 +142,12 @@ int ht_move(ht_intset_t *set, int val1, int val2, int transactional) {
 	return result;
 
 #elif defined STM
-	
+
 	int v, addr1, addr2;
 	node_t *n, *prev, *next, *prev1,  *next1;
 	
 	TX_START(EL);
+	result = 0;
 	addr1 = val1 % maxhtlength;
 	prev = (node_t *)TX_LOAD(&set->buckets[addr1]->head);
 	next = (node_t *)TX_LOAD(&prev->next);
@@ -176,14 +177,14 @@ int ht_move(ht_intset_t *set, int val1, int val2, int transactional) {
 		  /* Physically removing */
 		  n = (node_t *)TX_LOAD(&next1->next);
 		  TX_STORE(&prev1->next, n);
-	      TX_STORE(&prev->next, new_node(val2, next, transactional));
+		  TX_STORE(&prev->next, new_node(val2, next, transactional));
 		  FREE(next1, sizeof(node_t));
 		}
 	} else result = 0;
 	TX_END;
 
 #elif defined LOCKFREE /* No CAS-based implementation is provided */
-
+	
 	printf("ht_snapshot: No other implementation of atomic snapshot is available\n");
 	exit(1);
 
@@ -198,23 +199,23 @@ int ht_move(ht_intset_t *set, int val1, int val2, int transactional) {
  * to remain unchanged).
  */
 int ht_move_orrollback(ht_intset_t *set, int val1, int val2, int transactional) {
-	int result = 0;
+  int result = 0;	
 	
 #ifdef SEQUENTIAL
-	
-	int addr1, addr2;
-		
+
+	int addr1, addr2;		
 	addr1 = val1 % maxhtlength;
 	addr2 = val2 % maxhtlength;
 	result =  (set_remove(set->buckets[addr1], val1, transactional) &&
 			   set_add(set->buckets[addr2], val2, transactional));
 	
 #elif defined STM
-	
+
 	int v, addr1, addr2;
 	node_t *n, *prev, *next, *prev1, *next1;
 
 	TX_START(EL);
+	result = 0;
 	addr1 = val1 % maxhtlength;
 	prev = (node_t *)TX_LOAD(&set->buckets[addr1]->head);
 	next = (node_t *)TX_LOAD(&prev->next);
@@ -271,10 +272,10 @@ int ht_move_orrollback(ht_intset_t *set, int val1, int val2, int transactional) 
  * compose with elastic transactions.
  */
 int ht_snapshot(ht_intset_t *set, int transactional) {
-	int result = 0; 
+  int result = 0; 
 	
 #ifdef SEQUENTIAL
-	
+
 	int i, sum = 0;
 	node_t *next;
 	
@@ -287,12 +288,13 @@ int ht_snapshot(ht_intset_t *set, int transactional) {
 	}
 	result = 1;
 		
-#elif defined STM	
+#elif defined STM
 	
 	int i, sum = 0;
 	node_t *next;
 	
 	TX_START(NL);
+	result = 0;
 	for (i=0; i < maxhtlength; i++) {
 		next = (node_t *)TX_LOAD(&set->buckets[i]->head->next);
 		while(next->next) {
@@ -304,7 +306,7 @@ int ht_snapshot(ht_intset_t *set, int transactional) {
 	result = 1;
 
 #elif defined LOCKFREE /* No CAS-based implementation is provided */
-			
+
 	printf("ht_snapshot: No other implementation of atomic snapshot is available\n");
 	exit(1);
 			

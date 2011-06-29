@@ -90,4 +90,4 @@ sl_intset_t *sl_set_new();
 void sl_set_delete(sl_intset_t *set);
 int sl_set_size(sl_intset_t *set);
 
-
+inline long rand_range(long r); /* declared in test.c */

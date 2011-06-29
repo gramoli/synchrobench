@@ -118,7 +118,7 @@ int sl_add(sl_intset_t *set, val_t val, int transactional)
 	
 	int i, l;
 	sl_node_t *node, *next;
-	sl_node_t *preds[MAXLEVEL], *succs[MAXLEVEL];
+	sl_node_t *preds[MAXLEVEL];
 	val_t v;  
 	
 	TX_START(EL);

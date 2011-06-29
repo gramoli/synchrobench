@@ -1,3 +1,11 @@
+[0.4.0 release]
+
+2011-06-29 Vincent Gramoli <vincent.gramoli@epfl.ch>
+        * Declaring the result variable in txs
+        * Add atomic_ops library
+	* Separate build files
+	* Cleanup Makefiles
+
 [0.3.9 release]
 
 2011-06-18 Vincent Gramoli <vincent.gramoli@epfl.ch>

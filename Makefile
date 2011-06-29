@@ -1,7 +1,8 @@
 .PHONY:	all
 
-BENCHS = linkedlist hashtable skiplist rbtree #deque
-LBENCHS = linkedlist-lock hashtable-lock skiplist-lock
+BENCHS = src/linkedlist src/hashtable src/skiplist src/rbtree src/deque
+LBENCHS = src/linkedlist-lock src/hashtable-lock src/skiplist-lock
+LFBENCHS = src/linkedlist src/hashtable src/skiplist 
 
 .PHONY:	clean all $(BENCHS) $(LBENCHS)
 
@@ -17,13 +18,22 @@ sequential:
 	$(MAKE) "STM=SEQUENTIAL" $(BENCHS)
 
 lockfree:
-	$(MAKE) "STM=LOCKFREE" $(BENCHS)
+	$(MAKE) "STM=LOCKFREE" $(LFBENCHS)
 
-estm: 
+estm:
 	$(MAKE) "STM=ESTM" $(BENCHS)
 
 tinystm:
-	$(MAKE) "STM=TINYSTM" $(BENCHS)
+	$(MAKE) "STM=TINY100" $(BENCHS)
+
+tiny100:
+	$(MAKE) "STM=TINY100" $(BENCHS)
+
+tiny10B:
+	$(MAKE) "STM=TINY10B" $(BENCHS)
+
+tiny099:
+	$(MAKE) "STM=TINY099" $(BENCHS)
 
 tiny098:
 	$(MAKE) "STM=TINY098" $(BENCHS)
@@ -32,30 +42,30 @@ tl2:
 	$(MAKE) "STM=TL2" $(BENCHS)
 
 herlihy:
-	$(MAKE) "STM=LOCKFREE" -C deque
+	$(MAKE) "STM=LOCKFREE" -C src/deque
 
 herlihytiny:
-	$(MAKE) "STM=TINYSTM" -C deque
+	$(MAKE) "STM=TINYSTM" -C src/deque
 
 herlihyestm:
-	$(MAKE) "STM=ESTM" -C deque
+	$(MAKE) "STM=ESTM" -C src/deque
 
 herlihywlpdstm:
-	$(MAKE) "STM=WLPDSTM" -C deque
+	$(MAKE) "STM=WLPDSTM" -C src/deque
 
 herlihyseq:
-	$(MAKE) "STM=SEQUENTIAL" -C deque
+	$(MAKE) "STM=SEQUENTIAL" -C src/deque
 
 # transactional boosting (xb), aggressive (axb), with work stealing (axbs)
 
 xb:
-	$(MAKE) "STM=XB" -C rbtree-boosted
+	$(MAKE) "STM=XB" -C src/rbtree-boosted
 
 axb:
-	$(MAKE) "STM=AXB" -C rbtree-boosted
+	$(MAKE) "STM=AXB" -C src/rbtree-boosted
 
 axbs:
-	$(MAKE) "STM=AXBS" -C rbtree-boosted
+	$(MAKE) "STM=AXBS" -C src/rbtree-boosted
 
 wlpdstm:
 	$(MAKE) "STM=WLPDSTM" $(BENCHS)
@@ -70,14 +80,15 @@ tanger:
 	$(MAKE) "STM=TANGER" $(BENCHS)
 
 clean:
-	$(MAKE) -C linkedlist clean	
-	$(MAKE) -C skiplist clean
-	$(MAKE) -C hashtable clean
-	$(MAKE) -C rbtree clean
-	$(MAKE) -C linkedlist-lock clean
-	$(MAKE) -C hashtable-lock clean
-	$(MAKE) -C skiplist-lock clean
-	$(MAKE) -C deque clean
+	$(MAKE) -C src/linkedlist clean	
+	$(MAKE) -C src/skiplist clean
+	$(MAKE) -C src/hashtable clean
+	$(MAKE) -C src/rbtree clean
+	$(MAKE) -C src/linkedlist-lock clean
+	$(MAKE) -C src/hashtable-lock clean
+	$(MAKE) -C src/skiplist-lock clean
+	$(MAKE) -C src/deque clean
+	rm -rf build
 #	$(MAKE) -C rbtree-boosted clean
 
 $(BENCHS):

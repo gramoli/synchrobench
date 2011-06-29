@@ -77,7 +77,7 @@ inline int set_seq_add(intset_t *set, val_t val)
 
 int set_add(intset_t *set, val_t val, int transactional)
 {
-	int result = 0;
+	int result;
 	
 #ifdef DEBUG
 	printf("++> set_add(%d)\n", (int)val);
