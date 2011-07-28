@@ -7,7 +7,7 @@ LOCKS="lock spinlock"
 # othe list for lockfree
 LFS="lockfree"
 # current microbench version
-MBENCH_VERSION=0.4
+MBENCH_VERSION=0.4.1
 # where to store binaries
 EXPERIMENT_BIN_DIR=../bin
 # make or gmake

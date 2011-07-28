@@ -15,7 +15,7 @@ SOLARIS_CC 	?= SET_PATH_TO_SOLARIS_CC
 
 # Debug/optimization flags
 #CFLAGS 	 	+= -g -DNDEBUG -O0
-CFLAGS          += -O3 -DNDEBUG
+CFLAGS          += -O3 -DDEBUG
 
 ROOT 		?= ../..
 BINDIR		?= $(ROOT)/bin

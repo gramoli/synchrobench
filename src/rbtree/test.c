@@ -664,6 +664,10 @@ void *test2(void *data)
 		printf("#lr-failed    : %lu (%f / s)\n", locked_reads_failed, locked_reads_failed * 1000.0 / duration);
 		printf("Max retries   : %lu\n", max_retries);
 		
+#ifdef DEBUG
+		rbtree_verify(set, 1);
+#endif /* ! DEBUG */
+
 		/* Delete set */
 		set_delete(set);
 		

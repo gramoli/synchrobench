@@ -149,27 +149,52 @@ int deque_rightpush(circarr_t *queue, val_t val, int transactional) {
   node_t *new;
   int i; 
   
-  TX_START(EL);
+  if (transactional > 1) {
+
+    TX_START(EL);
+    /* search leftmost RN */
+    i = (val_t)TX_LOAD(&rhint);
+    
+    if (rnull((val_t)TX_LOAD(&queue[(i+1) % (MAX+2)]->val))) {
+      /* we can push */
+      new = (node_t *)MALLOC(sizeof(node_t));
+      new->val = val;
+      new->ctr = 0;
+      TX_STORE(&queue[i], new);
+      /* increment the leftmost RN index */
+      TX_STORE(&rhint, (i+1) % (MAX+2));
+      FREE(queue[i], sizeof(node_t *));
+      result = 1;
+    } else if (lnull((val_t)TX_LOAD(&queue[(i+1) % (MAX+2)]->val))) {
+      /* full: cannot push */
+      result = 0; 
+    } 
+    TX_END;
+
+  } else {
+
+    TX_START(NL);
+    /* search leftmost RN */
+    i = (val_t)TX_LOAD(&rhint);
+    
+    if (rnull((val_t)TX_LOAD(&queue[(i+1) % (MAX+2)]->val))) {
+      /* we can push */
+      new = (node_t *)MALLOC(sizeof(node_t));
+      new->val = val;
+      new->ctr = 0;
+      TX_STORE(&queue[i], new);
+      /* increment the leftmost RN index */
+      TX_STORE(&rhint, (i+1) % (MAX+2));
+      FREE(queue[i], sizeof(node_t *));
+      result = 1;
+    } else if (lnull((val_t)TX_LOAD(&queue[(i+1) % (MAX+2)]->val))) {
+      /* full: cannot push */
+      result = 0; 
+    } 
+    TX_END;
   
-  /* search leftmost RN */
-  i = (val_t)TX_LOAD(&rhint);
-  
-  if (rnull((val_t)TX_LOAD(&queue[(i+1) % (MAX+2)]->val))) {
-    /* we can push */
-    new = (node_t *)MALLOC(sizeof(node_t));
-    new->val = val;
-    new->ctr = 0;
-    TX_STORE(&queue[i], new);
-    /* increment the leftmost RN index */
-    TX_STORE(&rhint, (i+1) % (MAX+2));
-    FREE(queue[i], sizeof(node_t *));
-    result = 1;
-  } else if (lnull((val_t)TX_LOAD(&queue[(i+1) % (MAX+2)]->val))) {
-    /* full: cannot push */
-    result = 0; 
-  } 
-  TX_END;
-  
+  }
+    
 #elif defined LOCKFREE			
   result = herlihy_rightpush_hint(queue, val, transactional);
 #endif	
@@ -202,37 +227,70 @@ int deque_leftpush_parsingoracle(circarr_t *queue, val_t val, int transactional)
   }
   
 #elif defined STM			
+
   node_t *new, *prev, *cur;
   int i; 
   
-  TX_START(EL);	
+  if (transactional > 2) {
   
-  /* search rightmost LN */
-  do {
-    i=-1;
-    while (i < 0 || i > MAX+1) {
-      for (i = 0; i <= MAX+1; i++) {
-	prev = queue[(i+1) % (MAX+2)];
-	cur = queue[i];
-	if (lnull(cur->val) && !lnull(prev->val))
-	  break;
+    TX_START(EL);	
+    /* search rightmost LN */
+    do {
+      i=-1;
+      while (i < 0 || i > MAX+1) {
+	for (i = 0; i <= MAX+1; i++) {
+	  prev = queue[(i+1) % (MAX+2)];
+	  cur = queue[i];
+	  if (lnull(cur->val) && !lnull(prev->val))
+	    break;
+	}
       }
-    }
-    prev = (node_t*)TX_LOAD(&queue[(i+1) % (MAX+2)]);
-    cur = (node_t*)TX_LOAD(&queue[i]);
-  } while (!lnull(cur->val) || lnull(prev->val));
-  
-  if (lnull(TX_LOAD(&queue[(MAX+i+1) % (MAX+2)]->val))) {
-    /* we can push */
-    new = (node_t *)MALLOC(sizeof(node_t));
-    new->val = val;
-    new->ctr = 0;
-    TX_STORE(&queue[i], new);
-    FREE(queue[i], sizeof(node_t *));
-    result = 1;
-  } 
-  TX_END;
-  
+      prev = (node_t*)TX_LOAD(&queue[(i+1) % (MAX+2)]);
+      cur = (node_t*)TX_LOAD(&queue[i]);
+    } while (!lnull(cur->val) || lnull(prev->val));
+    
+    if (lnull(TX_LOAD(&queue[(MAX+i+1) % (MAX+2)]->val))) {
+      /* we can push */
+      new = (node_t *)MALLOC(sizeof(node_t));
+      new->val = val;
+      new->ctr = 0;
+      TX_STORE(&queue[i], new);
+      FREE(queue[i], sizeof(node_t *));
+      result = 1;
+    } 
+    TX_END;
+   
+  } else {
+ 
+    TX_START(NL);	
+    /* search rightmost LN */
+    do {
+      i=-1;
+      while (i < 0 || i > MAX+1) {
+	for (i = 0; i <= MAX+1; i++) {
+	  prev = queue[(i+1) % (MAX+2)];
+	  cur = queue[i];
+	  if (lnull(cur->val) && !lnull(prev->val))
+	    break;
+	}
+      }
+      prev = (node_t*)TX_LOAD(&queue[(i+1) % (MAX+2)]);
+      cur = (node_t*)TX_LOAD(&queue[i]);
+    } while (!lnull(cur->val) || lnull(prev->val));
+    
+    if (lnull(TX_LOAD(&queue[(MAX+i+1) % (MAX+2)]->val))) {
+      /* we can push */
+      new = (node_t *)MALLOC(sizeof(node_t));
+      new->val = val;
+      new->ctr = 0;
+      TX_STORE(&queue[i], new);
+      FREE(queue[i], sizeof(node_t *));
+      result = 1;
+    } 
+    TX_END;
+   
+  }
+
 #elif defined LOCKFREE			
   result = herlihy_leftpush_hint(queue, val, transactional);
 #endif	

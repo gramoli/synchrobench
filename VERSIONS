@@ -1,3 +1,9 @@
+[0.4.1 release]
+
+2011-07-01 Vincent Gramoli <vincent.gramoli@epfl.ch>
+        * Adding normal mode of E-STM in linkedlist, 
+	deque, skiplist, hashtable benchs
+        
 [0.4.0 release]
 
 2011-06-29 Vincent Gramoli <vincent.gramoli@epfl.ch>
