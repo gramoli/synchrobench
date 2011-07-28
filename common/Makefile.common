@@ -15,9 +15,9 @@ SOLARIS_CC 	?= SET_PATH_TO_SOLARIS_CC
 
 # Profile
 ifeq ($(VERSION),DEBUG)
-     CFLAGS	+= -g -DNDEBUG -O0
+     CFLAGS	+= -g -DDEBUG -O0
 else
-     CFLAGS	+= -O3 -DDEBUG
+     CFLAGS	+= -O3 -DNDEBUG
 endif
 
 ROOT 		?= ../..
