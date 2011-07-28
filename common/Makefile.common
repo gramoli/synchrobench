@@ -13,9 +13,12 @@ XBDIR 		?= SET_XBOOST_PATH
 # Compiler
 SOLARIS_CC 	?= SET_PATH_TO_SOLARIS_CC
 
-# Debug/optimization flags
-#CFLAGS 	 	+= -g -DNDEBUG -O0
-CFLAGS          += -O3 -DDEBUG
+# Profile
+ifeq ($(VERSION),DEBUG)
+     CFLAGS	+= -g -DNDEBUG -O0
+else
+     CFLAGS	+= -O3 -DDEBUG
+endif
 
 ROOT 		?= ../..
 BINDIR		?= $(ROOT)/bin
