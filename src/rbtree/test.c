@@ -224,91 +224,9 @@ void *test(void *data) {
 	return NULL;
 }
 
-
-void *test2(void *data)
+	
+int main(int argc, char **argv)
 {
-	int val, newval, last = 0;
-	thread_data_t *d = (thread_data_t *)data;
-	
-#ifdef TLS
-	rng_seed = &d->seed;
-#else /* ! TLS */
-	pthread_setspecific(rng_seed_key, &d->seed);
-#endif /* ! TLS */
-	
-	/* Create transaction */
-	TM_THREAD_ENTER();
-	/* Wait on barrier */
-	barrier_cross(d->barrier);
-	
-	last = -1;
-	
-#ifdef ICC
-	while (stop == 0) {
-#else
-	  while (AO_load_full(&stop) == 0) {
-#endif /* ICC */
-	    
-	    //val = rand_range_re(&d->seed, 100) - 1;
-	    val = rand_range(100) - 1;
-	    if (val < d->update) {
-	      if (last < 0) {
-		/* Add random value */
-		//val = rand_range_re(&d->seed, d->range);
-		val = rand_range(d->range);
-		if (set_add(d->set, val, TRANSACTIONAL)) {
-		  d->nb_added++;
-		  last = val;
-		}
-		d->nb_add++;
-	      } else {
-		if (d->alternate) {
-		  /* Remove last value */
-		  if (set_remove(d->set, last, TRANSACTIONAL)) {
-		    d->nb_removed++;
-		  }
-		  last = -1;
-		  d->nb_remove++;
-		} else { 
-		  /* Random computation only in non-alternated cases */
-		  //newval = rand_range_re(&d->seed, d->range);
-		  newval = rand_range(d->range);
-		  /* Remove one random value */
-		  if (set_remove(d->set, newval, TRANSACTIONAL)) {
-		    d->nb_removed++;
-		    last = -1;
-		  }
-		  d->nb_remove++;      
-		}
-	      }
-	    } else {
-	      /* Look for random value */
-	      //val = rand_range_re(&d->seed, d->range);
-	      val = rand_range(d->range);
-	      if (set_contains(d->set, val, TRANSACTIONAL))
-		d->nb_found++;
-	      d->nb_contains++;
-	    }
-	  }
-	  /*
-	    stm_get_stats("nb_aborts_reallocate", &d->nb_aborts_reallocate);
-	    stm_get_stats("nb_aborts_rollover", &d->nb_aborts_rollover);
-	    stm_get_stats("locked_reads_ok", &d->locked_reads_ok);
-	    stm_get_stats("locked_reads_failed", &d->locked_reads_failed);
-	  */
-	  /* Free transaction */
-	  TM_THREAD_EXIT();
-	  
-	  return NULL;
-	}
-	
-	/*void catcher(int sig)
-	{
-		printf("CAUGHT SIGNAL %d\n", sig);
-	}*/
-	
-	int main(int argc, char **argv)
-	{
 		struct option long_options[] = {
 			// These options don't set a flag
 			{"help",                      no_argument,       NULL, 'h'},

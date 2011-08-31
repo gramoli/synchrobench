@@ -2,6 +2,7 @@ ROOT = ../..
 
 include $(ROOT)/common/Makefile.common
 
+ELASTICITY ?= 2
 BINS = $(BINDIR)/lf-rt
 
 .PHONY:	all clean
