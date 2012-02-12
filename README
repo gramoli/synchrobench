@@ -1,24 +1,21 @@
 RELEASE NOTES
 -------------
 
-   * Microbench has been used to compare STM performance to lock-based 
-     and lock-free alternatives in Elastic Transactions, EPFL Tech. Rep. 
-     LPD-REPORT-2009-002. Also published at DISC'09. 
-     Pascal Felber, Vincent Gramoli, Rachid Guerraoui
+   * Synchrobench has been used to compare STM performance to lock-based 
+     and lock-free alternatives in "Elastic Transactions", EPFL Tech. Rep. 
+     LPD-REPORT-2009-002, also published at DISC'09, and "A Speculation
+     Friendly Binary Search Tree" published at PPoPP 2012. 
      Contact Vincent Gramoli <vincent.gramoli@epfl.ch> for any 
      question.
      Copyright 2009-2010. All Rights Reserved.
 
-   * Microbench is derived from the linked list testbed for TinySTM 
-     released by Pascal Felber.
-
    * Transactional Primitives - API:
-     BEGIN_TX()    -- Marks the beginning of a regular transaction
+     TX_START(NL)  -- Marks the beginning of a regular transaction
+     TX_START(EL)  -- Marks the beginning of an elastic transaction
      END           -- Marks the attempt to commit the current transaction
-     READ(x)       -- Calls the transactional load a memory location x
-     WRITE(x,v)    -- Calls the transactional store of v at x
-     BEGIN_EL_TX() -- Marks the beginning of an elastic transaction
-
+     TX_LOAD(x)    -- Calls the transactional load a memory location x
+     TX_STORE(x,v) -- Calls the transactional store of v at x
+     
 
 REFERENCES
 ----------
@@ -27,7 +24,14 @@ REFERENCES
      Pascal Felber, Vincent Gramoli, Rachid Guerraoui 
      EPFL Tech. Rep. LPD-REPORT-2009-002 and DISC 2009
 
-   * Microbench includes the implementation of several algorithms:
+   * Synchrobench includes the implementation of several algorithms:
+
+     Transaction-based binary search tree:
+     A Speculation-Friendly Binary Search Tree
+     Tyler Crain, Vincent Gramoli and Michel Raynal
+     Proc. of the 17th ACM SIGPLAN Symposium on Principles and Practice 
+     of Parallel Programming (PPoPP)
+     2012
 
      Lock-free Linked List: 
      A Pragmatic Implementation of Non-Blocking Linked Lists 
@@ -42,13 +46,13 @@ REFERENCES
      Proc. of the 9th Int'l Conf. on Principles of Dist. Systems (OPODIS)
      p.3-16, 2005
 
-     Lock-free Skip List
+     Lock-free Skip List:
      Practical Lock Freedom
      Keir Fraser
      PhD dissertation, September 2003
      Cambridge University Technical Report UCAM-CL-TR-579 
 
-     Lock-based Skip List
+     Lock-based Skip List:
      A Simple Optimistic Skiplist Algorithm. 
      Maurice Herlihy, Yossi Lev, Victor Luchangco, Nir Shavit
      Proc. of the 14th Int'l Colloquim on Structural Information and

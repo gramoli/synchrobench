@@ -1,22 +1,11 @@
 REQUIREMENTS
 ------------
 
-   * Atomic_ops library is needed for Microbench. It provides
-     implementations for atomic memory update operations on a number of
-     architectures. It can be downloaded online: 
-     http://hplabs.hp.com/research/linux/atomic_ops/
-
-   * SPARC needs the atomic_ops patch to run Microbench. This patch 
-     can be downloaded here http://sourceforge.net/tracker/index.php?
-     func=detail&aid=2805831&group_id=144171&atid=757775
-
    * STMs. Microbench aimed at testing an STM. Some are available online:
      - TinySTM   http://tmware.org/tinystm
      - SwissTM   http://lpd.epfl.ch/site/research/tmeval
      - E-STM     http://lpd.epfl.ch/gramoli/php/estm
 
-   * To use red-black tree, download the rbtree.c and rbtree.h files of 
-     the STAMP release and place them into [microbench]/rbtree directory
 
 INSTALL
 -------  
@@ -42,16 +31,18 @@ RUN
 ---
 
    1. Executables for double-ended queue, hash table, linked list, 
-      red-black tree, skip list, lock-based linked list, lock-based
-      hashtable, lock-based skip list:
-      ./deque/lf-dq
-      ./hashtable/lf-ht
-      ./linkedlist/lf-ll
-      ./rbtree/lf-rt 
-      ./skiplist/lf-sl
-      ./hashtable/lb-ht
-      ./linkedlist/lb-ll
-      ./skiplist/lb-sl
+      red-black tree, skip list, speculation-friendly binary search tree, 
+      lock-based linked list, lock-based hashtable, lock-based skip list
+      are located in 'bin':
+      ./bin/lf-dq
+      ./bin/lf-ht
+      ./bin/lf-ll
+      ./bin/lf-rt 
+      ./bin/lf-sl
+      ./bin/lf-st
+      ./bin/lb-ht
+      ./bin/lb-ll
+      ./bin/lb-sl
    2. Use parameter "--help" for the full list of parameters
 
 

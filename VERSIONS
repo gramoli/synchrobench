@@ -1,3 +1,9 @@
+[1.0 release]
+
+2012-02-10 Vincent Gramoli <vincent.gramoli@epfl.ch>
+	* Added speculation-friendly tree algorithm
+	* Renamed the suite as synchrobench
+
 2011-07-28 Vincent Gramoli <vincent.gramoli@epfl.ch>
 	* Adding VERSION for DEBUG mode
         * Removing test2 of rbtree and adding 

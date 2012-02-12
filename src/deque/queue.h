@@ -1,6 +1,6 @@
 /*
  * File:
- *   deque.h
+ *   queue.h
  * Author(s):
  *   Vincent Gramoli <vincent.gramoli@epfl.ch>
  * Description:
@@ -8,11 +8,11 @@
  * 
  * Copyright (c) 2008-2009.
  *
- * deque.c is part of Microbench
+ * queue.c is part of Synchrobench
  * 
- * Microbench is free software: you can redistribute it and/or
+ * Synchrobench is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation, version 3
+ * as published by the Free Software Foundation, version 2
  * of the License.
  *
  * This program is distributed in the hope that it will be useful,

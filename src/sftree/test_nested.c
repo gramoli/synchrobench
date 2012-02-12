@@ -1,14 +1,16 @@
 /*
  * File:
- *   test.c
+ *   test_nested.c
  * Author(s):
+ *   Tyler Crain <tyler.crain@irisa.fr>
  *   Vincent Gramoli <vincent.gramoli@epfl.ch>
  * Description:
- *   Concurrent accesses to skip list integer set
+ *   Concurrent accesses including nested ones 
+ *   to the speculation-friendly tree 
  *
  * Copyright (c) 2009-2010.
  *
- * test.c is part of Synchrobench
+ * test_nested.c is part of Synchrobench
  * 
  * Synchrobench is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,7 +23,12 @@
  * GNU General Public License for more details.
  */
 
+#include <unistd.h>
 #include "intset.h"
+
+//#define THROTTLE_NUM  1000
+//#define THROTTLE_TIME 10000
+//#define THROTTLE_MAINTENANCE
 
 volatile AO_t stop;
 unsigned int global_seed;
@@ -69,9 +76,19 @@ void barrier_cross(barrier_t *b)
  * the granularity of rand() could be lower-bounded by the 32767^th which might 
  * be too high for given values of range and initial.
  */
+
 inline long rand_range(long r) {
 	int m = RAND_MAX;
 	int d, v = 0;
+
+/* #ifdef BIAS_RANGE */
+/* 	if(rand() < RAND_MAX / 10000) { */
+/* 	  if(last < r || last > r * 10) { */
+/* 	    last = r; */
+/* 	  } */
+/* 	  return last++; */
+/* 	} */
+/* #endif */
 	
 	do {
 		d = (m > r ? r : m);		
@@ -85,7 +102,15 @@ inline long rand_range(long r) {
 inline long rand_range_re(unsigned int *seed, long r) {
 	int m = RAND_MAX;
 	int d, v = 0;
-	
+
+/* #ifdef BIAS_RANGE */
+/* 	if(rand_r(seed) < RAND_MAX / 10000) { */
+/* 	  if(last < r || last > r * 10) { */
+/* 	    last = r; */
+/* 	  } */
+/* 	  return last++; */
+/* 	} */
+/* #endif	 */
 	do {
 		d = (m > r ? r : m);		
 		v += 1 + (int)(d * ((double)rand_r(seed)/((double)(m)+1.0)));
@@ -94,13 +119,32 @@ inline long rand_range_re(unsigned int *seed, long r) {
 	return v;
 }
 
+
 typedef struct thread_data {
+        int id;
 	val_t first;
 	long range;
 	int update;
 	int unit_tx;
 	int alternate;
 	int effective;
+
+        unsigned long set_write_reads;
+        unsigned long set_read_reads;
+        unsigned long set_write_writes;
+        unsigned long set_reads;
+        unsigned long set_writes;
+        unsigned long set_max_reads;
+        unsigned long set_max_writes;
+
+        unsigned long write_reads;
+        unsigned long read_reads;
+        unsigned long write_writes;
+        unsigned long reads;
+        unsigned long writes;
+        unsigned long max_reads;
+        unsigned long max_writes;
+        unsigned long nb_modifications;
 	unsigned long nb_add;
 	unsigned long nb_added;
 	unsigned long nb_remove;
@@ -117,40 +161,104 @@ typedef struct thread_data {
 	unsigned long nb_aborts_double_write;
 	unsigned long max_retries;
 	unsigned int seed;
-	sl_intset_t *set;
+	avl_intset_t *set;
 	barrier_t *barrier;
 	unsigned long failures_because_contention;
+        unsigned long nb_trans;
+  //free_list_item *free_list;
 } thread_data_t;
 
+typedef struct maintenance_thread_data {
+  unsigned long nb_removed;
+  unsigned long nb_rotated;
+  unsigned long nb_suc_rotated;
+  unsigned long nb_propagated;
+  unsigned long nb_suc_propagated;
 
-void print_skiplist(sl_intset_t *set) {
-	sl_node_t *curr;
-	int i, j;
-	int arr[levelmax];
-	
-	for (i=0; i< sizeof arr/sizeof arr[0]; i++) arr[i] = 0;
-	
-	curr = set->head;
-	do {
-		printf("%d", (int) curr->val);
-		for (i=0; i<curr->toplevel; i++) {
-			printf("-*");
-		}
-		arr[curr->toplevel-1]++;
-		printf("\n");
-		curr = curr->next[0];
-	} while (curr); 
-	for (j=0; j<levelmax; j++)
-		printf("%d nodes of level %d\n", arr[j], j);
+  unsigned long set_write_reads;
+  unsigned long set_read_reads;
+  unsigned long set_write_writes;
+  unsigned long set_reads;
+  unsigned long set_writes;
+  unsigned long set_max_reads;
+  unsigned long set_max_writes;
+
+  unsigned long write_reads;
+  unsigned long read_reads;
+  unsigned long write_writes;
+  unsigned long reads;
+  unsigned long writes;
+
+  int id;
+  int nb_maint;
+  unsigned long max_reads;
+  unsigned long max_writes;
+  unsigned long nb_aborts;
+  unsigned long nb_aborts_locked_read;
+  unsigned long nb_aborts_locked_write;
+  unsigned long nb_aborts_validate_read;
+  unsigned long nb_aborts_validate_write;
+  unsigned long nb_aborts_validate_commit;
+  unsigned long nb_aborts_invalid_memory;
+  unsigned long nb_aborts_double_write;
+  unsigned long max_retries;
+  thread_data_t *t_data;
+  unsigned long *t_nb_trans;
+  unsigned long *t_nb_trans_old;
+  //free_list_item *free_list;
+  //free_list_item **t_free_list;
+  int nb_threads;
+  avl_intset_t *set;
+  barrier_t *barrier;
+} maintenance_thread_data_t;
+
+
+void print_rec(avl_node_t *node, int lvl, int maxlvl, long *count) {
+  if(node == NULL) {
+    return;
+  }
+  if(lvl == maxlvl) {
+    //printf("Key:%d,D/R:%d%d,LRC:%d,%d,%d ",node->key, node->deleted, node->removed, node->lefth, node->righth, node->localh);
+    printf("Key:%d,D/R:%d%d ", node->key, node->deleted, node->removed);
+    *count = *count + 1;
+    return;
+  }
+  lvl = lvl + 1;
+  print_rec(node->left, lvl, maxlvl, count);
+  print_rec(node->right, lvl, maxlvl, count);
+}
+
+void print_avltree(avl_intset_t *set) {
+  long count = 1;
+  int lvl = 0;
+  while(count != 0) {
+    count = 0;
+    print_rec(set->root, 0, lvl++, &count);
+    printf("\n");
+  }
+
 }
 
 
 void *test(void *data) {
-	int unext, last = -1; 
+  int unext, last = -1, i; 
 	val_t val = 0;
-	
+	int result;
+	int id;
+	ulong *tloc;
+	ulong tmp_nb_add, tmp_nb_added, tmp_nb_remove, tmp_nb_removed, tmp_nb_trans, tmp_nb_contains, tmp_nb_found;
+#ifdef BIAS_RANGE
+	val_t increase;
+#endif
+
 	thread_data_t *d = (thread_data_t *)data;
+	id = d->id;
+	tloc = d->set->nb_committed;
 	
+#ifdef BIAS_RANGE
+	increase = d->range;
+#endif
+
 	/* Create transaction */
 	TM_THREAD_ENTER();
 	/* Wait on barrier */
@@ -165,35 +273,88 @@ void *test(void *data) {
 	while (AO_load_full(&stop) == 0) {
 #endif /* ICC */
 		
+	  
+	  TX_START(NL);
+
+#ifdef BIAS_RANGE
+	    tmp_increase = increase;
+#endif
+	    tmp_nb_add = 0;
+	    tmp_nb_trans = 0;
+	    tmp_nb_added = 0;
+	    tmp_nb_removed = 0;
+	    tmp_nb_remove = 0;
+	    tmp_nb_contains = 0;
+	    tmp_nb_found = 0;
+
+
+	  for(i = 0; i < NESTED_COUNT; i++) {
+
 		if (unext) { // update
 			
 			if (last < 0) { // add
 				
 				val = rand_range_re(&d->seed, d->range);
-				if (sl_add(d->set, val, TRANSACTIONAL)) {
-					d->nb_added++;
+#ifdef BIAS_RANGE
+				if(rand_range_re(&d->seed, 1000) < 50) {
+				  tmp_increase += rand_range_re(&d->seed, 10);
+				  if(tmp_increase > d->range * 20) {
+				    tmp_increase = d->range;
+				  }
+				  val = tmp_increase;
+				}
+#endif
+				if ((result = avl_add(d->set, val, TRANSACTIONAL, id)) > 0) {
+					tmp_nb_added++;
+					if(result > 1) {
+					  d->nb_modifications++;
+					}
 					last = val;
-				} 				
-				d->nb_add++;
+				}
+				tmp_nb_trans++;
+				tmp_nb_add++;
 				
 			} else { // remove
 				
 				if (d->alternate) { // alternate mode (default)
-					if (sl_remove(d->set, last, TRANSACTIONAL)) {
-						d->nb_removed++;
-					} 
+#ifdef TINY10B
+				  if ((result = avl_remove(d->set, last, TRANSACTIONAL, id)) > 0) {
+#else
+				    if ((result = avl_remove(d->set, last, TRANSACTIONAL, 0)) > 0) {
+#endif
+						tmp_nb_removed++;
+
+					        if(result > 1) {
+					           d->nb_modifications++;
+					         }
+					}
 					last = -1;
 				} else {
 					/* Random computation only in non-alternated cases */
 					val = rand_range_re(&d->seed, d->range);
 					/* Remove one random value */
-					if (sl_remove(d->set, val, TRANSACTIONAL)) {
-						d->nb_removed++;
+#ifdef BIAS_RANGE
+					if(rand_range_re(&d->seed, 1000) < 300) {
+					  //val = d->range + rand_range_re(&d->seed, increase - d->range);
+					  val = tmp_increase - rand_range_re(&d->seed, 10);
+					}
+#endif
+#ifdef TINY10B
+					if ((result = avl_remove(d->set, val, TRANSACTIONAL, id)) > 0) {
+#else
+					  if ((result = avl_remove(d->set, val, TRANSACTIONAL, 0)) > 0) {
+#endif
+						tmp_nb_removed++;
+
+					        if(result > 1) {
+					          d->nb_modifications++;
+					        }
 						/* Repeat until successful, to avoid size variations */
 						last = -1;
 					} 
 				}
-				d->nb_remove++;
+				tmp_nb_trans++;
+				tmp_nb_remove++;
 			}
 			
 		} else { // read
@@ -217,9 +378,15 @@ void *test(void *data) {
 				}
 			}	else val = rand_range_re(&d->seed, d->range);
 			
-			if (sl_contains(d->set, val, TRANSACTIONAL)) 
-				d->nb_found++;
-			d->nb_contains++;
+#ifdef BIAS_RANGE
+			if(rand_range_re(&d->seed, 1000) < 100) {
+			  val = increase;
+			}
+#endif
+			if (avl_contains(d->set, val, TRANSACTIONAL, id)) 
+				tmp_nb_found++;
+			tmp_nb_trans++;
+			tmp_nb_contains++;
 			
 		}
 		
@@ -230,6 +397,20 @@ void *test(void *data) {
 		} else { // remove/add (even failed) is considered as an update
 			unext = (rand_range_re(&d->seed, 100) - 1 < d->update);
 		}
+
+	    }
+	    TX_END;
+#ifdef BIAS_RANGE
+	    increase = tmp_increase;
+#endif
+	    d->nb_trans += tmp_nb_trans;
+	    d->nb_added += tmp_nb_added;
+	    d->nb_add += tmp_nb_add;
+	    d->nb_contains += tmp_nb_contains;
+	    d->nb_found += tmp_nb_found;
+	    d->nb_remove += tmp_nb_remove;
+	    d->nb_removed += tmp_nb_removed;
+	    tloc[id] += tmp_nb_trans;
 		
 #ifdef ICC
 	}
@@ -242,6 +423,58 @@ void *test(void *data) {
 	
 	return NULL;
 }
+
+
+
+
+void *test_maintenance(void *data) {
+#ifdef TINY10B
+  int i;
+  free_list_item **t_list_items;
+#endif
+  
+  maintenance_thread_data_t *d = (maintenance_thread_data_t *)data;
+
+#ifdef TINY10B
+  t_list_items = (free_list_item **)malloc(d->nb_threads * sizeof(free_list_item *));
+  for(i = 0; i < d->nb_threads; i++) {
+    t_list_items[i] = d->set->t_free_list[i];
+  }
+#endif  
+
+  /* Create transaction */
+  TM_THREAD_ENTER();
+  /* Wait on barrier */
+  barrier_cross(d->barrier);
+	
+  /* Is the first op an update? */
+  //unext = (rand_range_re(&d->seed, 100) - 1 < d->update);
+  
+#ifdef ICC
+  while (stop == 0) {
+#else
+    while (AO_load_full(&stop) == 0) {
+#endif /* ICC */
+
+#ifdef TINY10B
+
+      do_maintenance_thread(d->set, d->id, d->nb_maint);
+
+#endif
+      
+#ifdef ICC
+    }
+#else
+  }
+#endif /* ICC */
+  
+  /* Free transaction */
+  TM_THREAD_EXIT();
+  
+  return NULL;
+}
+
+
 
 void catcher(int sig)
 {
@@ -263,15 +496,17 @@ int main(int argc, char **argv)
 		{NULL, 0, NULL, 0}
 	};
 	
-	sl_intset_t *set;
-	int i, c, size;
+	avl_intset_t *set;
+	int i, j, c, size, tree_size;
 	val_t last = 0; 
 	val_t val = 0;
 	unsigned long reads, effreads, updates, effupds, aborts, aborts_locked_read, aborts_locked_write,
 	aborts_validate_read, aborts_validate_write, aborts_validate_commit,
 	aborts_invalid_memory, aborts_double_write, max_retries, failures_because_contention;
 	thread_data_t *data;
+	maintenance_thread_data_t *maintenance_data;
 	pthread_t *threads;
+	pthread_t *maintenance_threads;
 	pthread_attr_t attr;
 	barrier_t barrier;
 	struct timeval start, end;
@@ -279,6 +514,7 @@ int main(int argc, char **argv)
 	int duration = DEFAULT_DURATION;
 	int initial = DEFAULT_INITIAL;
 	int nb_threads = DEFAULT_NB_THREADS;
+	int nb_maintenance_threads = DEFAULT_NB_MAINTENANCE_THREADS;
 	long range = DEFAULT_RANGE;
 	int seed = DEFAULT_SEED;
 	int update = DEFAULT_UPDATE;
@@ -303,7 +539,7 @@ int main(int argc, char **argv)
 					break;
 				case 'h':
 					printf("intset -- STM stress test "
-								 "(skip list)\n"
+								 "(avltree)\n"
 								 "\n"
 								 "Usage:\n"
 								 "  intset [options...]\n"
@@ -378,10 +614,11 @@ int main(int argc, char **argv)
 	assert(range > 0 && range >= initial);
 	assert(update >= 0 && update <= 100);
 	
-	printf("Set type     : skip list\n");
+	printf("Set type     : avltree\n");
 	printf("Duration     : %d\n", duration);
 	printf("Initial size : %u\n", initial);
 	printf("Nb threads   : %d\n", nb_threads);
+	printf("Nb mt threads: %d\n", nb_maintenance_threads);
 	printf("Value range  : %ld\n", range);
 	printf("Seed         : %d\n", seed);
 	printf("Update rate  : %d\n", update);
@@ -405,14 +642,30 @@ int main(int argc, char **argv)
 		perror("malloc");
 		exit(1);
 	}
+
+
+	if ((maintenance_data = (maintenance_thread_data_t *)malloc(nb_maintenance_threads * sizeof(maintenance_thread_data_t))) == NULL) {
+		perror("malloc");
+		exit(1);
+	}
+	if ((maintenance_threads = (pthread_t *)malloc(nb_maintenance_threads * sizeof(pthread_t))) == NULL) {
+		perror("malloc");
+		exit(1);
+	}
+
+
 	
 	if (seed == 0)
 		srand((int)time(0));
 	else
 		srand(seed);
 	
-	levelmax = floor_log_2((unsigned int) initial);
-	set = sl_set_new();
+	//levelmax = floor_log_2((unsigned int) initial);
+
+	//set = avl_set_new();
+	set = avl_set_new_alloc(0, nb_threads);
+	//set->stop = &stop;
+	//#endif
 	stop = 0;
 	
 	global_seed = rand();
@@ -437,27 +690,35 @@ int main(int argc, char **argv)
 	
 	while (i < initial) {
 		val = rand_range_re(&global_seed, range);
-		if (sl_add(set, val, 0)) {
+		//printf("Adding %d\n", val);
+		if (avl_add(set, val, 0, 0) > 0) {
+		  //printf("Added %d\n", val);
+		  //print_avltree(set);
+
 			last = val;
 			i++;
 		}
 	}
-	size = sl_set_size(set);
+	size = avl_set_size(set);
+	tree_size = avl_tree_size(set);
 	printf("Set size     : %d\n", size);
-	printf("Level max    : %d\n", levelmax);
+	printf("Tree size     : %d\n", tree_size);
+	//printf("Level max    : %d\n", levelmax);
 	
 	// Access set from all threads 
-	barrier_init(&barrier, nb_threads + 1);
+	barrier_init(&barrier, nb_threads + nb_maintenance_threads + 1);
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 	for (i = 0; i < nb_threads; i++) {
 		printf("Creating thread %d\n", i);
+		data[i].id = i;
 		data[i].first = last;
 		data[i].range = range;
 		data[i].update = update;
 		data[i].unit_tx = unit_tx;
 		data[i].alternate = alternate;
 		data[i].effective = effective;
+		data[i].nb_modifications = 0;
 		data[i].nb_add = 0;
 		data[i].nb_added = 0;
 		data[i].nb_remove = 0;
@@ -482,7 +743,56 @@ int main(int argc, char **argv)
 			exit(1);
 		}
 	}
+
+
+	for (i = 0; i < nb_maintenance_threads; i++) {
+	        maintenance_data[i].nb_maint = nb_maintenance_threads;
+		maintenance_data[i].id = i;
+		maintenance_data[i].nb_removed = 0;
+		maintenance_data[i].nb_rotated = 0;
+		maintenance_data[i].nb_suc_rotated = 0;
+		maintenance_data[i].nb_propagated = 0;
+		maintenance_data[i].nb_suc_propagated = 0;
+		maintenance_data[i].nb_aborts = 0;
+		maintenance_data[i].nb_aborts_locked_read = 0;
+		maintenance_data[i].nb_aborts_locked_write = 0;
+		maintenance_data[i].nb_aborts_validate_read = 0;
+		maintenance_data[i].nb_aborts_validate_write = 0;
+		maintenance_data[i].nb_aborts_validate_commit = 0;
+		maintenance_data[i].nb_aborts_invalid_memory = 0;
+		maintenance_data[i].nb_aborts_double_write = 0;
+		maintenance_data[i].max_retries = 0;
+		maintenance_data[i].t_data = data;
+		maintenance_data[i].nb_threads = nb_threads;
+
+		maintenance_data[i].set = set;
+		maintenance_data[i].barrier = &barrier;
+
+		if ((maintenance_data[i].t_nb_trans = (unsigned long *)malloc(nb_threads * sizeof(unsigned long))) == NULL) {
+		  perror("malloc");
+		  exit(1);
+		}
+		for(j = 0; j < nb_threads; j++) {
+		  maintenance_data[i].t_nb_trans[j] = 0;
+		}
+		if ((maintenance_data[i].t_nb_trans_old = (unsigned long *)malloc(nb_threads * sizeof(unsigned long))) == NULL) {
+		  perror("malloc");
+		  exit(1);
+		}
+		for(j = 0; j < nb_threads; j++) {
+		  maintenance_data[i].t_nb_trans_old[j] = 0;
+		}
+
+		printf("Creating maintenance thread %d\n", i);
+		if (pthread_create(&maintenance_threads[i], &attr, test_maintenance, (void *)(&maintenance_data[i])) != 0) {
+			fprintf(stderr, "Error creating thread\n");
+			exit(1);
+		}
+	}
+
 	pthread_attr_destroy(&attr);
+
+
 	
 	// Catch some signals 
 	if (signal(SIGHUP, catcher) == SIG_ERR ||
@@ -520,6 +830,17 @@ int main(int argc, char **argv)
 			exit(1);
 		}
 	}
+
+
+	// Wait for maintenance thread completion 
+	for (i = 0; i < nb_maintenance_threads; i++) {
+		if (pthread_join(maintenance_threads[i], NULL) != 0) {
+			fprintf(stderr, "Error waiting for maintenance thread completion\n");
+			exit(1);
+		}
+	}
+
+
 	
 	duration = (end.tv_sec * 1000 + end.tv_usec / 1000) - (start.tv_sec * 1000 + start.tv_usec / 1000);
 	aborts = 0;
@@ -554,6 +875,22 @@ int main(int argc, char **argv)
 		printf("    #dup-w    : %lu\n", data[i].nb_aborts_double_write);
 		printf("    #failures : %lu\n", data[i].failures_because_contention);
 		printf("  Max retries : %lu\n", data[i].max_retries);
+
+		printf("  #set read trans reads: %lu\n", data[i].set_read_reads);
+		printf("  #set write trans reads: %lu\n", data[i].set_write_reads);
+		printf("  #set write trans writes: %lu\n", data[i].set_write_writes);
+		printf("  #set trans reads: %lu\n", data[i].set_reads);
+		printf("  #set trans writes: %lu\n", data[i].set_writes);
+		printf("  set max reads: %lu\n", data[i].set_max_reads);
+		printf("  set max writes: %lu\n", data[i].set_max_writes);
+
+		printf("  #read trans reads: %lu\n", data[i].read_reads);
+		printf("  #write trans reads: %lu\n", data[i].write_reads);
+		printf("  #write trans writes: %lu\n", data[i].write_writes);
+		printf("  #trans reads: %lu\n", data[i].reads);
+		printf("  #trans writes: %lu\n", data[i].writes);
+		printf("  max reads: %lu\n", data[i].max_reads);
+		printf("  max writes: %lu\n", data[i].max_writes);
 		aborts += data[i].nb_aborts;
 		aborts_locked_read += data[i].nb_aborts_locked_read;
 		aborts_locked_write += data[i].nb_aborts_locked_write;
@@ -573,7 +910,30 @@ int main(int argc, char **argv)
 		if (max_retries < data[i].max_retries)
 			max_retries = data[i].max_retries;
 	}
-	printf("Set size      : %d (expected: %d)\n", sl_set_size(set), size);
+
+
+	for (i = 0; i < nb_maintenance_threads; i++) {
+		printf("Maintenance thread %d\n", i);
+		printf("  #removed %lu\n", set->nb_removed);
+		printf("  #rotated %lu\n", set->nb_rotated);
+		printf("  #rotated sucs %lu\n", set->nb_suc_rotated);
+		printf("  #propogated %lu\n", set->nb_propogated);
+		printf("  #propogated sucs %lu\n", set->nb_suc_propogated);
+		printf("  #aborts     : %lu\n", maintenance_data[i].nb_aborts);
+		printf("    #lock-r   : %lu\n", maintenance_data[i].nb_aborts_locked_read);
+		printf("    #lock-w   : %lu\n", maintenance_data[i].nb_aborts_locked_write);
+		printf("    #val-r    : %lu\n", maintenance_data[i].nb_aborts_validate_read);
+		printf("    #val-w    : %lu\n", maintenance_data[i].nb_aborts_validate_write);
+		printf("    #val-c    : %lu\n", maintenance_data[i].nb_aborts_validate_commit);
+		printf("    #inv-mem  : %lu\n", maintenance_data[i].nb_aborts_invalid_memory);
+		printf("    #dup-w    : %lu\n", maintenance_data[i].nb_aborts_double_write);
+		//printf("    #failures : %lu\n", maintenance_data[i].failures_because_contention);
+		printf("  Max retries : %lu\n", maintenance_data[i].max_retries);
+	}
+
+
+	printf("Set size      : %d (expected: %d)\n", avl_set_size(set), size);
+	printf("Tree size      : %d\n", avl_tree_size(set));
 	printf("Duration      : %d (ms)\n", duration);
 	printf("#txs          : %lu (%f / s)\n", reads + updates, (reads + updates) * 1000.0 / duration);
 	
@@ -603,8 +963,10 @@ int main(int argc, char **argv)
 	printf("  #failures   : %lu\n",  failures_because_contention);
 	printf("Max retries   : %lu\n", max_retries);
 	
+
+	//print_avltree(set);
 	// Delete set 
-        sl_set_delete(set);
+        avl_set_delete(set);
 	
 	// Cleanup STM 
 	TM_SHUTDOWN();
@@ -615,6 +977,9 @@ int main(int argc, char **argv)
 	
 	free(threads);
 	free(data);
+
+	free(maintenance_threads);
+	free(maintenance_data);
 	
 	return 0;
 }

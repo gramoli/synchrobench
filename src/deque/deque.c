@@ -1,12 +1,24 @@
 /*
- *  deque.c
- *  
- *  Pop and push operations 
- *  that call stm-based / lock-free counterparts.
+ * File:
+ *   deque.c
+ * Author(s):
+ *   Vincent Gramoli <vincent.gramoli@epfl.ch>
+ * Description:
+ *   Double-ended queue.
+ * 
+ * Copyright (c) 2008-2009.
  *
- *  Created by Vincent Gramoli on 1/12/09.
- *  Copyright 2009 __MyCompanyName__. All rights reserved.
+ * deque.c is part of Synchrobench
+ * 
+ * Synchrobench is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation, version 2
+ * of the License.
  *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  */
 
 #include "deque.h"
