@@ -1,0 +1,23 @@
+diff --git src/skiplist-lock/optimistic.c src/skiplist-lock/optimistic.c
+index f94674d..e18c6f0 100644
+--- src/skiplist-lock/optimistic.c
++++ src/skiplist-lock/optimistic.c
+@@ -87,10 +87,14 @@ int optimistic_find(sl_intset_t *set, val_t val) {
+  */ 
+ inline void unlock_levels(sl_node_t **nodes, int highestlevel, int j) {
+   int i, r;
++  sl_node_t *old = NULL;
++
+   for (i = 0; i <= highestlevel; i++) {
+-    if ((r=UNLOCK(&nodes[i]->lock)) != 0)
+-      fprintf(stderr, "Error %d from %d cannot unlock node[%d]:%ld\n", 
+-	      r, j, i, (long)nodes[i]->val);
++    if (old != nodes[i])
++    	if ((r=UNLOCK(&nodes[i]->lock)) != 0)
++		fprintf(stderr, "Error %d from %d cannot unlock node[%d]:%ld\n", 
++	        	r, j, i, (long)nodes[i]->val);
++    old = nodes[i];
+   }
+ }
+ 
+
