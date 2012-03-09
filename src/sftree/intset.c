@@ -25,6 +25,11 @@
 #include "intset.h"
 #define CHECK_FIRST
 
+#ifdef NO_UNITLOADS
+# define TX_UNIT_LOAD(a) TX_LOAD(a)
+# define UNIT_LOAD(a)    TX_LOAD(a)
+#endif
+
 int avl_contains(avl_intset_t *set, val_t key, int transactional, int id)
 {
   int result = 0;
