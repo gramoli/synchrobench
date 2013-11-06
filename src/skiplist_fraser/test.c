@@ -670,7 +670,7 @@ int main(int argc, char **argv)
 	printf("Max retries   : %lu\n", max_retries);
 
         /*set_print(set);*/
-        set_print_nodenums(set);
+        /* set_print_nodenums(set); */
         _destroy_gc_subsystem();
 
 	// Cleanup STM
