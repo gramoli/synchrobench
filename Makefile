@@ -1,9 +1,9 @@
 .PHONY:	all
 
 
-BENCHS = src/sftree src/linkedlist src/hashtable src/skiplist src/rbtree src/deque
+BENCHS = src/sftree src/linkedlist src/hashtable src/skiplist src/rbtree src/deque src/skiplist_new src/skiplist_fraser
 LBENCHS = src/linkedlist-lock src/hashtable-lock src/skiplist-lock
-LFBENCHS = src/linkedlist src/hashtable src/skiplist 
+LFBENCHS = src/linkedlist src/hashtable src/skiplist_fraser
 
 .PHONY:	clean all $(BENCHS) $(LBENCHS)
 
@@ -82,7 +82,6 @@ tanger:
 
 clean:
 	$(MAKE) -C src/linkedlist clean	
-	$(MAKE) -C src/skiplist clean
 	$(MAKE) -C src/hashtable clean
 	$(MAKE) -C src/rbtree clean
 	$(MAKE) -C src/linkedlist-lock clean

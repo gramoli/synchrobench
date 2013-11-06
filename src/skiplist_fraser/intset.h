@@ -21,8 +21,13 @@
  * GNU General Public License for more details.
  */
 
-#include "fraser.h"
+#ifndef INTSET_H_
+#define INTSET_T_
 
-int sl_contains(sl_intset_t *set, val_t val, int transactional);
-int sl_add(sl_intset_t *set, val_t val, int transactional);
-int sl_remove(sl_intset_t *set, val_t val, int transactional);
+#include "set.h"
+
+int sl_contains_old(set_t *set, setkey_t key);
+int sl_add_old(set_t *set, setkey_t key);
+int sl_remove_old(set_t *set, setkey_t key);
+
+#endif /* INTSET_H_ */

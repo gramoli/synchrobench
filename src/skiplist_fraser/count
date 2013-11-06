@@ -1,0 +1,43 @@
+./gc.c:        if ( (ptst->count > 1) && (ptst->gc->epoch != curr_epoch) ) goto out;
+./gc.c:        gc = ptst->gc;
+./gc.c:    gc_t *gc = ptst->gc;
+./gc.c:    gc_t *gc = ptst->gc;
+./gc.c:    gc_t *gc = ptst->gc;
+./gc.c:    gc_t *gc = ptst->gc;
+./gc.c:    ptst->count++;
+./gc.c:    gc_t *gc = ptst->gc;
+./gc.c:    cnt = ptst->count++;
+./gc.c:            ptst->count--;
+./gc.c:    ptst->count--;
+./mcas.c:    ptst->arena = ALLOC(size);
+./mcas.c:    if ( !ptst->arena ) abort();
+./mcas.c:    ptst->arena_lim = (((char *) ptst->arena) + size);
+./mcas.c:    cd->fc = ptst->next_descriptor;
+./mcas.c:    ptst->next_descriptor = cd;
+./mcas.c:    CasDescriptor_t **ptr = &(ptst->next_descriptor);
+./mcas.c:        result = (CasDescriptor_t *) ptst->arena;
+./mcas.c:        ptst->arena = ((char *) (ptst->arena)) + alloc_size;
+./mcas.c:        if ( ptst->arena >= ptst->arena_lim )
+./mcas.c:            result = (CasDescriptor_t *) ptst->arena;
+./mcas.c:            ptst->arena = ((char *) (ptst->arena)) + alloc_size;
+./mcas.c:    dmcd = get_marked_reference(&(cd->pt[ptst->id]), MARK_IN_PROGRESS);
+./ptst.c:            if ( (ptst->count == 0) && (CASIO(&ptst->count, 0, 1) == 0) ) 
+./ptst.c:            ptst->gc = gc_init();
+./ptst.c:            ptst->count = 1;
+./ptst.c:            ptst->id = id;
+./ptst.c:                ptst->next = next = new_next;
+./ptst.c:    ptst->count = 0;
+./stm_fraser.c:/* Private per-thread state. The array is indexed off ptst->id. */
+./stm_fraser.c:    priv_t *priv = &priv_ptst[ptst->id];
+./stm_fraser.c:    priv_t *priv = &priv_ptst[ptst->id];
+./stm_fraser.c:    priv_t *priv = &priv_ptst[ptst->id];
+./stm_fraser.c:    t = priv_ptst[ptst->id].cur_tx;
+./stm_herlihy.c:/* Private per-thread state. The array is indexed off ptst->id. */
+./stm_herlihy.c:    priv_t *priv = &priv_ptst[ptst->id];
+./stm_herlihy.c:        priv_t *priv = &priv_ptst[ptst->id];
+./stm_herlihy.c:    priv_t *priv = &priv_ptst[ptst->id];
+./stm_herlihy.c:    priv_t *priv = &priv_ptst[ptst->id];
+./stm_herlihy.c:    t = priv_ptst[ptst->id].cur_tx;
+./stm_lock.c:/* Private per-thread state. The array is indexed off ptst->id. */
+./stm_lock.c:    stm_tx *t = (stm_tx *)&priv_ptst[ptst->id];
+./stm_lock.c:    t = (stm_tx *)&priv_ptst[ptst->id];

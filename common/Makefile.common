@@ -14,11 +14,11 @@ XBDIR 		?= SET_XBOOST_PATH
 SOLARIS_CC 	?= SET_PATH_TO_SOLARIS_CC
 
 # Profile
-ifeq ($(VERSION),DEBUG)
-     CFLAGS	+= -g -DDEBUG -O0
-else
+#ifeq ($(VERSION),DEBUG)
+#     CFLAGS	+= -g -DDEBUG -O0
+#else
      CFLAGS	+= -O3 -DNDEBUG
-endif
+#endif
 
 ROOT 		?= ../..
 BINDIR		?= $(ROOT)/bin
