@@ -1,3 +1,7 @@
+2014-01-20 Vincent Gramoli <vincent.gramoli@sydney.edu.au>
+        * Cleaned patch files
+	* Replaced Fraser's skip list
+
 [1.0 release]
 
 2012-02-10 Vincent Gramoli <vincent.gramoli@epfl.ch>

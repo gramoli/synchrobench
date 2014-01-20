@@ -59,6 +59,13 @@ REFERENCES
      Communication Complexity (SIROCCO)
      p.124-138, 2007
 
+     Obstruction-free Deque:
+     Obstruction-Free Synchronization: Double-Ended Queues as an Example.
+     Maurice Herlihy, Victor Luchangco, Mark Moir.
+     Proc. of the 23rd Int'l Conference on Distributed Computing (ICDCS)
+     p.522, 2003.
+
+
    * Here are three STMs that can be used directly with Synchrobench:
      
      TinySTM - Dynamic Performance Tuning of Word-Based Software 
