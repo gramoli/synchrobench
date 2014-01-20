@@ -59,7 +59,7 @@ REFERENCES
      Communication Complexity (SIROCCO)
      p.124-138, 2007
 
-   * Here are three STMs that can be used directly with Microbench:
+   * Here are three STMs that can be used directly with Synchrobench:
      
      TinySTM - Dynamic Performance Tuning of Word-Based Software 
                Transactional Memory
@@ -80,5 +80,5 @@ REFERENCES
 USE
 ---
 
-To use Microbench, take a look at the INSTALL file
+To use Synchrobench, take a look at the INSTALL file
 
