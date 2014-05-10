@@ -219,7 +219,7 @@ void print_rec(avl_node_t *node, int lvl, int maxlvl, long *count) {
   }
   if(lvl == maxlvl) {
     //printf("Key:%d,D/R:%d%d,LRC:%d,%d,%d ",node->key, node->deleted, node->removed, node->lefth, node->righth, node->localh);
-    printf("Key:%d,D/R:%d%d ", node->key, node->deleted, node->removed);
+    printf("Key:%d,D/R:%d%d ", (int) node->key, (int) node->deleted, (int) node->removed);
     *count = *count + 1;
     return;
   }
