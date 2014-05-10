@@ -28,6 +28,12 @@ int ht_contains(ht_intset_t *set, int val, int transactional);
 int ht_add(ht_intset_t *set, int val, int transactional);
 int ht_remove(ht_intset_t *set, int val, int transactional);
 
+#ifdef SEQUENTIAL
+int ht_seq_contains(ht_intset_t *set, int val, int transactional);
+int ht_seq_add(ht_intset_t *set, int val, int transactional);
+int ht_seq_remove(ht_intset_t *set, int val, int transactional);
+#endif 
+
 /* 
  * Move an element from one bucket to another.
  * It is equivalent to changing the key associated with some value.
