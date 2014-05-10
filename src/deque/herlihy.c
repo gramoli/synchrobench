@@ -29,7 +29,7 @@ val_t lhint;
 val_t rhint;
 
 void printdq(circarr_t *arr) {
-	int size, i, middle = MAX/2;
+	int i, middle = MAX/2;
 	
 	for (i=0; i <= MAX+1; i++) {
 	  if (i == middle) {
@@ -61,7 +61,6 @@ void printdq(circarr_t *arr) {
 	  }
 	  if (i<MAX+1) printf(" - ");
 	}
-	size = i-2;
 	printf("\n");
 }
 
@@ -123,11 +122,9 @@ int rightcheckedoracle(circarr_t *arr, node_t **left, node_t **right) {
 			new->val = (*left)->val;
 			new->ctr = (*left)->ctr+1;
 			if (ATOMIC_CAS_MB(&arr[(k+MAX+1) % (MAX+2)]->val, (*left)->val, new))  {	
-			  //if (ATOMIC_CAS_MB(&arr[(k+MAX+1) % (MAX+2)], (*left), new))  {	
 				new2->val = RN;
 				new2->ctr = (*right)->ctr+1;	
 				if (ATOMIC_CAS_MB(&arr[k]->val, (*right)->val, new2)) { 
-				//if (ATOMIC_CAS_MB(&arr[k], (*right), new2)) { 
 					// DN -> RN
 					(*left)->ctr++;
 					(*right)->val = RN;
@@ -163,11 +160,9 @@ int leftcheckedoracle(circarr_t *arr, node_t **right, node_t **left) {
 			new->val = (*right)->val;
 			new->ctr = (*right)->ctr+1;
 			if (ATOMIC_CAS_MB(&arr[(k+1) % (MAX+2)]->val, (*right)->val, new))  {	
-			  //if (ATOMIC_CAS_MB(&arr[(k+1) % (MAX+2)], (*right), new))  {	
 				new2->val = LN;
 				new2->ctr = (*left)->ctr+1;		
 				if (ATOMIC_CAS_MB(&arr[k]->val, (*left)->val, new2)) { 
-				  //if (ATOMIC_CAS_MB(&arr[k], (*left), new2)) { 
 					// DN -> LN
 					(*right)->ctr++;
 					(*left)->val = LN;
@@ -178,8 +173,6 @@ int leftcheckedoracle(circarr_t *arr, node_t **right, node_t **left) {
 		}
 	} // end while 
 }
-
-
 
 /*
  * Right push val in the circular array
@@ -290,9 +283,7 @@ int herlihy_leftpush(circarr_t *arr, val_t val, int transactional) {
 			nextnext = arr[(k+MAX) % (MAX+2)]; 
 			if (nextnext->val != LN && 
 				nextnext->val != RN && nextnext->val != DN) {
-			  //if (arr[(k+1) % (MAX+2)] == prev) {
 			  if (arr[(k+1) % (MAX+2)]->val == prev->val) {	  
-			    //if (arr[k] == cur) return 0;
 			    if (arr[k]->val == cur->val) return 0;		
 			  }
 			}
@@ -323,7 +314,6 @@ int herlihy_rightpop(circarr_t *arr, int transactional) {
 	while (1) { 
 		k = rightcheckedoracle(arr, &cur, &next); 
 	    		
-		//if ((cur->val == LN || cur->val == DN) && arr[(k+MAX+1) % (MAX+2)]->val == cur->val) { 
 		if ((cur->val == LN || cur->val == DN) && arr[(k+MAX+1) % (MAX+2)] == cur) { 
 			return 0; // empty
 		}
@@ -424,11 +414,9 @@ int rightcheckedoracle_hint(circarr_t *arr, node_t **left, node_t **right) {
       // correct oracle, but no RNs 
       new->val = (*left)->val;
       new->ctr = (*left)->ctr+1;
-      //if (ATOMIC_CAS_MB(&arr[(k+MAX+1) % (MAX+2)]->val, (*left)->val, new))  {
       if (ATOMIC_CAS_MB(&arr[(k+MAX+1) % (MAX+2)], (*left), new))  {	
 	new2->val = RN;
 	new2->ctr = (*right)->ctr+1;	
-	//if (ATOMIC_CAS_MB(&arr[k]->val, (*right)->val, new2)) { 
 	if (ATOMIC_CAS_MB(&arr[k], (*right), new2)) { 
 	  // DN -> RN
 	  (*left)->ctr++;
@@ -458,11 +446,9 @@ int leftcheckedoracle_hint(circarr_t *arr, node_t **right, node_t **left) {
 		if ((*left)->val == DN && (*right)->val != LN && (*right)->val != DN) { // correct oracle, but no LNs 
 			new->val = (*right)->val;
 			new->ctr = (*right)->ctr+1;
-			//if (ATOMIC_CAS_MB(&arr[(k+1) % (MAX+2)]->val, (*right)->val, new))  {	
 			if (ATOMIC_CAS_MB(&arr[(k+1) % (MAX+2)], (*right), new))  {	
 				new2->val = LN;
 				new2->ctr = (*left)->ctr+1;	
-				//if (ATOMIC_CAS_MB(&arr[k]->val, (*left)->val, new2)) { 
 				if (ATOMIC_CAS_MB(&arr[k], (*left), new2)) { 
 					// DN -> LN
 					(*right)->ctr++;
@@ -504,7 +490,6 @@ int herlihy_rightpush_hint(circarr_t *arr, val_t val, int transactional) {
 	if (ATOMIC_CAS_MB(&arr[(k+MAX+1) % (MAX+2)], prev, new)) {
 	  new2->val = val;
 	  new2->ctr = cur->ctr+1;
-	  //if (ATOMIC_CAS_MB(&arr[k]->val, cur->val, new2)) { // RN -> val
 	  if (ATOMIC_CAS_MB(&arr[k], cur, new2)) { // RN -> val 
 	    set_hint(&rhint, 1);
 	    return 1; 
@@ -525,9 +510,7 @@ int herlihy_rightpush_hint(circarr_t *arr, val_t val, int transactional) {
 	if (nextnext) {
 	  if (nextnext->val != RN && 
 	      nextnext->val != LN && nextnext->val != DN) {
-	    //if (arr[(k+MAX+1)%(MAX+2)] == prev) {
 	      if (arr[(k+MAX+1)%(MAX+2)]->val == prev->val) {
-		//if (arr[k] == cur) return 0; // full
 	      if (arr[k]->val == cur->val) return 0; // full
 	    }
 	  }
@@ -565,7 +548,6 @@ int herlihy_leftpush_hint(circarr_t *arr, val_t val, int transactional) {
 	new6 = (node_t *)malloc(sizeof(node_t));
 	while (1) { 
 		k = leftcheckedoracle_hint(arr, &prev, &cur); 
-		// cur->val = LN and prev->val != LN 
 		next = arr[(k+MAX+1) % (MAX+2)]; 
 		if (next->val == LN) {
 			new->val = prev->val;
@@ -573,7 +555,6 @@ int herlihy_leftpush_hint(circarr_t *arr, val_t val, int transactional) {
 			if (ATOMIC_CAS_MB(&arr[(k+1) % (MAX+2)], prev, new)) {
 				new2->val = val;
 				new2->ctr = cur->ctr+1;
-				//if (ATOMIC_CAS_MB(&arr[k]->val, cur->val, new2)) { // LN -> val 
 			  if (ATOMIC_CAS_MB(&arr[k], cur, new2)) { // LN -> val 
 				  set_hint(&lhint, MAX+1);
 				  return 1; 
@@ -593,8 +574,6 @@ int herlihy_leftpush_hint(circarr_t *arr, val_t val, int transactional) {
 		  nextnext = arr[(k+MAX) % (MAX+2)]; 
 			if (nextnext->val != LN && 
 				nextnext->val != RN && nextnext->val != DN) {
-			  //if (arr[(k+1) % (MAX+2)] == prev) {
-			  //		if (arr[k] == cur) return 0; 
 				if (arr[(k+1) % (MAX+2)]->val == prev->val) {
 					if (arr[k]->val == cur->val) return 0; 
 				}
@@ -626,7 +605,6 @@ int herlihy_rightpop_hint(circarr_t *arr, int transactional) {
 	while (1) { 
 		k = rightcheckedoracle_hint(arr, &cur, &next); 
 		if ((cur->val == LN || cur->val == DN) && arr[(k+MAX+1) % (MAX+2)]->val == cur->val) { 
-		  //if ((cur->val == LN || cur->val == DN) && arr[(k+MAX+1) % (MAX+2)] == cur) { 
 			return 0; // empty
 		}
 		new->val = RN;
@@ -654,7 +632,6 @@ int herlihy_leftpop_hint(circarr_t *arr, int transactional) {
   new2 = (node_t *)malloc(sizeof(node_t));
   while (1) { // keep trying till return val or empty 
     k = leftcheckedoracle_hint(arr, &cur, &next); 
-    //k = oracle(arr, LEFT); cur = arr[(k+MAX+1) % (MAX+2)]; next = arr[k];
     if (cur->val != LN && next->val == LN) { // oracle is right 
       if (cur->val == RN && arr[(k+1) % (MAX+2)] == cur) // adjacent LN and RN 
 	return 0; 

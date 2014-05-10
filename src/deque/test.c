@@ -113,15 +113,13 @@ typedef struct thread_data {
 
 void *test(void *data)
 {
-  int val, percent, last = 0;
+  int val, percent; 
   thread_data_t *d = (thread_data_t *)data;
 	
   /* Create transaction */
   TM_THREAD_ENTER();
   /* Wait on barrier */
   barrier_cross(d->barrier);
-	
-  last = -1;
 	
 #ifdef ICC
 	while (stop == 0) {
