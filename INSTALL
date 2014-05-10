@@ -1,48 +1,63 @@
-REQUIREMENTS
-------------
-
-   * STMs. Microbench aimed at testing an STM. Some are available online:
-     - TinySTM   http://tmware.org/tinystm
-     - SwissTM   http://lpd.epfl.ch/site/research/tmeval
-     - E-STM     http://lpd.epfl.ch/gramoli/php/estm
-
-
 INSTALL
--------  
+------- 
+To install Synchrobench go to the root directory and type 'make'.
+This will compile the basic lock-based and lock-free data structures of the C/C++
+version of Synchrobench that will be located in synchrobench-c/bin/
 
-   1. Download an STM (e.g., http://lpd.epfl.ch/gramoli/php/estm) 
+* Transactional Memories:
+  To test transaction-based version, a TM implemenation must be provided.
+  The easiest is to use a software library as follows:
+   1. Install an STM library: 
+      (e.g., http://www.it.usyd.edu.au/~gramoli/tmp/doc/sw/estm-0.3.0.tgz) 
       Compile the STM
- 
    2. Set ./common/Makefile.common
       - libatomic_ops directory (LIBAO)
       - STM directories (e.g., ESTMDIR)
-
    3. Compile with E-STM using 
         make estm
+  Other TM libraries are available online:
+     - TinySTM   http://tmware.org/tinystm
+     - SwissTM   http://lpd.epfl.ch/site/research/tmeval
+     - E-STM     http://sydney.edu.au/engineering/it/~gramoli/php/estm.php
 
-   NB Alternatively, you can directly use the lock-based versions 
-      (without using any STM) by compiling the mutex or spinlock 
-      versions as follows:
-        make lock 
-        make spinlock
-
+* Locks:
+  Alternatively, you can directly use the lock-based versions 
+  (without using any STM) by compiling the mutex or spinlock 
+  versions as follows:
+     make lock 
+     make spinlock
 
 RUN
 ---
 
    1. Executables for double-ended queue, hash table, linked list, 
       red-black tree, skip list, speculation-friendly binary search tree, 
-      lock-based linked list, lock-based hashtable, lock-based skip list
+      using no synchronization (sequential), using read-modify-write
+      (lock-free), mutex, spinlock, transactional memory (ESTM)
       are located in 'bin':
-      ./bin/lf-dq
-      ./bin/lf-ht
-      ./bin/lf-ll
-      ./bin/lf-rt 
-      ./bin/lf-sl
-      ./bin/lf-st
-      ./bin/lb-ht
-      ./bin/lb-ll
-      ./bin/lb-sl
+      ./bin/sequential-deque
+      ./bin/sequential-hashtable
+      ./bin/sequential-linkedlist
+      ./bin/sequential-rbtree 
+      ./bin/sequential-skiplist
+      ./bin/sequential-sftree
+      ./bin/lockfree-hashtable
+      ./bin/lockfree-linkedlist
+      ./bin/lockfree-rbtree 
+      ./bin/lockfree-skiplist-fraser
+      ./bin/lockfree-skiplist-rotating
+      ./bin/lockftree-sftree
+      ./bin/MUTEX-hashtable
+      ./bin/MUTEX-linkedlist
+      ./bin/MUTEX-skiplist
+      ./bin/SPIN-hashtable
+      ./bin/SPIN-linkedlist
+      ./bin/SPIN-skiplist
+      ./bin/ESTM-hashtable
+      ./bin/ESTM-linkedlist
+      ./bin/ESTM-skiplist
+      ./bin/ESTM-deque
+      ./bin/ESTM-sftree
    2. Use parameter "--help" for the full list of parameters
 
 
