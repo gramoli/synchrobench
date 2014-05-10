@@ -29,7 +29,7 @@ algorithms (among others):
  - M. M. Michael. High performance dynamic lock-free hash tables and list-based
    sets. In SPAA, p.73–82, 2002.
  - T. Harris. A pragmatic implementation of non-blocking linked-lists. In DISC, 
-   p.300–314, 2001.
+   p.300–314, 2001.  
 The Java version of synchrobench (synchrobench-java) provides algorithms:
  - D. Drachsler, M. Vechev, and E. Yahav. Practical concurrent binary search 
    trees via logical ordering. In PPoPP, pages 343–356, 2014.
@@ -63,9 +63,9 @@ to change it to whatever locking library.
 Other Transactional Memory implemenations can be tested with Synchrobench
  - in C/C++, by extending the file synchrobench-c/include/tm.h
  - in Java, by adding the DeuceSTM-based libraries in the directory:
-   synchrobench-java/src/org/deuce/transaction/
+   synchrobench-java/src/org/deuce/transaction/  
 The current C/C++ version uses an interface for Software Transactional 
-Memory, including support for Elastic transactions. 
+Memory, including support for Elastic transactions.  
 Transactional Primitives - API:  
      `TX_START(NL)`  --- Marks the beginning of a regular transaction  
      `TX_START(EL)`  --- Marks the beginning of an elastic transaction  
@@ -84,8 +84,8 @@ Java) and are described respectively in:
  - P. Felber, C. Fetzer, and T. Riegel. Dynamic performance tuning of 
    word-based software transactional memory. In PPoPP, pages 237–246. ACM, 2008.
  - D. Dice, O. Shalev and N. Shavit. Transactional locking II. In DISC, 2006.  
-You can download E-STM A [here](http://www.it.usyd.edu.au/~gramoli/tmp/doc/sw/estm-0.3.0.tgz).
+You can download E-STM [here](http://www.it.usyd.edu.au/~gramoli/tmp/doc/sw/estm-0.3.0.tgz).
 
 Use
 ---
-To use Microbench, take a look at the INSTALL file
+To use Synchrobench, take a look at the INSTALL file
