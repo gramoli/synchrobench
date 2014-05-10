@@ -131,11 +131,6 @@ int set_add(intset_t *set, val_t val, int transactional)
 int set_remove(intset_t *set, val_t val, int transactional)
 {
 	int result = 0;
-	node_t *next;
-	void *v;
-	
-	next = NULL;
-	v = (void *) val;
 
 	switch(transactional) {
 		case 0: /* Unprotected */
@@ -157,7 +152,7 @@ int set_remove(intset_t *set, val_t val, int transactional)
 			break;
 			
 		default:
-			result=0;
+			result=val;
 			printf("number %d do not correspond to elasticity.\n", transactional);
 			exit(1);
 	}
