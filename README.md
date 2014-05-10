@@ -1,5 +1,5 @@
-Synchobench
-===========
+Synchrobench
+============
 Synchrobench is a micro-benchmark suite used to evaluate synchronization 
 techniques on data structures. Synchrobench is written in C/C++ and Java and
 currently includes arrays, binary trees, linked lists, queues and skip lists 
