@@ -3,7 +3,12 @@ ROOT = ../..
 include $(ROOT)/common/Makefile.common
 
 ELASTICITY ?= 2
-BINS = $(BINDIR)/lf-rt
+
+ifeq ($(STM),SEQUENTIAL)
+  BINS = $(BINDIR)/sequential-rbtree
+else
+  BINS = $(BINDIR)/$(STM)-rbtree
+endif
 
 .PHONY:	all clean
 

@@ -2,7 +2,14 @@ ROOT = ../..
 
 include $(ROOT)/common/Makefile.common
 
-BINS = $(BINDIR)/lf-ht
+ifeq ($(STM),SEQUENTIAL)
+  BINS = $(BINDIR)/sequential-hashtable
+else ifeq ($(STM),LOCKFREE)
+  BINS = $(BINDIR)/lockfree-hashtable
+else
+  BINS = $(BINDIR)/$(STM)-hashtable
+endif
+
 LLREP = $(ROOT)/src/linkedlist
 
 .PHONY:	all clean

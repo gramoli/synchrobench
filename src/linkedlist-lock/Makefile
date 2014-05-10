@@ -2,7 +2,7 @@ ROOT = ../..
 
 include $(ROOT)/common/Makefile.common
 
-BINS = $(BINDIR)/lb-ll
+BINS = $(BINDIR)/$(LOCK)-linkedlist
 
 .PHONY:	all clean
 

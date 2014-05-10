@@ -2,7 +2,13 @@ ROOT = ../..
 
 include $(ROOT)/common/Makefile.common
 
-BINS = $(BINDIR)/lf-dq
+ifeq ($(STM),SEQUENTIAL)
+  BINS = $(BINDIR)/sequential-deque
+else ifeq ($(STM),LOCKFREE)
+  BINS = $(BINDIR)/lockfree-deque
+else
+  BINS = $(BINDIR)/$(STM)-deque
+endif
 
 .PHONY:	all clean
 

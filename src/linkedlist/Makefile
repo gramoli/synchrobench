@@ -2,7 +2,13 @@ ROOT = ../..
 
 include $(ROOT)/common/Makefile.common
 
-BINS = $(BINDIR)/lf-ll
+ifeq ($(STM),SEQUENTIAL)
+  BINS = $(BINDIR)/sequential-linkedlist
+else ifeq ($(STM),LOCKFREE)
+  BINS = $(BINDIR)/lockfree-linkedlist
+else
+  BINS = $(BINDIR)/$(STM)-linkedlist
+endif
 
 .PHONY:	all clean
 
