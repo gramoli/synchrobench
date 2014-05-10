@@ -1,18 +1,17 @@
 INSTALL
 ------- 
-To install Synchrobench go to the root directory and type 'make'.
-This will compile the basic lock-based and lock-free data structures of the C/C++
-version of Synchrobench that will be located in synchrobench-c/bin/
+To install Synchrobench go to the root directory and type `make`.
+This will compile the basic lock-based, lock-free and sequential data structures
+of the C/C++ version of Synchrobench that will be located in synchrobench-c/bin/
 
 * Transactional Memories:
-  To test transaction-based version, a TM implemenation must be provided.
+  To test transaction-based version, a TM implementation must be provided.
   The easiest is to use a software library as follows:
    1. Install an STM library: 
       (e.g., http://www.it.usyd.edu.au/~gramoli/tmp/doc/sw/estm-0.3.0.tgz) 
       Compile the STM
    2. Set ./common/Makefile.common
-      - libatomic_ops directory (LIBAO)
-      - STM directories (e.g., ESTMDIR)
+      STM directories (e.g., ESTMDIR)
    3. Compile with E-STM using 
         make estm
   Other TM libraries are available online:
@@ -21,15 +20,27 @@ version of Synchrobench that will be located in synchrobench-c/bin/
      - E-STM     http://sydney.edu.au/engineering/it/~gramoli/php/estm.php
 
 * Locks:
-  Alternatively, you can directly use the lock-based versions 
-  (without using any STM) by compiling the mutex or spinlock 
-  versions as follows:
+  Alternatively, you can directly use the lock-based versions (without using 
+  any STM) by compiling the mutex or spinlock versions as follows:
      make lock 
      make spinlock
 
+* Sequential:
+  Synchrobench produces extra data structures without any synchronization 
+  technique. While the produced sequential versions are not thread-safe, they 
+  serve as baselines to evaluate the gain in performance of concurrent data 
+  structure performance.
+     make sequential
+
+* Lock-free: 
+  This corresponds to the data structure using read-modify-write for 
+  synchronization. They rely exclusively on compare-and-swap or load-link/store-
+  conditional and are non-blocking in that if an access backtracks, then a
+  concurrent access progresses.
+     make lockfree
+
 RUN
 ---
-
    1. Executables for double-ended queue, hash table, linked list, 
       red-black tree, skip list, speculation-friendly binary search tree, 
       using no synchronization (sequential), using read-modify-write
@@ -63,8 +74,7 @@ RUN
 
 TESTED PLATFORMS
 ----------------
-
-    Microbench has been successfully tested on:
+    Synchrobench has been successfully tested on:
     1. i686
        Intel core 2 duo 
        Mac OS X
@@ -81,3 +91,19 @@ TESTED PLATFORMS
        UltraSPARC 2 
        Solaris 10
        sparc-sun-solaris2.10-gcc (GCC) 4.2.1 (20081023) (gccfss)
+    5. x86_64 
+       2 8-core Intel Xeon E5-2450 (2.1GHz) 
+       Ubuntu 12.04.4 LTS 
+       Java 1.7.0 51
+       gcc 4.6.3
+    6. SPRAC
+       64-way UltraSPARC T2 (1.165GHz) 
+       Solaris 10 (kernel architecture sun4v), 
+       Java 1.7.0 05-b05
+       sun-solaris2.10-gcc 4.0.4
+    7. x86_64 
+       4 16-core AMD Opteron 6378 (1.4GHz) 
+       Fedora 18 
+       Java 1.7.0 09-icedtea
+       gcc 4.7.2
+    
