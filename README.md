@@ -66,12 +66,12 @@ Other Transactional Memory implemenations can be tested with Synchrobench
    synchrobench-java/src/org/deuce/transaction/
 The current C/C++ version uses an interface for Software Transactional 
 Memory, including support for Elastic transactions. 
-Transactional Primitives - API:
-     TX_START(NL)  --- Marks the beginning of a regular transaction
-     TX_START(EL)  --- Marks the beginning of an elastic transaction
-     END           --- Marks the attempt to commit the current transaction
-     TX_LOAD(x)    --- Calls the transactional load a memory location x
-     TX_STORE(x,v) --- Calls the transactional store of v at x
+Transactional Primitives - API:  
+     `TX_START(NL)`  --- Marks the beginning of a regular transaction  
+     `TX_START(EL)`  --- Marks the beginning of an elastic transaction  
+     `END`           --- Marks the attempt to commit the current transaction  
+     `TX_LOAD(x)`    --- Calls the transactional load a memory location `x`  
+     `TX_STORE(x,v)` --- Calls the transactional store of `v` at `x`  
 The transactional memories that were tested successfully with synchrobench are 
 E-STM (C/C++ & Java), LSA (Java), SwissTM (C/C++), TinySTM (C/C++), TL2 (C/C++ &
 Java) and are described respectively in:
@@ -84,7 +84,8 @@ Java) and are described respectively in:
  - P. Felber, C. Fetzer, and T. Riegel. Dynamic performance tuning of 
    word-based software transactional memory. In PPoPP, pages 237–246. ACM, 2008.
  - D. Dice, O. Shalev and N. Shavit. Transactional locking II. In DISC, 2006.
- 
+You can download E-STM A [here](http://www.it.usyd.edu.au/~gramoli/tmp/doc/sw/estm-0.3.0.tgz).
+
 USE
 ---
 To use Microbench, take a look at the INSTALL file
