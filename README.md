@@ -1,5 +1,5 @@
-RELEASE NOTES
--------------
+Synchobench
+===========
 Synchrobench is a micro-benchmark suite used to evaluate synchronization 
 techniques on data structures. Synchrobench is written in C/C++ and Java and
 currently includes arrays, binary trees, linked lists, queues and skip lists 
@@ -8,8 +8,8 @@ read-modify-write, read-copy-update and transactional memory. A non-synchronized
 version of these data structures is proposed in each language as a baseline to 
 measure the performance gain on multi-(/many-)core machines.
 
-DATA STRUCTURES
----------------
+Data Strutures
+--------------
 Note that the proposed data structures are not synchronized with each individual
 synchrobization technique, 30 algorithms from the literature are provided.
 The C version of synchrobench (namely synchrobench-c) provides the following
@@ -46,12 +46,12 @@ The Java version of synchrobench (synchrobench-java) provides algorithms:
  - java.util.concurrent.ConcurrentSkipListMap (Java SE 7)
  - java.util.Vector (Java SE 7)
  - M. M. Michael and M. L. Scott. Simple, fast, and practical non-blocking and 
-   blocking concurrent queue algorithms. In PODC, 1996.
+   blocking concurrent queue algorithms. In PODC, 1996.  
 Please check the COPYRIGHT notice of each implementation in their respective 
 folder.
 
-SYNCHRONIZATION
----------------
+Synchronizations
+----------------
 The existing algorithms are synchronized with read-copy-update using dedicated
 wrappers from the JDK, read-modify-write using exclusively compare-and-swap 
 (there are no load-link/store-conditional algorithms), transactional memory
@@ -83,9 +83,9 @@ Java) and are described respectively in:
    PLDI, p.155-165, 2009.
  - P. Felber, C. Fetzer, and T. Riegel. Dynamic performance tuning of 
    word-based software transactional memory. In PPoPP, pages 237–246. ACM, 2008.
- - D. Dice, O. Shalev and N. Shavit. Transactional locking II. In DISC, 2006.
+ - D. Dice, O. Shalev and N. Shavit. Transactional locking II. In DISC, 2006.  
 You can download E-STM A [here](http://www.it.usyd.edu.au/~gramoli/tmp/doc/sw/estm-0.3.0.tgz).
 
-USE
+Use
 ---
 To use Microbench, take a look at the INSTALL file
