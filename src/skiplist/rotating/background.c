@@ -11,11 +11,18 @@ Module Overview
 
 This module provides the routines necessary for skip list
 maintenance to be performed in the background by a single
-maintenance thread, as in the algorithm specified here:
+maintenance thread.
+It uses the same technique to raise levels as in 
 Crain, T., Gramoli, V., Raynal, M. (2013)
 "No Hot-Spot Non-Blocking Skip List", to appear in
 The 33rd IEEE International Conference on Distributed Computing
 Systems (ICDCS).
+
+Note that the two background techniques are different for 3 
+main reasons: (1) this implementation is in C with explicit GC 
+while the other is in Java, (2) this implementation never allocates 
+new levels to the skip list and (3) this implementation uses a 
+global ZERO counter. 
 
 The maintenance to be performed in the background includes all
 modifications to the index levels of the skip list, and also
