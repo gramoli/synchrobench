@@ -8,7 +8,7 @@ read-modify-write, read-copy-update and transactional memory. A non-synchronized
 version of these data structures is proposed in each language as a baseline to 
 measure the performance gain on multi-(/many-)core machines.
 
-Data Strutures
+Data strutures
 --------------
 Note that the proposed data structures are not synchronized with each individual
 synchrobization technique, 30 algorithms from the literature are provided.
@@ -56,7 +56,7 @@ The existing algorithms are synchronized with read-copy-update using dedicated
 wrappers from the JDK, read-modify-write using exclusively compare-and-swap 
 (there are no load-link/store-conditional algorithms), transactional memory
 in their software forms using dedicated libraries or compiler support (no 
-HTM have been tested), locks (the default locks are pthreads spinlocks and 
+HTM have been tested), locks (the default locks are pthread spinlocks and 
 mutexes for portability reason, look for the definition of LOCK-related macros)
 to change it to whatever locking library.
 
