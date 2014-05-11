@@ -57,7 +57,7 @@ wrappers from the JDK, read-modify-write using exclusively compare-and-swap
 (there are no load-link/store-conditional algorithms), transactional memory
 in their software forms using dedicated libraries or compiler support (no 
 HTM have been tested), locks (the default locks are pthreads spinlocks and 
-mutexes for portability reason (look for the definition of LOCK-related macros)
+mutexes for portability reason, look for the definition of LOCK-related macros)
 to change it to whatever locking library.
 
 Other Transactional Memory implemenations can be tested with Synchrobench
