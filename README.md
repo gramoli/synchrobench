@@ -74,6 +74,7 @@ Transactional Primitives - API:
      `END`           --- Marks the attempt to commit the current transaction  
      `TX_LOAD(x)`    --- Calls the transactional load a memory location `x`  
      `TX_STORE(x,v)` --- Calls the transactional store of `v` at `x`  
+
 The transactional memories that were tested successfully with synchrobench are 
 E-STM (C/C++ & Java), LSA (Java), SwissTM (C/C++), TinySTM (C/C++), TL2 (C/C++ &
 Java) and are described respectively in:
