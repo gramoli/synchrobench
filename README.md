@@ -8,10 +8,10 @@ read-modify-write, read-copy-update and transactional memory. A non-synchronized
 version of these data structures is proposed in each language as a baseline to 
 measure the performance gain on multi-(/many-)core machines.
 
-Data strutures
+Data structures
 --------------
 Note that the proposed data structures are not synchronized with each individual
-synchrobization technique, 30 algorithms from the literature are provided.
+synchronization technique, 30+ algorithms from the literature are provided.
 The C version of synchrobench (namely synchrobench-c) provides the following
 algorithms (among others):
  - I. Dick. The no hot spot non-blocking skip list for unmanaged languages. 
@@ -30,7 +30,9 @@ algorithms (among others):
    sets. In SPAA, p.73–82, 2002.
  - T. Harris. A pragmatic implementation of non-blocking linked-lists. In DISC, 
    p.300–314, 2001.  
-The Java version of synchrobench (synchrobench-java) provides algorithms:
+
+The Java version of synchrobench (synchrobench-java), not realeased yet, will 
+provide algorithms:
  - D. Drachsler, M. Vechev, and E. Yahav. Practical concurrent binary search 
    trees via logical ordering. In PPoPP, pages 343–356, 2014.
  - T. Crain, V. Gramoli, and M. Raynal. A contention-friendly search tree. In 
@@ -52,7 +54,7 @@ folder.
 
 Synchronizations
 ----------------
-The existing algorithms are synchronized with read-copy-update using dedicated
+The existing algorithms are synchronized with copy-on-write using dedicated
 wrappers from the JDK, read-modify-write using exclusively compare-and-swap 
 (there are no load-link/store-conditional algorithms), transactional memory
 in their software forms using dedicated libraries or compiler support (no 
