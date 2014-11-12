@@ -4,12 +4,16 @@ include $(ROOT)/common/Makefile.common
 
 BINS = $(BINDIR)/lockfree-skiplist-fraser
 
-ARCH      := INTEL
 DEBUGGING := -DNDEBUG
 INCLUDE   := -I../../include/
 
-#CC          := gcc $(INCLUDE)
-CFLAGS      += -DINTEL -Wno-unused-function -Wno-unused-variable -Wno-unused-but-set-variable -Wno-format #-fomit-frame-pointer
+ifneq ($(ARCH_NAME), sun4v)
+    ARCH = INTEL
+else
+    ARCH = SPARC
+endif
+
+CFLAGS      += -DINTEL -Wno-unused-function -Wno-unused-variable -Wno-format #-fomit-frame-pointer
 #LDFLAGS     := -lpthread
 
 #CFLAGS      += $(DEBUGGING)
