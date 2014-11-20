@@ -1,0 +1,64 @@
+[0.3.0 release]
+
+2011-07-28  Vincent Gramoli  <vincent.gramoli@epfl.ch>
+	* Add rotating buffer of size k 
+	for checking the k past read accesses
+
+[0.2.8 release]
+
+2011-06-26  Vincent Gramoli  <vincent.gramoli@epfl.ch>
+        * Add atomic_ops source code
+	* Clean-up Makefile.in
+
+[0.2.7 release]
+
+2010-05-31  Vincent Gramoli  <vincent.gramoli@epfl.ch>
+        * Removed dead-code
+	* Removed stale functions (unit-l/s, set-extension...)
+
+[0.2.6 release]
+
+2010-02-23  Vincent Gramoli  <vincent.gramoli@epfl.ch>
+        * Thread-local-storage newly enabled for compliant platform.
+
+[0.2.5 release]
+
+2009-09-29  Vincent Gramoli  <vincent.gramoli@epfl.ch>
+        * Makefile bug about the garbage collector inclusion fixed
+
+[0.2.0 release]
+
+2009-06-19  Vincent Gramoli  <vincent.gramoli@epfl.ch>
+        * Common interface TX_START/TX_LOAD/TX_STORE/TX_END
+	  for any type of transactions (elastic/normal)
+
+2009-06-10  Vincent Gramoli  <vincent.gramoli@epfl.ch>
+	* Removed ro mode
+
+[0.1.8 release]
+
+2009-06-10  Vincent Gramoli  <vincent.gramoli@epfl.ch>
+	* Enhance efficiency for elastic functions.
+	* stm_normal_load/store for normal transactions.
+	* Removed support for stm_unit_write 
+	  (elastic_store switches to tx type to normal).
+
+[0.1.7 release]
+
+2009-05-23  Vincent Gramoli  <vincent.gramoli@epfl.ch>
+	* Debug of function stm_elastic_load.
+	* Added stm_elastic_store functions.
+
+2009-05-20  Vincent Gramoli  <vincent.gramoli@epfl.ch>
+        * Added stm_unit_load/stm_unit_write to stm.c
+	* Upgrade normal transactions to tinySTM-v0.9.9
+
+[0.1.4 release]
+
+2008-12-01  Vincent Gramoli  <vincent.gramoli@epfl.ch>
+	* Added -x option for unit load/store.
+
+[0.1.0 release]
+
+2008-11-01  Vincent Gramoli  <vincent.gramoli@epfl.ch>
+	* Initial release.

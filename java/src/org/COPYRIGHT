@@ -1,0 +1,7 @@
+The code of Deuce STM is licensed under Apache License, Version 2.0.
+The original code can be found at https://sites.google.com/site/deucestm
+
+We have added "estmmvcc" a multi-version concurrency control version of 
+E-STM that provides multi-versioning for read-only "snapshot" 
+transactions as detailed in:
+V. Gramoli and R. Guerraoui. Reusable Concurrent Data Types. ECOOP 2014.

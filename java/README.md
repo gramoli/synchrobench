@@ -1,5 +1,5 @@
 Synchrobench
-============
+=========
 Synchrobench is a micro-benchmark suite used to evaluate synchronization 
 techniques on data structures. Synchrobench is written in C/C++ and Java and
 currently includes arrays, binary trees, hash tables, linked lists, queues and
@@ -11,17 +11,11 @@ measure the performance gain on multi-(/many-)core machines.
 If you use Synchrobench, please cite the companion paper: 
 V. Gramoli. More than You Ever Wanted to Know about Synchronization. PPoPP 2015.
 
-Data strutures
---------------
-Note that the proposed data structures are not synchronized with each individual
-synchrobization technique, 30+ algorithms from the literature are provided.
-Synchrobench includes variants of the algorithms presented in these papers:
- - I. Dick, A. Fekete and V. Gramoli. Logarithmic data structures for
-   multicores. Technical Report 697, University of Sydney, September
-   2014.
+Data structures in Java
+------------------
+The Java version of synchrobench (synchrobench-java) provides variants of the 
+algorithms presented in these papers:
  - V. Gramoli and R. Guerraoui. Reusable Concurrent Data Types. In ECOOP 2014.
- - M. Arbel and H. Attiya. Concurrent updates with RCU: Search tree as
-   an example. In PODC, 2014.
  - D. Drachsler, M. Vechev and E. Yahav. Practical concurrent binary search 
    trees via logical ordering. In PPoPP, pages 343–356, 2014.
  - V. Gramoli and R. Guerraoui. Democratizing Transactional Programming. CACM 
@@ -30,8 +24,6 @@ Synchrobench includes variants of the algorithms presented in these papers:
    Euro-Par, pages 229–240, 2013.
  - T. Crain, V. Gramoli and M. Raynal. No hot spot non-blocking skip list. In 
    ICDCS, 2013.
- - T. Crain, V. Gramoli and M. Raynal. A speculation-friendly search tree. In 
-   PPoPP, p.161–170, 2012.
  - T. Crain, V. Gramoli and M. Raynal. A contention-friendly methodology for 
    search structures. Technical Report RR-1989, INRIA, 2012.
  - F. Ellen, P. Fatourou, E. Ruppert and F. van Breugel. Non-blocking binary 
@@ -40,19 +32,31 @@ Synchrobench includes variants of the algorithms presented in these papers:
    concurrent binary search tree. In PPoPP, 2010.
  - P. Felber, V. Gramoli and R. Guerraoui. Elastic Transactions. In DISC 2009.
  - C. Click. A lock-free hash table. Personal communication. 2007.
- - S. Heller, M. Herlihy, V. Luchangco, M. Moir, W. N. S. III and N. Shavit. A 
-   lazy concurrent list-based set algorithm. Parallel Processing Letters, 
-   17(4):411–424, 2007.     
- - Maurice Herlihy, Yossi Lev, Victor Luchangco and Nir Shavit. A Simple 
-   Optimistic Skiplist Algorithm. In SIROCCO, p.124-138, 2007.
- - K. Fraser. Practical lock freedom. PhD thesis, Cambridge University, 2003.
- - M. M. Michael. High performance dynamic lock-free hash tables and
-   list-based sets. In SPAA, pages 73–82, 2002.
- - T. Harris. A pragmatic implementation of non-blocking linked-lists. In DISC, 
-   p.300–314, 2001.  
  - M. M. Michael and M. L. Scott. Simple, fast, and practical non-blocking and 
    blocking concurrent queue algorithms. In PODC, 1996.  
 Please check the copyright notice of each implementation.
+
+Synchronizations
+-------------
+The Java-like algorithms are synchronized with copy-on-write wrappers,
+read-modify-write using exclusively compare-and-swap, transactional memory
+in their software forms using bytecode instrumentation, locks.
+
+The transactional memory algorithm used here is E-STM presented in:
+ - P. Felber, V. Gramoli, and R. Guerraoui. Elastic transactions. In DISC, pages
+   93–108, 2009.
+Other Transactional Memory implemenations can be tested with Synchrobench
+in Java, by adding the DeuceSTM-based libraries in the directory:
+   synchrobench-java/src/org/deuce/transaction/  
+The transactional memories that were tested successfully with synchrobench in 
+Java are E-STM, LSA, SwissTM and TL2 as presented in:
+ - P. Felber, V. Gramoli, and R. Guerraoui. Elastic transactions. In DISC, pages
+   93–108, 2009.
+ - T. Riegel, P. Felber, and C. Fetzer. A lazy snapshot algorithm with eager 
+   validation. In DISC, 2006.
+ - A. Dragojevic, R. Guerraoui, M. Kapalka. Stretching transactional memory. In
+   PLDI, p.155-165, 2009.
+ - D. Dice, O. Shalev and N. Shavit. Transactional locking II. In DISC, 2006.  
 
 Parameters
 ---------
@@ -60,17 +64,29 @@ Parameters
  - i, the initial size of the benchmark. This corresponds to the amount of elements the data structure is initially fed with before the benchmark starts collecting statistics on the performance of operations.
  - r, the range of possible keys from which the parameters of the executed operations are taken from, not necessarily uniformly at random. This parameter is useful to adjust the evolution of the size of the data structure.
  - u, the update ratio that indicates the amount of update operations among all operations (be they effective or attempted updates).
- - f, indicates whether the update ratio is effective (1) or attempted (0). An effective update ratio tries to match the update ratio to the total amount of operations that effectively modified the data structure by writing, excluding failed updates (e.g., a remove(k) operation that fails because key k is not present).
- - A, indicates whether the benchmark alternates between inserting and removing the same value to maximize effective updates. This parameter is important to reach a high effective update ratios that could not be reached by selecting values at random.
- - U, the unbalance parameter that indicates the extent to which the workload is skewed towards smaller or larger values. This parameter is useful to test balanced structure like trees under unbalancing workloads.
+ - U, the unbalance parameter that indicates the extent to which the workload is skewed towards smaller or larger values. This parameter is useful to test balanced structure like trees under unbalancing workloads (not available on all benchmarks).
  - d, the duration of the benchmark in milliseconds.
  - a, the ratio of write-all operations that correspond to composite operations. Note that this parameter has to be smaller or equal to the update ratio given by parameter u.
  - s, the ratio of snapshot operations that scan multiple elements of the data structure. Note that this parameter has to be set to a value lower than or equal to 100-u, where u is the update ratio.
  - W, the warmup of the benchmark corresponds to the time it runs before the statistics start being collected, this option is used in Java to give time to the JIT compiler to compile selected bytecode to native code.
  - n, the number of iterations as part of the same JVM instance.
  - b, the benchmark to use.
- - x, the alternative synchronization technique for the same algorithm. In the case of transactional data structures, this rep- resents the transactional model used (relaxed or strong) while it represents the type of locks used in the context of lock-based data structures (optimistic or pessimistic). 
 
-Install
--------
-To install Synchrobench, take a look at the INSTALL files of each version of Synchrobench in the java and c-cpp directories.
+Composite functions
+----------------
+Synchrobench features composite operations to test some appealing features of synchronization techniques, like composition so that a function can invoke existing functions or reusability so that Bob does not have to understand the internals of Alice's library to use it.
+
+There are two types of composite functions:
+ - writeAll are composite operation that update the structure. Examples are a move operation that remove an element from one data structure and add it to another structure and a putIfAbsent that adds an element y only if x is absent from the same structure.
+ - readAll are composite operations that do not update the structure. Examples are containsAll that check the presence of multiple elements, returing false if at least one is absence and size that counts the number of elements present at some indivisible point (also called snapshot) of the execution.
+
+Below is a distribution of operation depending on parameters given. Note that the percentage of writeAll operations (-a) is smaller than the update ratio and the percentage of readAll operations (-s) is smaller than the read-only ratio (100-u).
+
+	/**
+	 * The distribution of functions as an array of percentiles
+	 * 
+	 * 0%           a             u          u+s                                       100%
+	 * |--writeAll--|--writeSome--|--readAll--|--readSome--|
+	 * |----------update----- --|-------read-only-------| 
+         */
+	

@@ -1,0 +1,39 @@
+<project name="CompositionalPackage" default="compile" basedir=".">
+  
+	<property name="deuce" value="mydeuce" />
+        <property name="version" value="0.1" />
+        <property name="src" value="src" />
+        <property name="benchsrc" value="src" />
+        <property name="bin" value="bin" />
+        <property name="lib" value="lib" />
+        <property name="dist" value="dist" />
+        <property name="benchname" value="compositional-deucestm-${version}" />
+
+        <target name="init">
+                <mkdir dir="${bin}" />
+        </target>
+
+        <target name="compile" depends="init">
+                <javac srcdir="${src}" destdir="${bin}" classpath="${deuce}:lib/junit.jar">
+                        <exclude name="" />
+			<compilerarg value="-XDignore.symbol.file"/>
+                </javac>
+        </target>
+
+	<target name="jarbench" depends="compile">
+	  <jar basedir="${bin}" excludes="org/**" destfile="${lib}/${benchname}.jar"> 
+	    <manifest>
+	      <attribute name="Main-Class" value="contention.benchmark.Test" />
+	      </manifest>
+	    </jar>
+	  </target>
+
+	<target name="jardeuce" depends="compile">
+	  <jar basedir="${bin}/org" destfile="${lib}/${deuce}.jar">
+	    <manifest>
+	      <attribute name="Main-Class" value="org.deuce.transform.asm.Agent" />
+	      </manifest>
+	    </jar>
+	  </target>
+
+</project>

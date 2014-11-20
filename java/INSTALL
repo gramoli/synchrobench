@@ -1,0 +1,58 @@
+INSTALL
+-------  
+   To install the Java version of Synchrobench, go to the  
+   directory 'synchrobench/java' and type: 
+   
+   make
+
+   This will create a bin directory with a series of binaries
+   whose names correspond to {DATASTRUCTURES}.{SYNC}.{ALGO} as in:
+
+   * skiplists.lockfree.NonBlockingFriendlySkipListMap
+
+SYNCHRONIZATIONS
+----------------
+   
+   The Java version of Synchrobench uses locks, read-modify-write 
+   (e.g., CAS), copy-on-write (COW) and TM (transactional memory) to 
+   synchronize data structure algorithms. There exist many ways of 
+   implementing these synchornization techniques, the default 
+   ones are:
+  
+   * For locks: synchronized or re-entrant locks
+   * For lock-freedom: exclusively CAS
+   * For TM: the Java E-STM software TM library
+   * For COW: the java.util.concurrent.CopyOnWriteArraySet wrapper
+
+   Synchrobench can use other TM implementations:
+   
+   * You can specify it by changing the JVM argument when running the 
+     transactional version. 
+   * Check the Makefile to see how the 
+     "make check" specifies these parameters and replace 
+     estmmvcc.Context by estm.Context for ESTM, lsa.Context for LSA
+     and tl2.Context for TL2. 
+   * For more information about the bytecode instrumentation framework
+     take a look at Deuce STM (https://sites.google.com/site/deucestm/).
+
+RUN
+---
+
+   1. Classes for queues, hash tables, linked lists, trees, skip lists
+      are located in 'bin'. You must run the benchmark located in 
+      bin/contention/benchmark/Test and pass it the benchmark class name
+      as a parameter with '-b':
+
+      java -cp bin contention.benchmark.Test -b skiplists.lockfree.NonBlockingFriendlySkipListMap
+
+   2. Use parameter "--help" for the full list of parameters
+
+      java -cp bin contention.benchmark.Test --help
+
+
+DATA STRUCTURES
+---------------
+
+   The main data structures implement a Set or a Map.
+
+ 

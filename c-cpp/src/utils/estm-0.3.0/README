@@ -1,0 +1,53 @@
+OVERVIEW
+--------
+e-STM is the first software transactional memory supporting elastic 
+transactions. Elastic transactions are a variant of the 
+transactional model. Upon conflict detection, an elastic 
+transaction might drop what it did so far within a separate 
+transaction that immediately commits, and initiate a new 
+transaction which might itself be elastic.
+
+Elastic transactions are a complementary alternative to traditional 
+transactions, particularly appealing when implementing search 
+structures. Both forms of transactions can safely be combined 
+within the same application. e-STM provides elastic transactions and 
+the normal transaction of tinySTM but elastic ones increase performance 
+by 35% (on average). Our measurements are taken from the micro-benchmarks 
+available at http://lpd.epfl.ch/gramoli/php/estm.php
+
+INSTALL
+-------
+> make
+
+TEST
+----
+Download microbench and set ESTMDIR env variable before 
+compiling it with e-STM using:
+
+> make estm
+
+Examples of benchmarks:
+1. If you want to execute insert/delete/search (90%/5%/5%) operations 
+on a skip list implementation of an integer set with an average 
+size of 1024 (-i1024) elements, using 32 threads and using 
+elastic transactions for all operations (-x4)
+
+> ./bench/lf-skiplist -x4 -u10 -i1024 -r2048 -n32 
+
+32 threads execute 10% of attempted updates on 1024 elements with a range of 2048 values.
+
+2. If you want 10% effective updates (i.e., 10% of operations write to the 
+memory), then you should better use the alternate mode (-A) where the 
+delete targets the last inserted value and the effective flag (-f1)
+
+> ./bench/lf-skiplist -x4 -u10 -i1024 -r2048 -n32 -f1 -A -r2048
+
+32 threads execute 10% of effective updates on 1024 elements with a range of 2048 values.
+
+e-STM has been tested on an 
+- 4 Quad-Core AMD Opteron 
+
+CONTACT
+-------
+vincent.gramoli@epfl.ch
+http://lpd.epfl.ch/gramoli/php/estm.php
