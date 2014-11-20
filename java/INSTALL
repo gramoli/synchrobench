@@ -1,7 +1,8 @@
 INSTALL
 -------  
-   To install the Java version of Synchrobench, go to the  
-   directory 'synchrobench/java' and type: 
+   To install the Java version of Synchrobench, go to the directory
+   'synchrobench/java', modify the path to your 
+   rt.jar in the Makefile and type:
    
    make
 

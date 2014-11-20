@@ -1,18 +1,18 @@
-Synchrobench
-=========
+Java Synchrobench
+=================
 Synchrobench is a micro-benchmark suite used to evaluate synchronization 
 techniques on data structures. Synchrobench is written in C/C++ and Java and
 currently includes arrays, binary trees, hash tables, linked lists, queues and
-skip lists data stuctures that are synchronized with copy-on-write, locks, 
-read-modify-write, read-copy-update and transactional memory. A non-synchronized
-version of these data structures is proposed in each language as a baseline to 
-measure the performance gain on multi-(/many-)core machines.
+skip lists that are synchronized with copy-on-write, locks, read-modify-write, 
+read-copy-update and transactional memory. A non-synchronized version of these 
+data structures is proposed in each language as a baseline to measure the 
+performance gain on multi-(/many-)core machines.
 
 If you use Synchrobench, please cite the companion paper: 
 V. Gramoli. More than You Ever Wanted to Know about Synchronization. PPoPP 2015.
 
 Data structures in Java
-------------------
+-----------------------
 The Java version of synchrobench (synchrobench-java) provides variants of the 
 algorithms presented in these papers:
  - V. Gramoli and R. Guerraoui. Reusable Concurrent Data Types. In ECOOP 2014.
@@ -85,8 +85,8 @@ Below is a distribution of operation depending on parameters given. Note that th
 	/**
 	 * The distribution of functions as an array of percentiles
 	 * 
-	 * 0%           a             u          u+s                                       100%
+	 * 0%           a             u          u+s          100%
 	 * |--writeAll--|--writeSome--|--readAll--|--readSome--|
-	 * |----------update----- --|-------read-only-------| 
+	 * |----------update----- --|-------read-only----------| 
          */
 	

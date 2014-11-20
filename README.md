@@ -3,10 +3,10 @@ Synchrobench
 Synchrobench is a micro-benchmark suite used to evaluate synchronization 
 techniques on data structures. Synchrobench is written in C/C++ and Java and
 currently includes arrays, binary trees, hash tables, linked lists, queues and
-skip lists data stuctures that are synchronized with copy-on-write, locks, 
-read-modify-write, read-copy-update and transactional memory. A non-synchronized
-version of these data structures is proposed in each language as a baseline to 
-measure the performance gain on multi-(/many-)core machines.
+skip lists that are synchronized with copy-on-write, locks, read-modify-write, 
+read-copy-update and transactional memory. A non-synchronized version of these 
+data structures is proposed in each language as a baseline to measure the 
+performance gain on multi-(/many-)core machines.
 
 If you use Synchrobench, please cite the companion paper: 
 V. Gramoli. More than You Ever Wanted to Know about Synchronization. PPoPP 2015.
@@ -14,7 +14,7 @@ V. Gramoli. More than You Ever Wanted to Know about Synchronization. PPoPP 2015.
 Data strutures
 --------------
 Note that the proposed data structures are not synchronized with each individual
-synchrobization technique, 30+ algorithms from the literature are provided.
+synchronization technique, 30+ algorithms from the literature are provided.
 Synchrobench includes variants of the algorithms presented in these papers:
  - I. Dick, A. Fekete and V. Gramoli. Logarithmic data structures for
    multicores. Technical Report 697, University of Sydney, September
