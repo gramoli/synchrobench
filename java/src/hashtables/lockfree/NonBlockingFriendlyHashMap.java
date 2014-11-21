@@ -9,6 +9,16 @@ import contention.abstractions.CompositionalMap;
 import contention.abstractions.MaintenanceAlg;
 import hashtables.lockfree.cliffutils.UtilUnsafe;
 
+/**
+ * This code corresponds to the contention-friendly hash map
+ * as described in:
+ * 
+ * T. Crain, V. Gramoli and M. Raynal. A Contention-Friendly 
+ * Methodology for Search Structures. TR #hal-00668010, INRIA, 
+ * 2012. 
+ * 
+ * @author Tyler Crain
+ */
 public class NonBlockingFriendlyHashMap<K, V> implements
 		CompositionalMap<K, V>, MaintenanceAlg {
 
