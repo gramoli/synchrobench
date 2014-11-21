@@ -12,7 +12,7 @@ import contention.abstractions.CompositionalMap;
 import contention.abstractions.MaintenanceAlg;
 
 /**
- * A java implementation of the Speculation-friendly binary search tree
+ * A Java implementation of the Speculation-friendly binary search tree
  * as described in:
  *
  * T. Crain, V. Gramoli and M.Raynal. A Speculation-friendly Binary 
