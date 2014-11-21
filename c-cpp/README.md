@@ -11,7 +11,7 @@ performance gain on multi-(/many-)core machines.
 If you use Synchrobench, please cite the companion paper: 
 V. Gramoli. More than You Ever Wanted to Know about Synchronization. PPoPP 2015.
 
-C/C++ Data strutures
+C/C++ Data structures
 --------------------
 Note that the proposed data structures are not synchronized with each individual
 synchronization technique, 30+ algorithms from the literature are provided.
