@@ -14,7 +14,7 @@ import contention.abstractions.MaintenanceAlg;
 
 /**
  * Synchrobench-java, a benchmark to evaluate the implementations of 
- * high level abstractions including Map and Set
+ * high level abstractions including Map and Set.
  * 
  * @author Vincent Gramoli
  * 

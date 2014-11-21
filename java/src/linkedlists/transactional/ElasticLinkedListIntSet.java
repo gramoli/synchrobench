@@ -10,7 +10,12 @@ import contention.abstractions.CompositionalIntSet;
 import contention.abstractions.CompositionalIterator;
 
 /**
- * Linked list implementation of integer set
+ * Linked list implementation of integer set using 
+ * Elastic transactions as described in:
+ * 
+ * P. Felber, V. Gramoli, R. Guerraoui. Elastic
+ * Transactions. DISC 2009.
+ * 
  * @author Vincent Gramoli 
  *
  */

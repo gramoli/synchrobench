@@ -11,6 +11,16 @@ import contention.abstractions.CompositionalIntSet;
 import contention.abstractions.CompositionalMap;
 import contention.abstractions.MaintenanceAlg;
 
+/**
+ * A java implementation of the Speculation-friendly binary search tree
+ * as described in:
+ *
+ * T. Crain, V. Gramoli and M.Raynal. A Speculation-friendly Binary 
+ * Search Tree. PPoPP 2010.
+ * 
+ * @author Tyler Crain
+ * 
+ */
 public class TransactionalFriendlyTreeSet<K, V> implements CompositionalIntSet,
 		CompositionalMap<K, V>, MaintenanceAlg {
 

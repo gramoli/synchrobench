@@ -10,13 +10,22 @@ import contention.abstractions.CompositionalIntSet;
 import contention.abstractions.CompositionalIterator;
 
 /**
- * Linked list implementation of integer set
+ * Linked list implementation of integer set using 
+ * Polymorphic transactions as described in:
+ * 
+ * V. Gramoli and R. Guerraoui. Reusable Concurrent 
+ * Data Types. ECOOP 2014.
+ * 
+ * V. Gramoli and R. Guerraoui. Democratizing 
+ * Transactional Programming CACM 57(1):86-93, 
+ * 2014.
+ *
  * @author Vincent Gramoli 
  *
  */
 public class ReusableLinkedListIntSet implements CompositionalIntSet {
 
-	/** The first node of the list */ 
+    /** The first node of the list */ 
     final private Node head;
     /** The thread-private PRNG */
     final private static ThreadLocal<Random> s_random = new ThreadLocal<Random>() {

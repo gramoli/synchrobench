@@ -10,8 +10,9 @@ import contention.benchmark.Parameters;
 
 
 /**
- * The Transactional Queue implementation of integer set
- * 
+ * A transactional Queue implemented as a linked list
+ * that also exports an integer set interface.
+ *
  * @author Vincent Gramoli
  *
  */

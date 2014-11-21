@@ -11,6 +11,13 @@ import linkedlists.lockbased.lazyutils.LazyList;
 
 import contention.abstractions.CompositionalSortedSet;
 
+/**
+ * This is an implementation variant of the lazy linked 
+ * list presented in: 
+ * S. Heller, M. Herlihy, V. Luchangco, M. Moir, W. N. 
+ * Sherer, N. Shavit. A Lazy Concurrent List-Based Set 
+ * Algorithm. OPODIS 2005.
+ */
 public class LazyLinkedListSortedSet<E extends Comparable<E>> implements CompositionalSortedSet<E> {
 
 	/** LazyLinkedList needs consecutive thread ids for the snapshot counter. */

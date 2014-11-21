@@ -1,7 +1,6 @@
 package arrays.copyonwrite;
 
 import java.util.Collection;
-//import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.SortedSet; 
@@ -12,7 +11,11 @@ import contention.abstractions.CompositionalSortedSet;
 import linkedlists.sequential.SequentialLinkedListSortedSet;
 
 /*
- * CopyOnWrite-based array
+ * CopyOnWrite-based array implementing an integer set 
+ * as described in:
+ * 
+ * V. Gramoli and R. Guerraoui. Reusable Concurrent 
+ * Data Types. ECOOP 2014.
  * 
  * @author Vincent Gramoli
  *

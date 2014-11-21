@@ -11,7 +11,14 @@ import contention.abstractions.CompositionalMap.Vars;
 import contention.abstractions.MaintenanceAlg;
 
 /**
- * @author tcrain
+ * The contention-friendly tree implementation of map 
+ * as described in:
+ *
+ * T. Crain, V. Gramoli and M. Ryanla. 
+ * A Contention-Friendly Binary Search Tree. 
+ * Euro-Par 2013.
+ * 
+ * @author Tyler Crain
  * 
  * @param <K>
  * @param <V>

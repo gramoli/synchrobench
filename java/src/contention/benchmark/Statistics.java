@@ -5,17 +5,13 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-// Usable with deuce
-// import org.deuce.transform.Exclude;
-
 /**
- * This class provides statistics collecting functionality for STMs Adapted from
- * Yoav Cohen's code
+ * This class provides statistics collecting functionality for STMs 
+ * Adapted from Yoav Cohen's code as used in Deuce.
  * 
  * @author Vincent Gramoli
  * 
  */
-// @Exclude
 public class Statistics {
 
 	public enum AbortType {

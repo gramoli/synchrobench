@@ -12,13 +12,18 @@ import linkedlists.sequential.SequentialLinkedListIntSet;
 
 /*
  * Lock-based Linked List based on the sequential version
+ * using the Collections.SynchronizedList wrapper that acts 
+ * as a coarse-grained lock but offers reusability as 
+ * described in:
+ *
+ * V. Gramoli and R. Guerraoui. Reusable Concurrent Data 
+ * Types. ECOOP 2014.
  * 
  * @author Vincent Gramoli
  *
  */
 public class LockedLinkedListIntSet implements CompositionalIntSet {
 
-	//private SequentialLinkedListIntSet s;
 	private List<Integer> s; 
 	
     /** The thread-private PRNG */
@@ -30,7 +35,6 @@ public class LockedLinkedListIntSet implements CompositionalIntSet {
     };
 	
 	public LockedLinkedListIntSet() {
-		//s = (SequentialLinkedListIntSet) Collections.synchronizedSet((Set<Integer>) new SequentialLinkedListIntSet());
 		s = (List<Integer>) Collections.synchronizedList(new LinkedList<Integer>());
 	}
 

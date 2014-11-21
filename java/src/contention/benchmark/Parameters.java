@@ -1,7 +1,10 @@
 package contention.benchmark;
 
 /**
- * Parameters of the edu.epfl.compostional benchmark.
+ * Parameters of the Java version of the 
+ * Synchrobench benchmark.
+ *
+ * @author Vincent Gramoli
  */
 public class Parameters {
     
@@ -11,11 +14,11 @@ public class Parameters {
     	numWriteAlls = 0,
     	numSnapshots = 0,
     	range = 2048,
-		size = 1024,
-		warmUp = 5,
+	size = 1024,
+	warmUp = 5,
     	iterations = 1;
     
     public static boolean detailedStats = true;
 
-	public static String benchClassName = new String("skiplists.lockfree.NonBlockingFriendlySkipListMap");
+    public static String benchClassName = new String("skiplists.lockfree.NonBlockingFriendlySkipListMap");
 }

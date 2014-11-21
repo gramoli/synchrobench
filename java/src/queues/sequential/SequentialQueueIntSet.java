@@ -10,7 +10,8 @@ import contention.benchmark.Parameters;
 
 
 /**
- * The Transactional Queue implementation of integer set
+ * A sequential Queue implementated as a linked list
+ * that also exports an integer set interface.
  * 
  * @author Vincent Gramoli
  *
@@ -24,8 +25,8 @@ public class SequentialQueueIntSet implements CompositionalIntSet {
     final private static ThreadLocal<Random> s_random = new ThreadLocal<Random>() {
         @Override
         protected synchronized Random initialValue() {
-            return new Random();
-        }
+	    return new Random();
+	}
     };
 
     public SequentialQueueIntSet() {
@@ -33,22 +34,22 @@ public class SequentialQueueIntSet implements CompositionalIntSet {
         m_last = m_first;
     }
 
-	public void fill(final int range, final long size) {
-		while (this.size() < size) {
-			this.addInt(s_random.get().nextInt(range));
-		}
+    public void fill(final int range, final long size) {
+	while (this.size() < size) {
+	    this.addInt(s_random.get().nextInt(range));
 	}
+    }
 		
     public boolean addInt(int value) {
         push(value);
         return true;
     }
 
-	/**
-	 * To respect the semantics of ConcurrentLinkedQueue
-	 * returns true as soon as a modif occurs
-	 */ 
-	@Override
+    /**
+     * To respect the semantics of ConcurrentLinkedQueue
+     * returns true as soon as a modif occurs
+     */ 
+    @Override
 	public boolean addAll(Collection<Integer> C) {
         boolean result = false;
         for (int x : C) result |= this.addInt(x);
@@ -78,17 +79,16 @@ public class SequentialQueueIntSet implements CompositionalIntSet {
             Node next = node.getNext();
             previous.setNext(next);
             node.setNext(next);
-			// TODO: update m_last?
-			if (next == null) m_last = previous;
+	    if (next == null) m_last = previous;
         }
         return found;
     }
 
-	/**
-	 * To respect the semantics of ConcurrentLinkedQueue
-	 * returns true as soon as a modif occurs
-	 */ 
-	@Override
+    /**
+     * To respect the semantics of ConcurrentLinkedQueue
+     * returns true as soon as a modif occurs
+     */ 
+    @Override
 	public boolean removeAll(Collection<Integer> C) {
         boolean result = false;
         for (int x : C) result |= this.removeInt(x);
@@ -157,25 +157,25 @@ public class SequentialQueueIntSet implements CompositionalIntSet {
         }
     }
     
-	/** 
-	 * This is called after the JVM warmup phase
-	 * to make sure the data structure is well initalized.
-	 * No need to do anything for this.
-	 *
-	 * Note the ugly hack to reset the init size of the queue after warmup 
-	 * otherwise queue size grow as fast as its add ops execute: they are 
-	 * always successful, as opposed to its remove.
-	 */
-	public void clear() {
-		m_last = m_first; 
-		fill(Parameters.range, Parameters.size);
+    /** 
+     * This is called after the JVM warmup phase
+     * to make sure the data structure is well initalized.
+     * No need to do anything for this.
+     *
+     * Note the ugly hack to reset the init size of the queue after warmup 
+     * otherwise queue size grow as fast as its add ops execute: they are 
+     * always successful, as opposed to its remove.
+     */
+    public void clear() {
+	m_last = m_first; 
+	fill(Parameters.range, Parameters.size);
     	return;	
-	}
-	
-	public Object getInt(int value) {
+    }
+    
+    public Object getInt(int value) {
         Node previous = m_first;
         Node node = previous.getNext();
-
+	
         while (node != null) {
             if (node.getValue() == value) {
                 return node;
@@ -184,11 +184,11 @@ public class SequentialQueueIntSet implements CompositionalIntSet {
             node = previous.getNext();
         }
         
-		return null;
-	}
-
-	public Object putIfAbsent(int x, int y) {
-		if (!containsInt(x)) addInt(y);
-		return null;
-	}
+	return null;
+    }
+    
+    public Object putIfAbsent(int x, int y) {
+	if (!containsInt(x)) addInt(y);
+	return null;
+    }
 }

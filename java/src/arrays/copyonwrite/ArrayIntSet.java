@@ -7,7 +7,11 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import contention.abstractions.CompositionalIntSet;
 
 /*
- * CopyOnWrite-based array
+ * CopyOnWrite-based array implementing an integer set 
+ * as described in:
+ * 
+ * V. Gramoli and R. Guerraoui. Reusable Concurrent
+ * Data Types. ECOOP 2014.
  * 
  * @author Vincent Gramoli
  *

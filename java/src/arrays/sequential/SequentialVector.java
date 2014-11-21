@@ -1,15 +1,11 @@
 /*
  * This code is a modified version of the JDK java.util.Vector class.
- * The modification consists of removing all synchronization to evaluate
- * the overhead of locking in the original version. 
+ * The modification consists of removing all synchronizations to evaluate
+ * the overhead of locking in the original version as described in:
  * 
- * Companions papers:
- *  - Vincent Gramoli. More than You Even Wanted to Know about Synchronization. 
- *    PPoPP 2015.
- *  - Vincent Gramoli and Rachid Guerraoui. Reusable Concurrent Data Types.
- *    ECOOP 2014.
+ * Vincent Gramoli and Rachid Guerraoui. Reusable Concurrent Data Types.
+ * ECOOP 2014.
  */
-
 
 /*
  * Copyright (c) 1994, 2011, Oracle and/or its affiliates. All rights reserved.

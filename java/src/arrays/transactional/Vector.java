@@ -1,3 +1,11 @@
+/*
+ * This code is a modified version of the Vector class from the JDK
+ * that uses transactions instead of locks for synchronization as 
+ * described in:
+ *
+ * V. Gramoli and R. Guerroui. Reusable Concurrent Data Types. 
+ * ECOOP 2014.
+ */
 
 /*
  * Copyright (c) 1994, 2011, Oracle and/or its affiliates. All rights reserved.
