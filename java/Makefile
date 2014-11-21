@@ -7,7 +7,7 @@ JAVAOPT 	?= -server
 
 BIN	?= ${XJDK_HOME}/bin
 
-STM     ?= estm
+STM     ?= estmmvcc
 ifndef STM
   SYNC = global
 else
