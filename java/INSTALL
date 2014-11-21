@@ -31,10 +31,11 @@ SYNCHRONIZATIONS
      transactional version. 
    * Check the Makefile to see how the 
      "make check" specifies these parameters and replace 
-     estmmvcc.Context by estm.Context for ESTM, lsa.Context for LSA
-     and tl2.Context for TL2. 
+     estmmvcc by estm for ESTM, lsa for LSA
+     and tl2 for TL2. 
    * For more information about the bytecode instrumentation framework
-     take a look at Deuce STM (https://sites.google.com/site/deucestm/).
+     and other compatible STMs take a look at Deuce STM 
+     (https://sites.google.com/site/deucestm/).
 
 RUN
 ---
