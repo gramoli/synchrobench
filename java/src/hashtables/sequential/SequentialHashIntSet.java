@@ -12,8 +12,8 @@ import contention.abstractions.CompositionalIntSet;
  */ 
 public class SequentialHashIntSet implements CompositionalIntSet {
 
-    final private Node[] table;
-    final int tableSize;
+    private Node[] table;
+    int tableSize;
 
     /** The thread-private PRNG */
     final private static ThreadLocal<Random> s_random = new ThreadLocal<Random>() {
@@ -175,7 +175,8 @@ public class SequentialHashIntSet implements CompositionalIntSet {
 	 * No need to do anything for this.
 	 */
 	public void clear() {
-    	return;	
+	    tableSize = contention.benchmark.Parameters.size;
+	    table = new Node[tableSize];
 	}
 
 	@Override
