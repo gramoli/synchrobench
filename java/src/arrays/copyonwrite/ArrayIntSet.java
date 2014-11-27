@@ -81,7 +81,7 @@ public class ArrayIntSet implements CompositionalIntSet {
 	 */
 	@Override
 	public void clear() {
-		return;
+	    s.clear();
 	}
 
 	@Override

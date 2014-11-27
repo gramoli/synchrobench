@@ -105,7 +105,7 @@ public class ArraySortedSet<E extends Comparable<E>> implements CompositionalSor
 	 */
 	@Override
 	public void clear() {
-		return;
+	    s.clear();
 	}
 
 	@Override
