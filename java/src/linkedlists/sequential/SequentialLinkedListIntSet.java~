@@ -173,8 +173,7 @@ public class SequentialLinkedListIntSet implements CompositionalIntSet {
 	 * No need to do anything for this.
 	 */
 	public void clear() {
-	    Node max = new Node(Integer.MAX_VALUE);
-	    head.setNext(max);
+    	return;	
 	}
 
 	@Override

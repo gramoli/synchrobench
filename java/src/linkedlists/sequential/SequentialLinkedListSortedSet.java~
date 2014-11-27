@@ -81,7 +81,7 @@ public class SequentialLinkedListSortedSet<E extends Comparable<E>> implements C
 	 */
 	@Override
 	public void clear() {
-	    head = null;
+		return;
 	}
 
 	@SuppressWarnings("unchecked")
