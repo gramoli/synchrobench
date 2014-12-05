@@ -186,7 +186,8 @@ public class ReusableLinkedListIntSet implements CompositionalIntSet {
     }
 
 	public void clear() {
-    	return;	
+	    Node max = new Node(Integer.MAX_VALUE);
+	    head.setNext(max);
 	}
 
 	@Override
