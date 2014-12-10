@@ -537,7 +537,7 @@ int main(int argc, char **argv)
             AO_nop_full();
         }
         bg_stop();
-        bg_start(500000);
+        bg_start(50000);
         printf("Number of levels is %lu\n", set->head->level);
 
 
