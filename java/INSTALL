@@ -11,6 +11,12 @@ INSTALL
 
    * skiplists.lockfree.NonBlockingFriendlySkipListMap
 
+   Most data structures compile with Java 1.7, however, the versioned list
+   uses the StampedLock from Java 1.8. Either upgrade to Java 1.8 or 
+   delete the corresponding files VersionedListSetStampLock.java and 
+   NodeStampLock.java in src/linkedlists/lockbased/.
+
+
 SYNCHRONIZATIONS
 ----------------
    
