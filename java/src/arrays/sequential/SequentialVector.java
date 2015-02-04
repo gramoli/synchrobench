@@ -46,6 +46,7 @@ import java.util.NoSuchElementException;
 import java.util.RandomAccess;
 import java.util.List;
 import java.util.SortedSet;
+import java.util.Spliterator;
 
 import org.deuce.Atomic;
 
@@ -228,6 +229,12 @@ public class SequentialVector<E>
             elementData = Arrays.copyOf(elementData, elementCount);
         }
     }
+
+
+    public Spliterator<E> spliterator() {
+	return List.super.spliterator();
+    }    
+    
 
     /**
      * Increases the capacity of this vector, if necessary, to ensure

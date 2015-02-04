@@ -46,6 +46,7 @@ import java.util.NoSuchElementException;
 import java.util.RandomAccess;
 import java.util.List;
 import java.util.SortedSet;
+import java.util.Spliterator;
 
 import java.lang.String;
 
@@ -231,6 +232,12 @@ public class Vector<E>
         if (elementCount < oldCapacity) {
             elementData = Arrays.copyOf(elementData, elementCount);
         }
+    }
+
+
+    @Override
+	public Spliterator<E> spliterator() {
+	return List.super.spliterator();
     }
 
     /**
