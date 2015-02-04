@@ -22,6 +22,8 @@ Synchrobench includes variants of the algorithms presented in these papers:
  - V. Gramoli and R. Guerraoui. Reusable Concurrent Data Types. In ECOOP 2014.
  - M. Arbel and H. Attiya. Concurrent updates with RCU: Search tree as
    an example. In PODC, 2014.
+ - A. Natarajan and N. Mittal. Fast Concurrent Lock-Free Binary Search Trees.
+   In PPoPP, pages 317-328, 2014
  - D. Drachsler, M. Vechev and E. Yahav. Practical concurrent binary search 
    trees via logical ordering. In PPoPP, pages 343–356, 2014.
  - V. Gramoli and R. Guerraoui. Democratizing Transactional Programming. CACM 
