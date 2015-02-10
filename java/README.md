@@ -51,11 +51,12 @@ Other Transactional Memory implemenations can be tested with Synchrobench
 in Java, by adding the DeuceSTM-based libraries in the directory:
    synchrobench-java/src/org/deuce/transaction/  
 The transactional memories that were tested successfully with synchrobench in 
-Java are E-STM, LSA, SwissTM and TL2 as presented in:
+Java are E-STM, LSA, PSTM, SwissTM and TL2 as presented in:
  - P. Felber, V. Gramoli, and R. Guerraoui. Elastic transactions. In DISC, pages
    93–108, 2009.
  - T. Riegel, P. Felber, and C. Fetzer. A lazy snapshot algorithm with eager 
    validation. In DISC, 2006.
+ - V. Gramoli and R. Guerraoui. Reusable Concurrent Data Types. In ECOOP 2014
  - A. Dragojevic, R. Guerraoui, M. Kapalka. Stretching transactional memory. In
    PLDI, p.155-165, 2009.
  - D. Dice, O. Shalev and N. Shavit. Transactional locking II. In DISC, 2006.  
@@ -80,7 +81,7 @@ Synchrobench features composite operations to test some appealing features of sy
 
 There are two types of composite functions:
  - writeAll are composite operation that update the structure. Examples are a move operation that remove an element from one data structure and add it to another structure and a putIfAbsent that adds an element y only if x is absent from the same structure.
- - readAll are composite operations that do not update the structure. Examples are containsAll that check the presence of multiple elements, returing false if at least one is absence and size that counts the number of elements present at some indivisible point (also called snapshot) of the execution.
+ - readAll are composite operations that do not update the structure. Examples are containsAll that checks the presence of multiple elements, returning false if at least one element is absent, and size that counts the number of elements present at some indivisible point (i.e., atomic snapshot) of the execution.
 
 Below is a distribution of operation depending on parameters given. Note that the percentage of writeAll operations (-a) is smaller than the update ratio and the percentage of readAll operations (-s) is smaller than the read-only ratio (100-u).
 
