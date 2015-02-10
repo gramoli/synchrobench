@@ -15,6 +15,7 @@ Data structures in Java
 -----------------------
 The Java version of synchrobench (synchrobench-java) provides variants of the 
 algorithms presented in these papers:
+ - V. Gramoli, P. Kuznetsov, S. Ravi, D. Shang. A Concurrency-Optimal List-Based Set. arXiv:1502.01633, 2015.
  - V. Gramoli and R. Guerraoui. Reusable Concurrent Data Types. In ECOOP 2014.
  - D. Drachsler, M. Vechev and E. Yahav. Practical concurrent binary search 
    trees via logical ordering. In PPoPP, pages 343–356, 2014.
@@ -45,6 +46,7 @@ in their software forms using bytecode instrumentation, locks.
 The transactional memory algorithm used here is E-STM presented in:
  - P. Felber, V. Gramoli, and R. Guerraoui. Elastic transactions. In DISC, pages
    93–108, 2009.
+
 Other Transactional Memory implemenations can be tested with Synchrobench
 in Java, by adding the DeuceSTM-based libraries in the directory:
    synchrobench-java/src/org/deuce/transaction/  
