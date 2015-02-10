@@ -16,6 +16,7 @@ Data structures
 Note that the proposed data structures are not synchronized with each individual
 synchronization technique, 30+ algorithms from the literature are provided.
 Synchrobench includes variants of the algorithms presented in these papers:
+ - V. Gramoli, P. Kuznetsov, S. Ravi, D. Shang. A Concurrency-Optimal List-Based Set. arXiv:1502.01633, February 2015.
  - I. Dick, A. Fekete and V. Gramoli. Logarithmic data structures for
    multicores. Technical Report 697, University of Sydney, September
    2014.
