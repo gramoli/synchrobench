@@ -454,19 +454,13 @@ int inject(thread_data_t * data, seekRecord_t * R, int op){
 
 bool insert(thread_data_t * data, size_t key){
   int injectResult;
-  int fasttry = 0;	
 	
 	while(true){
 		seekRecord_t * R = insseek(data, key, INS);
-		fasttry++;
 		if(R == NULL){
-			if(fasttry == 1){
-				return false;
-			}
-			else{
-				return true;
-			}	
-		}
+                  /// Key is already found in the tree
+		  return false;
+                }
 		
 		if(!is_free(R->pL)){
 		  help_conflicting_operation(data, R);
