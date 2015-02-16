@@ -264,7 +264,7 @@ int main(int argc, char **argv)
 	     "        Consecutive insert/remove target the same value\n"
 	     "  -f, --effective <int>\n"
 	     "        update txs must effectively write (0=trial, 1=effective, default=" XSTR(DEFAULT_EFFECTIVE) ")\n"
-	     "  -l, --length <int>\n"
+	     "  -d, --duration <int>\n"
 	     "        Test duration in milliseconds (0=infinite, default=" XSTR(DEFAULT_DURATION) ")\n"
 	     "  -i, --initial-size <int>\n"
 	     "        Number of elements to insert before test (default=" XSTR(DEFAULT_INITIAL) ")\n"
