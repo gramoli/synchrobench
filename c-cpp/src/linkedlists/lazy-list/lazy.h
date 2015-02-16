@@ -30,8 +30,8 @@
 inline int is_marked_ref(long i);
 inline long unset_mark(long i);
 inline long set_mark(long i);
-inline long get_unmarked_ref(long w);
-inline long get_marked_ref(long w);
+inline node_l_t *get_unmarked_ref(node_l_t *n);
+inline node_l_t *get_marked_ref(node_l_t *n);
 
 /* linked list accesses */
 int parse_validate(node_l_t *pred, node_l_t *curr);
