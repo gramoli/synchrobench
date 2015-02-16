@@ -41,12 +41,12 @@ inline long set_mark(long i) {
 	return i;
 }
 
-inline long get_unmarked_ref(long w) {
-	return unset_mark(w);
+inline node_l_t *get_unmarked_ref(node_l_t *n) {
+	return (node_l_t *) unset_mark((long) n);
 }
 
-inline long get_marked_ref(long w) {
-	return set_mark(w);
+inline node_l_t *get_marked_ref(node_l_t *n) {
+	return (node_l_t *) set_mark((long) n);
 }
 
 /*
@@ -54,14 +54,14 @@ inline long get_marked_ref(long w) {
  * points to curr to verify that the entries are adjacent and present in the list.
  */
 inline int parse_validate(node_l_t *pred, node_l_t *curr) {
-	return (!is_marked_ref((long) pred) && !is_marked_ref((long) pred) && (pred->next == curr));
+	return (!is_marked_ref((long) pred) && !is_marked_ref((long) curr) && (pred->next == curr));
 }
 
 int parse_find(intset_l_t *set, val_t val) {
 	node_l_t *curr;
 	curr = set->head;
 	while (curr->val < val)
-		curr = curr->next;
+		curr = get_unmarked_ref(curr->next);
 	return ((curr->val == val) && !is_marked_ref((long) curr));
 }
 
@@ -70,10 +70,10 @@ int parse_insert(intset_l_t *set, val_t val) {
 	int result;
 	
 	pred = set->head;
-	curr = pred->next;
+	curr = get_unmarked_ref(pred->next);
 	while (curr->val < val) {
 		pred = curr;
-		curr = curr->next;
+		curr = get_unmarked_ref(curr->next);
 	}
 	LOCK(&pred->lock);
 	LOCK(&curr->lock);
@@ -101,17 +101,17 @@ int parse_delete(intset_l_t *set, val_t val) {
 	int result;
 	
 	pred = set->head;
-	curr = pred->next;
+	curr = get_unmarked_ref(pred->next);
 	while (curr->val < val) {
 		pred = curr;
-		curr = curr->next;
+		curr = get_unmarked_ref(curr->next);
 	}
 	LOCK(&pred->lock);
 	LOCK(&curr->lock);
 	result = (parse_validate(pred, curr) && (val == curr->val));
 	if (result) {
-		set_mark((long) curr);
-		pred->next = curr->next;
+		curr->next = get_marked_ref(curr->next);
+		pred->next = get_unmarked_ref(curr->next);
 	}
 	UNLOCK(&curr->lock);
 	UNLOCK(&pred->lock);
