@@ -9,7 +9,7 @@ data structures is proposed in each language as a baseline to measure the
 performance gain on multi-(/many-)core machines.
 
 If you use Synchrobench, please cite the companion paper: 
-V. Gramoli. More than You Ever Wanted to Know about Synchronization. PPoPP 2015.
+V. Gramoli. More than You Ever Wanted to Know about Synchronization. PPoPP 2015. More information at https://sites.google.com/site/synchrobench/.
 
 Data structures in Java
 -----------------------
