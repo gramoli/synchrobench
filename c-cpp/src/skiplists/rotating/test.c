@@ -377,7 +377,7 @@ int main(int argc, char **argv)
 								 "        Test duration in milliseconds (0=infinite, default=" XSTR(DEFAULT_DURATION) ")\n"
 								 "  -i, --initial-size <int>\n"
 								 "        Number of elements to insert before test (default=" XSTR(DEFAULT_INITIAL) ")\n"
-								 "  -n, --num-threads <int>\n"
+								 "  -t, --num-threads <int>\n"
 								 "        Number of threads (default=" XSTR(DEFAULT_NB_THREADS) ")\n"
 								 "  -r, --range <int>\n"
 								 "        Range of integer values inserted in set (default=" XSTR(DEFAULT_RANGE) ")\n"
