@@ -1,4 +1,4 @@
-package contention.datastructures.nonblockingSet;
+package linkedlists.lockfree;
 
 import java.util.Collection;
 

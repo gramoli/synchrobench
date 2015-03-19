@@ -1,4 +1,4 @@
-package contention.datastructures.versioned.stamplock;
+package linkedlists.lockbased;
 
 import contention.abstractions.AbstractCompositionalIntSet;
 

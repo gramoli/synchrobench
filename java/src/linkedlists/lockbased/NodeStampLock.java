@@ -1,4 +1,4 @@
-package contention.datastructures.versioned.stamplock;
+package linkedlists.lockbased.stamplock;
 
 import java.util.concurrent.locks.StampedLock;
 

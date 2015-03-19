@@ -1,4 +1,4 @@
-package contention.datastructures.nonblockingSet;
+package linkedlists.lockfree;
 
 /**
  * NodeLinked used to indicate the non-logically deleted (marked) state of a node 
