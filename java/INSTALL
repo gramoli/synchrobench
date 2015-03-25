@@ -1,8 +1,8 @@
 INSTALL
 -------  
    To install the Java version of Synchrobench, go to the directory
-   'synchrobench/java', modify the path to your 
-   rt.jar in the Makefile and type:
+   'synchrobench/java', make sure you have Apache ant and Java 6+ nstalled, 
+   modify the path to your rt.jar in the Makefile and type:
    
    make
 
@@ -11,10 +11,33 @@ INSTALL
 
    * skiplists.lockfree.NonBlockingFriendlySkipListMap
 
-   Most data structures compile with Java 1.7, however, the versioned list
-   uses the StampedLock from Java 1.8. Either upgrade to Java 1.8 or 
-   delete the corresponding files VersionedListSetStampLock.java and 
-   NodeStampLock.java in src/linkedlists/lockbased/.
+Getting Apache ant
+------------------
+   You can get the binaries from http://ant.apache.org/bindownload.cgi
+   Unarchive the binaries:
+     tar -cvzf apache-ant-X.Y.Z-bin.tar.gz
+   Export the path to the binary
+     export PATH=${PATH}:/ant-X.Y.Z/bin 
+
+rt.jar
+------
+   To use the transactional data structures, you should instrument
+   rt.jar or classes.jar from your JDK at the Makefile line that 
+   corresponds to your OS (e.g., Darwin for Mac OS, Linux, SunOS).
+   Here are some locations found depending on the OS and Java versions
+   * Mac OS X:  
+     /Library/Java/JavaVirtualMachines/jdk1.8.0_20.jdk/Contents/Home/jre/lib/rt.jar
+     /System/Library/Frameworks/JavaVM.framework/Versions/1.6/Classes/classes.jar
+   * Ubuntu:
+     /usr/lib/jvm/java-1.7.0-openjdk-amd64/jre/lib/rt.jar
+   * Solaris: 
+     /usr/lib/jvm/java-6-sun-1.6.0.20/jre/lib/rt.jar
+
+Java versions
+-------------
+   Most data structures compile with Java 1.6 and 1.7, however, the versioned 
+   list uses the StampedLock from Java 1.8. So if you do not use Java 1.8 few
+   data structures will not be compiled.  
 
 
 SYNCHRONIZATIONS

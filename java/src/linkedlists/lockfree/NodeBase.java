@@ -1,4 +1,4 @@
-package contention.datastructures.nonblockingSet;
+package linkedlists.lockfree;
 
 /**
  * Parent Node class used for the Run-Time Type Identification (RTTI)
