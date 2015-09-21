@@ -1,7 +1,7 @@
 .PHONY:	all
 
 BENCHS = src/trees/sftree src/linkedlists/lockfree-list src/hashtables/lockfree-ht src/trees/rbtree src/skiplists/sequential
-LBENCHS = src/trees/tree-lock src/linkedlists/lock-coupling-list src/linkedlists/lazy-list src/hashtables/lockbased-ht src/skiplists/skiplist-lock 
+LBENCHS = src/linkedlists/lock-coupling-list src/linkedlists/lazy-list src/hashtables/lockbased-ht src/skiplists/skiplist-lock 
 LFBENCHS = src/linkedlists/selfish
 
 #MAKEFLAGS+=-j4
@@ -9,7 +9,7 @@ MALLOC=TC
 
 .PHONY:	clean all $(BENCHS) $(LBENCHS)
 
-all:	lock spinlock lockfree estm sequential
+all:	lock spinlock lockfree sequential
 
 lock: clean-build
 	$(MAKE) "LOCK=MUTEX" $(LBENCHS)
