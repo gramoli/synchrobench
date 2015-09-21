@@ -14,6 +14,7 @@ XBDIR 		?= SET_XBOOST_PATH
 
 # Compiler
 SOLARIS_CC 	?= gcc
+CC		= gcc
 
 # Version
 ifeq ($(VERSION),DEBUG)
