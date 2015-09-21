@@ -1,3 +1,8 @@
+2015-09-21 Vincent Gramoli <vincent.gramoli@sydney.edu.au>
+	* Added the Fomitchev and Ruppert linked list with
+	C11 stdatomic  
+	* Added the Selfish linked list with C11 stdatomic
+
 2014-11-18 Vincent Gramoli <vincent.gramoli@sydney.edu.au>
         * Added the Java version of Synchrobench
 
