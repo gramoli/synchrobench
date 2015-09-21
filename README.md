@@ -16,7 +16,10 @@ Data structures
 Note that the proposed data structures are not synchronized with each individual
 synchronization technique, 30+ algorithms from the literature are provided.
 Synchrobench includes variants of the algorithms presented in these papers:
- - V. Gramoli, P. Kuznetsov, S. Ravi, D. Shang. A Concurrency-Optimal List-Based Set. arXiv:1502.01633, February 2015.
+ - J. Gibson, V. Gramoli. Why Non-Blocking Operations Should Be
+   Selfish. In DISC, 2015.
+ - V. Gramoli, P. Kuznetsov, S. Ravi, D. Shang. A Concurrency-Optimal 
+   List-Based Set. arXiv:1502.01633, February 2015 and DISC 2015.
  - I. Dick, A. Fekete and V. Gramoli. Logarithmic data structures for
    multicores. Technical Report 697, University of Sydney, September
    2014.
@@ -46,8 +49,10 @@ Synchrobench includes variants of the algorithms presented in these papers:
  - S. Heller, M. Herlihy, V. Luchangco, M. Moir, W. N. S. III and N. Shavit. A 
    lazy concurrent list-based set algorithm. Parallel Processing Letters, 
    17(4):411–424, 2007.     
- - Maurice Herlihy, Yossi Lev, Victor Luchangco and Nir Shavit. A Simple 
+ - M. Herlihy, Y. Lev, V. Luchangco and N. Shavit. A Simple 
    Optimistic Skiplist Algorithm. In SIROCCO, p.124-138, 2007.
+ - M. Fomitchev, E. Ruppert. Lock-free linked lists and skip lists. In PODC,
+   2004.
  - K. Fraser. Practical lock freedom. PhD thesis, Cambridge University, 2003.
  - M. M. Michael. High performance dynamic lock-free hash tables and
    list-based sets. In SPAA, pages 73–82, 2002.
