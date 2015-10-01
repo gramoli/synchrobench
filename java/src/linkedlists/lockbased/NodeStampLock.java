@@ -1,4 +1,4 @@
-package linkedlists.lockbased.stamplock;
+package linkedlists.lockbased;
 
 import java.util.concurrent.locks.StampedLock;
 
