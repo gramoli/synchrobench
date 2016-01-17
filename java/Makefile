@@ -28,7 +28,8 @@ ifeq ($(OS_NAME), Darwin)
 endif
 
 ifeq ($(OS_NAME), Linux)
-    JDK_RT ?= /usr/lib/jvm/java-1.7.0-openjdk-amd64/jre/lib/rt.jar
+    JDK_RT ?= /usr/lib/jvm/java-1.7.0/jre/lib/rt.jar
+#    JDK_RT ?= /usr/lib/jvm/java-1.7.0-openjdk-amd64/jre/lib/rt.jar
 endif
 
 ifeq ($(OS_NAME), SunOS)
@@ -81,13 +82,13 @@ check:
 	-cp ${BENCH}:${MYDEUCE}:bin \
 	-Xbootclasspath/p:${RT} \
 	contention.benchmark.Test \
-	-v -W 2 -u 20 -a 0 -s 0 -d 2000 -t 64 -i 4096 -r 8192 -b arrays.transactional.Vector
+	-v -W 2 -u 20 -a 0 -s 0 -d 2000 -t 64 -i 4096 -r 8192 -b linkedlists.transactional.ReusableLinkedListIntSet
 
 check-notx:
 	${JAVA} ${JAVAOPT} \
 	-cp bin \
 	contention.benchmark.Test \
-	-W 2 -w 20 -a 0 -s 0 -l 2000 -t 1 -i 4096 -r 8192 -b contention.datastructures.locks.LockedLinkedListIntSet
+	-W 2 -w 20 -a 0 -s 0 -l 2000 -t 1 -i 4096 -r 8192 -b linkedlists.lockbased.LazyLinkedListSortedSet 
 
 clean:
 	rm -rf bin/*
