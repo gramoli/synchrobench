@@ -4,6 +4,7 @@ include $(ROOT)/common/Makefile.common
 
 BINS = $(BINDIR)/$(LOCK)-hashtable 
 LLREP = $(ROOT)/src/linkedlists/lazy-list
+CFLAGS += -std=gnu89
 
 .PHONY:	all clean
 

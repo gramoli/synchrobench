@@ -11,6 +11,7 @@ else
 endif
 
 LLREP = $(ROOT)/src/linkedlists/lockfree-list
+CFLAGS += -std=gnu89
 
 .PHONY:	all clean
 
