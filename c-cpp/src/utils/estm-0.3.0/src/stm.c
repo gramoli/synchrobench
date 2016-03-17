@@ -1196,8 +1196,7 @@ static inline stm_word_t stm_vervalver(volatile stm_word_t *addr, stm_word_t *ti
     goto restart_no_load;
   }
 	
-  if (time != NULL)
-    *timestamp = LOCK_GET_TIMESTAMP(l);
+  *timestamp = LOCK_GET_TIMESTAMP(l);
 	
   PRINT_DEBUG2("==> stm_vervalver(a=%p,l=%p,*l=%lu,d=%p-%lu)\n",
 	       addr, lock, (unsigned long)l, (void *)value, (unsigned long)value);
