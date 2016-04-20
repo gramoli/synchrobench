@@ -3,6 +3,7 @@ ROOT = ../../..
 include $(ROOT)/common/Makefile.common
 
 BINS = $(BINDIR)/$(LOCK)-skiplist
+CFLAGS += -std=gnu89
 
 .PHONY:	all clean
 

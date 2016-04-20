@@ -16,7 +16,7 @@ import contention.abstractions.MaintenanceAlg;
  * as described in:
  *
  * T. Crain, V. Gramoli and M.Raynal. A Speculation-friendly Binary 
- * Search Tree. PPoPP 2010.
+ * Search Tree. PPoPP 2012.
  * 
  * @author Tyler Crain
  * 

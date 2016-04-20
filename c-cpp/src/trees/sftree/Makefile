@@ -7,6 +7,7 @@ include $(ROOT)/common/Makefile.common
 #read/write set size tracking
 #CFLAGS += -DRW_SIZE
 #sequential TFAVL (comment out for normal sequential AVL)
+CFLAGS += -std=gnu89
 CFLAGS += -DTFAVLSEQ
 #2 mainteance threds (comment out for 1 mainteance thread)
 #CFLAGS += -DTWO_MAINTENANCE

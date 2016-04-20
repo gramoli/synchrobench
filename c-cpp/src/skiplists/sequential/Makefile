@@ -7,6 +7,7 @@ ifeq ($(STM),SEQUENTIAL)
 else
   BINS = $(BINDIR)/$(STM)-skiplist
 endif
+CFLAGS += -std=gnu89
 
 .PHONY:	all clean
 

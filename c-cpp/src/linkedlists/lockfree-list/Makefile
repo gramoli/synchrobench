@@ -9,6 +9,7 @@ else ifeq ($(STM),LOCKFREE)
 else
   BINS = $(BINDIR)/$(STM)-linkedlist
 endif
+CFLAGS += -std=gnu89
 
 .PHONY:	all clean
 

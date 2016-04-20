@@ -3,7 +3,7 @@ ROOT = ../../..
 include $(ROOT)/common/Makefile.common
 
 BINS = $(BINDIR)/$(LOCK)-RCU-tree
-#CFLAGS+=-DEXTERNAL_RCU
+CFLAGS += -std=gnu89
 
 .PHONY:	all clean
 
