@@ -16,6 +16,8 @@ Data structures
 Note that the proposed data structures are not synchronized with each individual
 synchronization technique, 30+ algorithms from the literature are provided.
 Synchrobench includes variants of the algorithms presented in these papers:
+ - I. Dick, A. Fekete, V. Gramoli. A Skip List for Multicore. Concurrency and Computation: Practice and Experience. 2016.
+ - M. Herlihy, N. Shavit. The Art of Multiprocessor Programming. 2008.
  - J. Gibson, V. Gramoli. Why Non-Blocking Operations Should Be
    Selfish. In DISC, 2015.
  - V. Gramoli, P. Kuznetsov, S. Ravi, D. Shang. A Concurrency-Optimal 
