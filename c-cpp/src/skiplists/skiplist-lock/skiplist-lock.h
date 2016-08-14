@@ -47,6 +47,8 @@
 #define XSTR(s)                         STR(s)
 #define STR(s)                          #s
 
+extern pthread_key_t preds_key;
+extern pthread_key_t succs_key;
 extern volatile AO_t stop;
 extern unsigned int global_seed;
 /* Skip list level */

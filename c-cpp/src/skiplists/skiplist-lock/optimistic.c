@@ -69,15 +69,12 @@ inline val_t optimistic_search(sl_intset_t *set, val_t val, sl_node_t **preds, s
  * collector. 
  */
 int optimistic_find(sl_intset_t *set, val_t val) { 
-  sl_node_t **succs, **preds;
   int result, found;
 	
-  preds = (sl_node_t **)xmalloc(levelmax * sizeof(sl_node_t *));
-  succs = (sl_node_t **)xmalloc(levelmax * sizeof(sl_node_t *));
+  sl_node_t **preds = pthread_getspecific(preds_key);
+  sl_node_t **succs = pthread_getspecific(succs_key);
   found = optimistic_search(set, val, preds, succs, 1);
   result = (found != -1 && succs[found]->fullylinked && !succs[found]->marked);
-  free(preds);
-  free(succs);
   return result;
 }
 
@@ -103,15 +100,14 @@ inline void unlock_levels(sl_node_t **nodes, int highestlevel, int j) {
  * Unlocking and freeing the memory are done at the right places.
  */
 int optimistic_insert(sl_intset_t *set, val_t val) {
-  sl_node_t **preds, **succs;
   sl_node_t  *node_found, *prev_pred, *new_node;
   sl_node_t *pred, *succ;
+  sl_node_t **preds = pthread_getspecific(preds_key);
+  sl_node_t **succs = pthread_getspecific(succs_key);
   int toplevel, highest_locked, i, valid, found;
   unsigned int backoff;
   struct timespec timeout;
 
-  preds = (sl_node_t **)xmalloc(levelmax * sizeof(sl_node_t *));
-  succs = (sl_node_t **)xmalloc(levelmax * sizeof(sl_node_t *));
   toplevel = get_rand_level();
   backoff = 1;
 	
@@ -121,8 +117,6 @@ int optimistic_insert(sl_intset_t *set, val_t val) {
       node_found = succs[found];
       if (!node_found->marked) {
 	while (!node_found->fullylinked) {}
-	free(preds);
-	free(succs);
 	return 0;
       }
       continue;
@@ -164,9 +158,6 @@ int optimistic_insert(sl_intset_t *set, val_t val) {
 		
     new_node->fullylinked = 1;
     unlock_levels(preds, highest_locked, 12);
-    /* Freeing the previously allocated memory */
-    free(preds);
-    free(succs);
     return 1;
   }
 }
@@ -178,15 +169,14 @@ int optimistic_insert(sl_intset_t *set, val_t val) {
  * (cf. p132 of SIROCCO'07 proceedings).
  */
 int optimistic_delete(sl_intset_t *set, val_t val) {
-  sl_node_t **preds, **succs;
   sl_node_t *node_todel, *prev_pred; 
   sl_node_t *pred, *succ;
+  sl_node_t **preds = pthread_getspecific(preds_key);
+  sl_node_t **succs = pthread_getspecific(succs_key);
   int is_marked, toplevel, highest_locked, i, valid, found;	
   unsigned int backoff;
   struct timespec timeout;
 
-  preds = (sl_node_t **)xmalloc(levelmax * sizeof(sl_node_t *));
-  succs = (sl_node_t **)xmalloc(levelmax * sizeof(sl_node_t *));
   node_todel = NULL;
   is_marked = 0;
   toplevel = -1;
@@ -208,8 +198,6 @@ int optimistic_delete(sl_intset_t *set, val_t val) {
 	  if (UNLOCK(&node_todel->lock) != 0)
 	    fprintf(stderr, "Error cannot unlock node_todel->val:%ld\n", 
 		    (long)node_todel->val);
-	  free(preds);
-	  free(succs);
 	  return 0;
 	}
 	node_todel->marked = 1;
@@ -245,14 +233,8 @@ int optimistic_delete(sl_intset_t *set, val_t val) {
 	preds[i]->next[i] = node_todel->next[i];
       UNLOCK(&node_todel->lock);	
       unlock_levels(preds, highest_locked, 22);
-      /* Freeing the previously allocated memory */
-      free(preds);
-      free(succs);
       return 1;
     } else {
-      /* Freeing the previously allocated memory */
-      free(preds);
-      free(succs);
       return 0;
     }
   }
