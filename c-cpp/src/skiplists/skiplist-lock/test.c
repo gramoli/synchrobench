@@ -23,6 +23,8 @@
 
 #include "intset.h"
 
+pthread_key_t preds_key;
+pthread_key_t succs_key;
 volatile AO_t stop;
 unsigned int global_seed;
 #ifdef TLS
@@ -140,6 +142,10 @@ void *test(void *data) {
   val_t last = -1;
   val_t val = 0;
   int unext; 
+  sl_node_t **preds = (sl_node_t **)xmalloc(levelmax * sizeof(sl_node_t *));
+  sl_node_t **succs = (sl_node_t **)xmalloc(levelmax * sizeof(sl_node_t *));
+  pthread_setspecific(preds_key, preds);
+  pthread_setspecific(succs_key, succs);
 	
   thread_data_t *d = (thread_data_t *)data;
 	
@@ -237,6 +243,8 @@ void *test(void *data) {
   //	}
   //#endif /* ICC */
 	
+  free(pthread_getspecific(preds_key));
+  free(pthread_getspecific(succs_key));
   return NULL;
 }
 
@@ -482,6 +490,19 @@ void *test2(void *data)
     /* Init STM */
     printf("Initializing STM\n");
 		
+    /* Init thread-specific data for preds and succs */
+    if (pthread_key_create(&preds_key, NULL) != 0) {
+      fprintf(stderr, "Error creating thread local\n");
+      exit(1);
+    }
+    if (pthread_key_create(&succs_key, NULL) != 0) {
+      fprintf(stderr, "Error creating thread local\n");
+      exit(1);
+    }
+    sl_node_t **preds = (sl_node_t **)xmalloc(levelmax * sizeof(sl_node_t *));
+    sl_node_t **succs = (sl_node_t **)xmalloc(levelmax * sizeof(sl_node_t *));
+    pthread_setspecific(preds_key, preds);
+    pthread_setspecific(succs_key, succs);
     /* Populate set */
     printf("Adding %d entries to set\n", initial);
     i = 0;
@@ -665,6 +686,8 @@ void *test2(void *data)
 #ifndef TLS
     pthread_key_delete(rng_seed_key);
 #endif /* ! TLS */
+    pthread_key_delete(preds_key);
+    pthread_key_delete(succs_key);
 		
     free(threads);
     free(data);
