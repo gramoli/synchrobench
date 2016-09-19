@@ -58,13 +58,22 @@ public class ReadWriteConditionLock<V> {
     }
     public boolean tryReadLockWithCondition(V expected) {
         int[] stamp = new int[1];
-        V value = lock.get(stamp);
-        return lock.compareAndSet(expected, expected, stamp[0], stamp[0] + 2);
+        V value;
+        do {
+            value = lock.get(stamp);
+            if (expected != value && (value == null || !expected.equals(value))) {
+                return false;
+            }
+        } while (lock.compareAndSet(value, value, stamp[0], stamp[0] + 2));
+        return true;
     }
 
     public boolean tryWriteLockWithCondition(V expected) {
         V value = lock.get(new int[1]);
-        return lock.compareAndSet(expected, expected, 0, 1);
+        if (expected != value && (value == null || !value.equals(expected))) {
+            return false;
+        }
+        return lock.compareAndSet(value, value, 0, 1);
     }
 
     public void readLockWithCondition(V expected) {

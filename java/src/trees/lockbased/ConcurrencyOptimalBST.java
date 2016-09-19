@@ -29,6 +29,14 @@ public class ConcurrencyOptimalBST extends AbstractCompositionalIntSet {
         public int numberOfChildren() {
             return (l.get() != null ? 1 : 0) + (r.get() != null ? 1 : 0);
         }
+
+        public boolean equals(Object o) {
+            if (!(o instanceof Node)) {
+                return false;
+            }
+            Node node = (Node) o;
+            return node.v == v;
+        }
     }
 
     private final Node ROOT = new Node(Integer.MAX_VALUE);
@@ -41,6 +49,13 @@ public class ConcurrencyOptimalBST extends AbstractCompositionalIntSet {
             ret = parent.r.tryWriteLockWithCondition(child);
         }
         if (parent.state.get() == State.DELETED) {
+            if (ret) {
+                if (key < parent.v) {
+                    parent.l.unlockWrite();
+                } else {
+                    parent.r.unlockWrite();
+                }
+            }
             return false;
         }
         return ret;
@@ -133,8 +148,12 @@ public class ConcurrencyOptimalBST extends AbstractCompositionalIntSet {
     public boolean removeInt(int v) {
         boolean restart = true;
         Window window = null;
+        boolean retraverse = true;
         while (restart) {
-            window = traverse(v);
+            if (retraverse) {
+                window = traverse(v);
+            }
+            retraverse = false;
             if (window.curr == null || window.curr.state.get() != State.DATA) {
                 return false;
             }
@@ -157,6 +176,7 @@ public class ConcurrencyOptimalBST extends AbstractCompositionalIntSet {
                     child.writeLock();
                     if (!validateAndTryLock(window.prev, window.curr)) {
                         child.unlockWrite();
+                        retraverse = true;
                         break;
                     }
                     window.curr.state.set(State.DELETED);
@@ -174,6 +194,7 @@ public class ConcurrencyOptimalBST extends AbstractCompositionalIntSet {
                     window.prev.state.readLock();
                     if (!validateAndTryLock(window.prev, window.curr)) {
                         window.prev.state.unlockRead();
+                        retraverse = true;
                         break;
                     }
                     if (window.prev.state.get() == State.DATA) {
@@ -196,6 +217,7 @@ public class ConcurrencyOptimalBST extends AbstractCompositionalIntSet {
                             child.unlockRead();
                             undoValidateAndTryLock(window.prev, window.curr);
                             window.prev.state.unlockRead();
+                            retraverse = true;
                             break;
                         }
                         window.prev.state.set(State.DELETED);

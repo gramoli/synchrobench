@@ -11,8 +11,6 @@ import contention.abstractions.AbstractCompositionalIntSet;
  * Created by vaksenov on 19.09.2016.
  */
 public class TestIntSet {
-    Random rnd = new Random(239);
-
     public void stressTest(AbstractCompositionalIntSet set, int n, int t) throws Exception {
         ConcurrentHashMap<Integer, Integer> check = new ConcurrentHashMap<>();
         int test = 0;
@@ -20,6 +18,7 @@ public class TestIntSet {
             Thread[] threads = new Thread[t];
             for (int thread = 0; thread < t; thread++) {
                 threads[thread] = new Thread(() -> {
+                    Random rnd = new Random(Thread.currentThread().getId());
                     for (int i = 0; i < 10 * n; i++) {
                         int x = rnd.nextInt(n) + 1;
                         if (rnd.nextDouble() < 0.8 || check.size() == 0) {
