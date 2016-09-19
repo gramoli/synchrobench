@@ -41,26 +41,29 @@ public class ReadWriteConditionLock<V> {
         while (!tryReadLock()) {}
     }
 
-    public boolean unlockRead() {
+    public boolean tryUnlockRead() {
         int[] stamp = new int[1];
         V value = lock.get(stamp);
         return lock.compareAndSet(value, value, stamp[0], stamp[0] - 2);
     }
 
-    public boolean unlockWrite() {
-        int[] stamp = new int[1];
-        V value = lock.get(stamp);
-        return lock.compareAndSet(value, value, stamp[0], stamp[0] - 1);
+    public boolean tryUnlockWrite() {
+        V value = lock.get(new int[1]);
+        return lock.compareAndSet(value, value, 1, 0);
     }
-
+    public void unlockRead() {
+        while (!tryUnlockRead()) {}
+    }public void unlockWrite() {
+        while (!tryUnlockWrite()) {}
+    }
     public boolean tryReadLockWithCondition(V expected) {
         int[] stamp = new int[1];
         V value = lock.get(stamp);
-        return lock.compareAndSet(expected, expected, stamp[0], stamp[0] + 1);
+        return lock.compareAndSet(expected, expected, stamp[0], stamp[0] + 2);
     }
 
     public boolean tryWriteLockWithCondition(V expected) {
-        V value = lock.get(new int[0]);
+        V value = lock.get(new int[1]);
         return lock.compareAndSet(expected, expected, 0, 1);
     }
 
@@ -70,4 +73,10 @@ public class ReadWriteConditionLock<V> {
     public void writeLockWithCondition(V expected) {
         while (!tryWriteLockWithCondition(expected)) {}
     }
+    public String toString() {
+        int[] stamp = new int[1];
+        V value = lock.get(stamp);
+        return value + " " + stamp[0];
+    }
+
 }
