@@ -39,18 +39,18 @@ public class Test {
 	private double throughput = 0;
 
 	/** The total number of operations for all threads */
-	private int total = 0;
+	private long total = 0;
 	/** The total number of successful operations for all threads */
-	private int numAdd = 0;
-	private int numRemove = 0;
-	private int numAddAll = 0;
-	private int numRemoveAll = 0;
-	private int numSize = 0;
-	private int numContains = 0;
+	private long numAdd = 0;
+	private long numRemove = 0;
+	private long numAddAll = 0;
+	private long numRemoveAll = 0;
+	private long numSize = 0;
+	private long numContains = 0;
 	/** The total number of failed operations for all threads */
-	private int failures = 0;
+	private long failures = 0;
 	/** The total number of aborts */
-	private int aborts = 0;
+	private long aborts = 0;
 	/** The instance of the benchmark */
 	private Type benchType = null;
 	private CompositionalIntSet setBench = null;
