@@ -8,7 +8,7 @@ import java.lang.reflect.Constructor;
  * Created by vaksenov on 15.09.2016.
  */
 public class HandReadWriteConditionLock<V> {
-    private class Pair<V> {
+    private static class Pair<V> {
         V value;
         int stamp;
         public Pair(V value, int stamp) {
@@ -18,13 +18,14 @@ public class HandReadWriteConditionLock<V> {
     }
 
     private static final Unsafe unsafe;
-    private static final long valueOffset;
+    private static final long valueOffset, stampOffset;
     static {
         try {
             Constructor<Unsafe> unsafeConstructor = Unsafe.class.getDeclaredConstructor();
             unsafeConstructor.setAccessible(true);
             unsafe = unsafeConstructor.newInstance();
             valueOffset = unsafe.objectFieldOffset(HandReadWriteConditionLock.class.getDeclaredField("current"));
+            stampOffset = unsafe.objectFieldOffset(Pair.class.getDeclaredField("stamp"));
         } catch(Exception e) {
             throw new Error(e);
         }
@@ -34,6 +35,11 @@ public class HandReadWriteConditionLock<V> {
     private boolean compareAndSet(Pair<V> expected, Pair<V> updated) {
         return unsafe.compareAndSwapObject(this, valueOffset, expected, updated);
     }
+
+    private boolean compareAndSetStamp(int expected, int updated) {
+        return unsafe.compareAndSwapInt(current, stampOffset, expected, updated);
+    }
+
     public HandReadWriteConditionLock(V value) {
         current = new Pair<>(value, 0);
     }
@@ -76,8 +82,9 @@ public class HandReadWriteConditionLock<V> {
 
     public boolean tryUnlockRead() {
         Pair<V> current = this.current;
-        Pair<V> next = new Pair<>(current.value, current.stamp - 2);
-        return compareAndSet(current, next);
+        /*Pair<V> next = new Pair<>(current.value, current.stamp - 2);
+        return compareAndSet(current, next);*/
+        return compareAndSetStamp(current.stamp, current.stamp - 2);
     }
 
     /* Nobody are not allowed to unlock write except the thread that takes it */
