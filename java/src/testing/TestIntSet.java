@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.ArrayList;
 
 import contention.abstractions.AbstractCompositionalIntSet;
+import trees.lockbased.ConcurrencyOptimalBSTv2;
 
 /**
  * Created by vaksenov on 19.09.2016.
@@ -51,6 +52,8 @@ public class TestIntSet {
             }
             test++;
             System.err.println(test + "-th stress test has passed. Size of the set is " + check.size() + " " + set.size() + ".");
+            if (set instanceof ConcurrencyOptimalBSTv2)
+                System.err.println("Depth of the tree " + ((ConcurrencyOptimalBSTv2) set).depth());
             set.clear();
             check.clear();
         }
