@@ -16,15 +16,15 @@ public class ConcurrencyOptimalBSTv2 extends AbstractCompositionalIntSet {
 
     public class Node {
         int v;
-        ReadWriteConditionLock<State> state;
-        ReadWriteConditionLock<Node> l, r;
+        HandReadWriteConditionLock<State> state;
+        HandReadWriteConditionLock<Node> l, r;
         Node parent;
 
         public Node(int v) {
             this.v = v;
-            state = new ReadWriteConditionLock<>(State.DATA);
-            l = new ReadWriteConditionLock<>(null);
-            r = new ReadWriteConditionLock<>(null);
+            state = new HandReadWriteConditionLock<>(State.DATA);
+            l = new HandReadWriteConditionLock<>(null);
+            r = new HandReadWriteConditionLock<>(null);
             parent = null;
         }
 
@@ -170,7 +170,7 @@ public class ConcurrencyOptimalBSTv2 extends AbstractCompositionalIntSet {
                     break;
                 }
                 case 1: {
-                    ReadWriteConditionLock<Node> child = null;
+                    HandReadWriteConditionLock<Node> child = null;
                     if (window.curr.l.get() != null) {
                         child = window.curr.l;
                     } else {
@@ -209,7 +209,7 @@ public class ConcurrencyOptimalBSTv2 extends AbstractCompositionalIntSet {
                             prev.r.set(null);
                         }
                     } else {
-                        ReadWriteConditionLock<Node> child = null;
+                        HandReadWriteConditionLock<Node> child = null;
                         if (window.curr.v < prev.v) {
                             prev.r.readLock();
                             child = prev.r;
@@ -269,6 +269,16 @@ public class ConcurrencyOptimalBSTv2 extends AbstractCompositionalIntSet {
 
     public int size() {
         return size(ROOT) - 1;
+    }
+
+    public int depth(Node v) {
+        if (v == null) {
+            return 0;
+        }
+        return 1 + Math.max(depth(v.l.get()), depth(v.r.get()));
+    }
+    public int depth() {
+        return depth(ROOT);
     }
 
     public void clear() {
