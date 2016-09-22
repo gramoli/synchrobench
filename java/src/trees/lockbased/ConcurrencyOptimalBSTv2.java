@@ -117,15 +117,15 @@ public class ConcurrencyOptimalBSTv2 extends AbstractCompositionalIntSet {
                             return false;
                         case DELETED:
                             lockRetry = false;
+                            start = ROOT;
                             break;
                         case ROUTING:
-                            if (!window.curr.state.tryWriteLockWithCondition(State.ROUTING)) {
-                                continue;
+                            if (window.curr.state.tryWriteLockWithCondition(State.ROUTING)) {
+                                window.curr.state.set(State.DATA);
+                                window.curr.state.unlockWrite();
+                                lockRetry = false;
+                                restart = false;
                             }
-                            window.curr.state.set(State.DATA);
-                            window.curr.state.unlockWrite();
-                            lockRetry = false;
-                            restart = false;
                     }
                 }
             } else {
