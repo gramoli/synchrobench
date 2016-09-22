@@ -10,7 +10,7 @@ import java.lang.reflect.Constructor;
 public class HandReadWriteConditionLock<V> {
     private static class Pair<V> {
         V value;
-        int stamp;
+        volatile int stamp;
         public Pair(V value, int stamp) {
             this.value = value;
             this.stamp = stamp;
@@ -82,9 +82,9 @@ public class HandReadWriteConditionLock<V> {
 
     public boolean tryUnlockRead() {
         Pair<V> current = this.current;
-        /*Pair<V> next = new Pair<>(current.value, current.stamp - 2);
-        return compareAndSet(current, next);*/
-        return compareAndSetStamp(current.stamp, current.stamp - 2);
+        Pair<V> next = new Pair<>(current.value, current.stamp - 2);
+        return compareAndSet(current, next);
+        //return compareAndSetStamp(current.stamp, current.stamp - 2);
     }
 
     /* Nobody are not allowed to unlock write except the thread that takes it */
