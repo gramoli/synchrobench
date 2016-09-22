@@ -110,6 +110,9 @@ public class HandReadWriteConditionLock<V> {
             if (expected != current.value && (expected == null || !expected.equals(current.value))) {
                 return false;
             }
+            if (current.stamp == 1) {
+                return false;
+            }
             next = new Pair<>(current.value, current.stamp + 2);
         } while (!compareAndSet(current, next));
         return true;
