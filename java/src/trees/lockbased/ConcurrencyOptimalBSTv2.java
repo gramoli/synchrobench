@@ -16,8 +16,8 @@ public class ConcurrencyOptimalBSTv2 extends AbstractCompositionalIntSet {
 
     public class Node {
         int v;
-        HandReadWriteConditionLock<State> state;
-        HandReadWriteConditionLock<Node> l, r;
+        final HandReadWriteConditionLock<State> state;
+        final HandReadWriteConditionLock<Node> l, r;
         Node parent;
 
         public Node(int v) {
@@ -90,7 +90,7 @@ public class ConcurrencyOptimalBSTv2 extends AbstractCompositionalIntSet {
     }
 
     public Window traverse(int v, Node start) {
-        Window window = new Window(null, start);
+        final Window window = new Window(null, start);
         while (window.curr != null) {
             if (window.curr.v == v) {
                 return window;
@@ -129,7 +129,7 @@ public class ConcurrencyOptimalBSTv2 extends AbstractCompositionalIntSet {
                     }
                 }
             } else {
-                Node node = new Node(v);
+                final Node node = new Node(v);
                 window.prev.state.readLock();
                 if (validateAndTryLock(window.prev, null, v)) {
                     node.parent = window.prev;
@@ -155,7 +155,7 @@ public class ConcurrencyOptimalBSTv2 extends AbstractCompositionalIntSet {
 
     public boolean removeInt(int v) {
         boolean restart = true;
-        Window window = traverse(v, ROOT);
+        final Window window = traverse(v, ROOT);
         while (restart) {
             if (window.curr == null || window.curr.state.get() != State.DATA) {
                 return false;
@@ -170,14 +170,14 @@ public class ConcurrencyOptimalBSTv2 extends AbstractCompositionalIntSet {
                     break;
                 }
                 case 1: {
-                    HandReadWriteConditionLock<Node> child = null;
+                    final HandReadWriteConditionLock<Node> child;
                     if (window.curr.l.get() != null) {
                         child = window.curr.l;
                     } else {
                         child = window.curr.r;
                     }
                     child.writeLock();
-                    Node prev = window.curr.parent;
+                    final Node prev = window.curr.parent;
                     if (!validateAndTryLock(prev, window.curr)) {
                         child.unlockWrite();
                         break;
@@ -195,7 +195,7 @@ public class ConcurrencyOptimalBSTv2 extends AbstractCompositionalIntSet {
                     break;
                 }
                 case 0: {
-                    Node prev = window.curr.parent;
+                    final Node prev = window.curr.parent;
                     //prev.state.writeLock();
                     if (!prev.state.multiLockWithCondition(State.DATA, State.ROUTING)) {
                         break;
@@ -213,7 +213,7 @@ public class ConcurrencyOptimalBSTv2 extends AbstractCompositionalIntSet {
                             prev.r.set(null);
                         }
                     } else {
-                        HandReadWriteConditionLock<Node> child = null;
+                        final HandReadWriteConditionLock<Node> child;
                         if (window.curr.v < prev.v) {
                             prev.r.readLock();
                             child = prev.r;
@@ -221,7 +221,7 @@ public class ConcurrencyOptimalBSTv2 extends AbstractCompositionalIntSet {
                             prev.l.readLock();
                             child = prev.l;
                         }
-                        Node gprev = prev.parent;
+                        final Node gprev = prev.parent;
                         if (!validateAndTryLock(gprev, prev)) {
                             child.unlockRead();
                             undoValidateAndTryLock(prev, window.curr);
