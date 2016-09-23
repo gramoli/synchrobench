@@ -196,9 +196,13 @@ public class ConcurrencyOptimalBSTv2 extends AbstractCompositionalIntSet {
                 }
                 case 0: {
                     Node prev = window.curr.parent;
-                    prev.state.writeLock();
+                    //prev.state.writeLock();
+                    if (!prev.state.multiLockWithCondition(State.DATA, State.ROUTING)) {
+                        break;
+                    }
                     if (!validateAndTryLock(prev, window.curr)) {
-                        prev.state.unlockWrite();
+//                        prev.state.unlockWrite();
+                        prev.state.multiUnlock();
                         break;
                     }
                     if (prev.state.get() == State.DATA) {
@@ -221,7 +225,8 @@ public class ConcurrencyOptimalBSTv2 extends AbstractCompositionalIntSet {
                         if (!validateAndTryLock(gprev, prev)) {
                             child.unlockRead();
                             undoValidateAndTryLock(prev, window.curr);
-                            prev.state.unlockWrite();
+//                            prev.state.unlockWrite();
+                            prev.state.multiUnlock();
                             break;
                         }
                         prev.state.set(State.DELETED);
@@ -237,7 +242,8 @@ public class ConcurrencyOptimalBSTv2 extends AbstractCompositionalIntSet {
                     }
                     restart = false;
                     undoValidateAndTryLock(prev, window.curr);
-                    prev.state.unlockWrite();
+//                    prev.state.unlockWrite();
+                    prev.state.multiUnlock();
                 }
             }
             window.curr.state.unlockWrite();

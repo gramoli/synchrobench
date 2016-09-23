@@ -45,7 +45,8 @@ public class HandReadWriteConditionLock<V> {
     }
 
     public void set(V value) {
-        current.value = value;
+        current = new Pair<>(value, current.stamp);
+//        current.value = value;
     }
 
     public V get() {
@@ -89,7 +90,8 @@ public class HandReadWriteConditionLock<V> {
 
     /* Nobody are not allowed to unlock write except the thread that takes it */
     public boolean tryUnlockWrite() {
-        current.stamp = 0;
+//        current.stamp = 0;
+        current = new Pair<>(current.value, 0);
         return true;
     }
 
@@ -135,6 +137,61 @@ public class HandReadWriteConditionLock<V> {
     public void writeLockWithCondition(V expected) {
         while (!tryWriteLockWithCondition(expected)) {
         }
+    }
+
+    public boolean tryConvertToWriteLock() {
+        Pair<V> current = this.current;
+        if (current.stamp != 2) {
+            return false;
+        }
+        Pair<V> next = new Pair<>(current.value, 1);
+        return compareAndSet(current, next);
+    }
+
+    public void convertToWriteLock() {
+        while (!tryConvertToWriteLock()) {}
+    }
+
+    public boolean multiLockWithCondition(V read, V write) {
+        Pair<V> current, next;
+        while (true) {
+            current = this.current;
+            if (current.value == null) {
+                return false;
+            }
+            if (!current.value.equals(read) && !current.value.equals(write)) {
+                return false;
+            }
+            if (current.value.equals(read)) {
+                if (current.stamp == 1) {
+                    continue;
+                }
+                next = new Pair<>(current.value, current.stamp + 2);
+            } else {
+                if (current.stamp != 0) {
+                    continue;
+                }
+                next = new Pair<>(current.value, 1);
+            }
+            if (compareAndSet(current, next)) {
+                return true;
+            }
+        }
+    }
+
+    public boolean tryMultiUnlock() {
+        Pair<V> current = this.current;
+        if (current.stamp == 1) {
+            current.stamp = 0;
+            return true;
+        } else {
+            Pair<V> next = new Pair<>(current.value, current.stamp - 2);
+            return compareAndSet(current, next);
+        }
+    }
+
+    public void multiUnlock() {
+        while (!tryMultiUnlock()) {}
     }
 
     public String toString() {
