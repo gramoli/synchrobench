@@ -98,6 +98,48 @@ public class ReadWriteConditionLock<V> {
         }
     }
 
+    public boolean multiLock(V read, V write) {
+        int[] stamp = new int[1];
+        while (true) {
+            V value = lock.get(stamp);
+            if (value == null) {
+                return false;
+            }
+            if (!value.equals(read) && !value.equals(write)) {
+                return false;
+            }
+            if (value.equals(read)) {
+                if (stamp[0] == 1) {
+                    return false;
+                }
+                if (lock.compareAndSet(value, value, stamp[0], stamp[0] + 2)) {
+                    return true;
+                }
+            } else {
+                if (stamp[0] != 0) {
+                    return false;
+                }
+                if (lock.compareAndSet(value, value, 0, 1)) {
+                    return true;
+                }
+            }
+        }
+    }
+
+    public boolean tryMultiUnlock() {
+        int[] stamp = new int[1];
+        V value = lock.get(stamp);
+        if (stamp[0] == 1) {
+            return lock.compareAndSet(value, value, 1, 0);
+        } else {
+            return lock.compareAndSet(value, value, stamp[0], stamp[0] - 2);
+        }
+    }
+
+    public void multiUnlock() {
+        while (!tryMultiUnlock()) {}
+    }
+
     public String toString() {
         int[] stamp = new int[1];
         V value = lock.get(stamp);
