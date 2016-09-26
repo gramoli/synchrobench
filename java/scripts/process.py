@@ -24,14 +24,14 @@ def filename(bench, size, write, proc):
    return "../output/log/" + bench + "-i" + str(size) + "-u" + str(write) + "-t" + str(proc) + ".log"
 
 keys = ["throughput"]
-procs = [1, 2, 4, 8, 16]
+procs = [1, 2, 4, 8, 16, 23]
 sizes = [16384, 65536]
 writes = [0, 20, 40, 60, 80, 100]
 benchmarks = ["trees.lockbased.ConcurrencyOptimalBSTv2",
               "trees.lockbased.LockBasedFriendlyTreeMap",
               "trees.lockbased.LockBasedStanfordTreeMap",
               "trees.lockfree.NonBlockingTorontoBSTMap"]
-if not os.path.isdir:
+if not os.path.isdir("../output/data"):
     os.mkdir("../output/data")
 for write in writes:
     out = open("../output/data/trees_comparison_" + str(write) + ".txt", 'w')
