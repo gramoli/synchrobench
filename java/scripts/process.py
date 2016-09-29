@@ -20,21 +20,24 @@ def read_from_file(filename, keys):
         values[key].append(float(value))
     return values
 
-def filename(bench, size, write, proc):
-   return "../output/log/" + bench + "-i" + str(size) + "-u" + str(write) + "-t" + str(proc) + ".log"
+def filename(bench, size, write, proc, warmup, duration):
+   return "../output/log/" + bench + "-i" + str(size) + "-u" + str(write) + "-t" + str(proc) + "-w" + str(warmup) + "-d" + str(duration) + ".log"
 
 keys = ["throughput"]
-procs = [1, 2, 4, 8, 16, 23]
+procs = [1, 2, 4, 8, 16, 24, 32]
 sizes = [16384, 65536]
 writes = [0, 20, 40, 60, 80, 100]
+warmup = 5
+duration = 10000
 benchmarks = ["trees.lockbased.ConcurrencyOptimalBSTv2",
               "trees.lockbased.LockBasedFriendlyTreeMap",
               "trees.lockbased.LockBasedStanfordTreeMap",
               "trees.lockfree.NonBlockingTorontoBSTMap"]
-if not os.path.isdir("../output/data"):
-    os.mkdir("../output/data")
+directory = "../output/data-w" + str(warmup) + "-d" + str(duration)
+if not os.path.isdir(directory):
+    os.mkdir(directory)
 for write in writes:
-    out = open("../output/data/trees_comparison_" + str(write) + ".txt", 'w')
+    out = open(directory + "/trees_comparison_" + str(write) + ".txt", 'w')
     for key in keys:
         out.write("Key " + key + "\n")
         for size in sizes:
@@ -45,9 +48,9 @@ for write in writes:
             out.write(buffer + "\n")
             for bench in benchmarks:
                 buffer = "{:^45}".format(bench)
-                thr1 = mean(read_from_file(filename(bench, size, write, 1), keys)[key])
+                thr1 = mean(read_from_file(filename(bench, size, write, 1, warmup, duration), keys)[key])
                 for proc in procs:
-                     thr = mean(read_from_file(filename(bench, size, write, proc), keys)[key])
+                     thr = mean(read_from_file(filename(bench, size, write, proc, warmup, duration), keys)[key])
                      buffer += "{:^25}".format("{0:.3f}".format(thr) + " ({0:.3f})".format(thr / thr1))
                 out.write(buffer + "\n")
             out.write("\n")
