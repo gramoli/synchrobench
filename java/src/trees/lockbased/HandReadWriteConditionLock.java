@@ -57,6 +57,11 @@ public class HandReadWriteConditionLock<V> {
         return current.value;
     }
 
+    public boolean equal(V op1, V op2) {
+        //return op1 == op2 || (op1 != null && op1.equals(op2));
+        return op1 == op2;
+    }
+
     public boolean tryWriteLock() {
         Pair<V> current = this.current;
         if (current.stamp != 0) {
@@ -118,9 +123,10 @@ public class HandReadWriteConditionLock<V> {
     }
 
     public void unlockRead() {
+        Pair<V> current;
         final Pair<V> next = new Pair<>(null, 0);
         while (true) {
-            Pair<V> current = this.current;
+            current = this.current;
             next.set(current.value, current.stamp - 2);
             if (compareAndSet(current, next))
                 break;
@@ -137,7 +143,7 @@ public class HandReadWriteConditionLock<V> {
         final Pair<V> next = new Pair<>(null, 0);
         do {
             current = this.current;
-            if (expected != current.value && (expected == null || !expected.equals(current.value))) {
+            if (!equal(expected, current.value)) {
                 return false;
             }
             if (current.stamp == 1) {
@@ -150,7 +156,7 @@ public class HandReadWriteConditionLock<V> {
 
     public boolean tryWriteLockWithCondition(V expected) {
         Pair<V> current = this.current;
-        if ((expected != current.value && (expected == null || !expected.equals(current.value))) || current.stamp != 0) {
+        if (!equal(expected, current.value) || current.stamp != 0) {
             return false;
         }
         Pair<V> next = new Pair<>(current.value, 1);
@@ -162,7 +168,7 @@ public class HandReadWriteConditionLock<V> {
         final Pair<V> next = new Pair<>(null, 0);
         while (true) {
             current = this.current;
-            if ((expected != current.value && (expected == null || !expected.equals(current.value))) || current.stamp == 1) {
+            if (!equal(expected, current.value) || current.stamp == 1) {
                 continue;
             }
             next.set(current.value, current.stamp + 2);
@@ -176,7 +182,7 @@ public class HandReadWriteConditionLock<V> {
         final Pair<V> next = new Pair<>(null, 0);
         while (true) {
             current = this.current;
-            if ((expected != current.value && (expected == null || !expected.equals(current.value))) || current.stamp != 0) {
+            if (!equal(expected, current.value) || current.stamp != 0) {
                 continue;
             }
             next.set(current.value, 1);
@@ -206,10 +212,10 @@ public class HandReadWriteConditionLock<V> {
             if (current.value == null) {
                 return false;
             }
-            if (!current.value.equals(read) && !current.value.equals(write)) {
+            if (!equal(current.value, read) && !equal(current.value, write)) {
                 return false;
             }
-            if (current.value.equals(read)) {
+            if (equal(current.value, read)) {
                 if (current.stamp == 1) {
                     continue;
                 }
