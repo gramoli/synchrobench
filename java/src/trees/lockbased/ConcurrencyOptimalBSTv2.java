@@ -89,30 +89,32 @@ public class ConcurrencyOptimalBSTv2 extends AbstractCompositionalIntSet {
         }
     }
 
-    public Window traverse(int v, Node start) {
-        final Window window = new Window(null, start);
-        while (window.curr != null) {
-            if (window.curr.v == v) {
-                return window;
+    public Node traverse(int v, Node start) {
+        Node curr = start;
+        Node prev = null;
+        while (curr != null) {
+            if (curr.v == v) {
+                return curr;
             }
-            if (v < window.curr.v) {
-                window.shift(window.curr.l.get());
+            prev = curr;
+            if (v < curr.v) {
+                curr = curr.l.get();
             } else {
-                window.shift(window.curr.r.get());
+                curr = curr.r.get();
             }
         }
-        return window;
+        return prev;
     }
 
     public boolean addInt(int v) {
         boolean restart = true;
         Node start = ROOT;
         while (restart) {
-            Window window = traverse(v, start);
-            if (window.curr != null) {
+            Node curr = traverse(v, start);
+            if (curr.v == v) {
                 boolean lockRetry = true;
                 while (lockRetry) {
-                    switch (window.curr.state.get()) {
+                    switch (curr.state.get()) {
                         case DATA:
                             return false;
                         case DELETED:
@@ -120,9 +122,9 @@ public class ConcurrencyOptimalBSTv2 extends AbstractCompositionalIntSet {
                             start = ROOT;
                             break;
                         case ROUTING:
-                            if (window.curr.state.tryWriteLockWithCondition(State.ROUTING)) {
-                                window.curr.state.set(State.DATA);
-                                window.curr.state.unlockWrite();
+                            if (curr.state.tryWriteLockWithCondition(State.ROUTING)) {
+                                curr.state.set(State.DATA);
+                                curr.state.unlockWrite();
                                 lockRetry = false;
                                 restart = false;
                             }
@@ -130,24 +132,25 @@ public class ConcurrencyOptimalBSTv2 extends AbstractCompositionalIntSet {
                 }
             } else {
                 final Node node = new Node(v);
-                window.prev.state.readLock();
-                if (validateAndTryLock(window.prev, null, v)) {
-                    node.parent = window.prev;
-                    if (v < window.prev.v) {
-                        window.prev.l.set(node);
+                final Node prev = curr;
+                prev.state.readLock();
+                if (validateAndTryLock(prev, null, v)) {
+                    node.parent = prev;
+                    if (v < prev.v) {
+                        prev.l.set(node);
                     } else {
-                        window.prev.r.set(node);
+                        prev.r.set(node);
                     }
-                    undoValidateAndTryLock(window.prev, node);
+                    undoValidateAndTryLock(prev, node);
                     restart = false;
                 } else {
-                    if (window.prev.state.get() == State.DELETED) {
+                    if (prev.state.get() == State.DELETED) {
                         start = ROOT;
                     } else {
-                        start = window.prev;
+                        start = prev;
                     }
                 }
-                window.prev.state.unlockRead();
+                prev.state.unlockRead();
             }
         }
         return true;
@@ -155,66 +158,66 @@ public class ConcurrencyOptimalBSTv2 extends AbstractCompositionalIntSet {
 
     public boolean removeInt(int v) {
         boolean restart = true;
-        final Window window = traverse(v, ROOT);
+        final Node curr = traverse(v, ROOT);
         while (restart) {
-            if (window.curr == null || window.curr.state.get() != State.DATA) {
+            if (curr.v != v || curr.state.get() != State.DATA) {
                 return false;
             }
-            if (!window.curr.state.tryWriteLockWithCondition(State.DATA)) {
+            if (!curr.state.tryWriteLockWithCondition(State.DATA)) {
                 continue;
             }
-            switch (window.curr.numberOfChildren()) {
+            switch (curr.numberOfChildren()) {
                 case 2: {
-                    window.curr.state.set(State.ROUTING);
+                    curr.state.set(State.ROUTING);
                     restart = false;
                     break;
                 }
                 case 1: {
                     final HandReadWriteConditionLock<Node> child;
-                    if (window.curr.l.get() != null) {
-                        child = window.curr.l;
+                    if (curr.l.get() != null) {
+                        child = curr.l;
                     } else {
-                        child = window.curr.r;
+                        child = curr.r;
                     }
                     child.writeLock();
-                    final Node prev = window.curr.parent;
-                    if (!validateAndTryLock(prev, window.curr)) {
+                    final Node prev = curr.parent;
+                    if (!validateAndTryLock(prev, curr)) {
                         child.unlockWrite();
                         break;
                     }
-                    window.curr.state.set(State.DELETED);
+                    curr.state.set(State.DELETED);
                     child.get().parent = prev;
-                    if (window.curr.v < prev.v) {
+                    if (curr.v < prev.v) {
                         prev.l.set(child.get());
                     } else {
                         prev.r.set(child.get());
                     }
-                    undoValidateAndTryLock(prev, window.curr);
+                    undoValidateAndTryLock(prev, curr);
                     child.unlockWrite();
                     restart = false;
                     break;
                 }
                 case 0: {
-                    final Node prev = window.curr.parent;
+                    final Node prev = curr.parent;
                     //prev.state.writeLock();
                     if (!prev.state.multiLockWithCondition(State.DATA, State.ROUTING)) {
                         break;
                     }
-                    if (!validateAndTryLock(prev, window.curr)) {
+                    if (!validateAndTryLock(prev, curr)) {
 //                        prev.state.unlockWrite();
                         prev.state.multiUnlock();
                         break;
                     }
                     if (prev.state.get() == State.DATA) {
-                        window.curr.state.set(State.DELETED);
-                        if (window.curr.v < prev.v) {
+                        curr.state.set(State.DELETED);
+                        if (curr.v < prev.v) {
                             prev.l.set(null);
                         } else {
                             prev.r.set(null);
                         }
                     } else {
                         final HandReadWriteConditionLock<Node> child;
-                        if (window.curr.v < prev.v) {
+                        if (curr.v < prev.v) {
                             prev.r.readLock();
                             child = prev.r;
                         } else {
@@ -224,13 +227,13 @@ public class ConcurrencyOptimalBSTv2 extends AbstractCompositionalIntSet {
                         final Node gprev = prev.parent;
                         if (!validateAndTryLock(gprev, prev)) {
                             child.unlockRead();
-                            undoValidateAndTryLock(prev, window.curr);
+                            undoValidateAndTryLock(prev, curr);
 //                            prev.state.unlockWrite();
                             prev.state.multiUnlock();
                             break;
                         }
                         prev.state.set(State.DELETED);
-                        window.curr.state.set(State.DELETED);
+                        curr.state.set(State.DELETED);
                         child.get().parent = gprev;
                         if (prev.v < gprev.v) {
                             gprev.l.set(child.get());
@@ -241,12 +244,12 @@ public class ConcurrencyOptimalBSTv2 extends AbstractCompositionalIntSet {
                         child.unlockRead();
                     }
                     restart = false;
-                    undoValidateAndTryLock(prev, window.curr);
+                    undoValidateAndTryLock(prev, curr);
 //                    prev.state.unlockWrite();
                     prev.state.multiUnlock();
                 }
             }
-            window.curr.state.unlockWrite();
+            curr.state.unlockWrite();
         }
         return true;
     }
