@@ -54,11 +54,6 @@ public class LockBasedFriendlyTreeMapNoRotation<K, V> extends AbstractMap<K, V> 
 	private static class Node<K, V> {
 		K key;
 
-		class BalanceVars {
-			volatile int localh, lefth, righth;
-		}
-
-		final BalanceVars bal = new BalanceVars();
 		volatile V value;
 		volatile Node<K, V> left;
 		volatile Node<K, V> right;
@@ -72,17 +67,11 @@ public class LockBasedFriendlyTreeMapNoRotation<K, V> extends AbstractMap<K, V> 
 			this.lock = new ReentrantLock(useFairLocks);
 			this.right = null;
 			this.left = null;
-			this.bal.localh = 1;
-			this.bal.righth = 0;
-			this.bal.lefth = 0;
 		}
 
 		Node(final K key, final int localh, final int lefth, final int righth,
 				final V value, final Node<K, V> left, final Node<K, V> right) {
 			this.key = key;
-			this.bal.localh = localh;
-			this.bal.righth = righth;
-			this.bal.lefth = lefth;
 			this.value = value;
 			this.left = left;
 			this.right = right;
@@ -94,9 +83,6 @@ public class LockBasedFriendlyTreeMapNoRotation<K, V> extends AbstractMap<K, V> 
 				final int righth, final V value, final Node<K, V> left,
 				final Node<K, V> right) {
 			this.key = key;
-			this.bal.localh = localh;
-			this.bal.righth = righth;
-			this.bal.lefth = lefth;
 			this.value = value;
 			this.left = left;
 			this.right = right;
@@ -117,10 +103,6 @@ public class LockBasedFriendlyTreeMapNoRotation<K, V> extends AbstractMap<K, V> 
 			} else {
 				right = node;
 			}
-		}
-
-		void updateLocalh() {
-			this.bal.localh = Math.max(this.bal.lefth + 1, this.bal.righth + 1);
 		}
 
 	}
@@ -429,12 +411,6 @@ public class LockBasedFriendlyTreeMapNoRotation<K, V> extends AbstractMap<K, V> 
 		parent.lock.unlock();
 		// System.out.println("removed a node");
 		// need to update balance values here
-		if (direction == Left) {
-			parent.bal.lefth = n.bal.localh - 1;
-		} else {
-			parent.bal.righth = n.bal.localh - 1;
-		}
-		parent.updateLocalh();
 		return true;
 	}
 
