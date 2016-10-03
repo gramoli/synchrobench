@@ -1,13 +1,15 @@
 package trees.lockbased;
 
 import contention.abstractions.AbstractCompositionalIntSet;
+import contention.abstractions.MaintenanceAlg;
 
 import static trees.lockbased.ConcurrencyOptimalBST.State.DATA;
 
 /**
  * Created by vaksenov on 16.09.2016.
  */
-public class ConcurrencyOptimalBSTv2 extends AbstractCompositionalIntSet {
+public class ConcurrencyOptimalBSTv2 extends AbstractCompositionalIntSet
+        implements MaintenanceAlg {
     public enum State {
         DATA,
         ROUTING,
@@ -286,8 +288,34 @@ public class ConcurrencyOptimalBSTv2 extends AbstractCompositionalIntSet {
         }
         return 1 + Math.max(depth(v.l.get()), depth(v.r.get()));
     }
+
+    public int sum_depth(Node v, int d) {
+        if (v == null) {
+            return 0;
+        }
+        return (v.state.get() == State.DATA ? d : 0) + sum_depth(v.l.get(), d + 1) + sum_depth(v.r.get(), d + 1);
+    }
+
+    public int average_depth() {
+        return sum_depth(ROOT, 0) / size();
+    }
+
     public int depth() {
         return depth(ROOT);
+    }
+
+    public boolean stopMaintenance() {
+        System.out.println("Average depth: " + average_depth());
+        System.out.println("Depth: " + depth());
+        return true;
+    }
+
+    public int numNodes() {
+        return size();
+    }
+
+    public long getStructMods() {
+        return 0;
     }
 
     public void clear() {

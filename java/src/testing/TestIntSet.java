@@ -52,8 +52,11 @@ public class TestIntSet {
             }
             test++;
             System.err.println(test + "-th stress test has passed. Size of the set is " + check.size() + " " + set.size() + ".");
-            if (set instanceof ConcurrencyOptimalBSTv2)
-                System.err.println("Depth of the tree " + ((ConcurrencyOptimalBSTv2) set).depth());
+            if (set instanceof ConcurrencyOptimalBSTv2) {
+                ConcurrencyOptimalBSTv2 co = (ConcurrencyOptimalBSTv2)set;
+                System.err.println("Depth of the tree " + co.depth());
+                System.err.println("Average depth " + co.average_depth());
+            }
             set.clear();
             check.clear();
         }

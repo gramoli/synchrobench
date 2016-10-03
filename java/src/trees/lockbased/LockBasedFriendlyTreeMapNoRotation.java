@@ -1,14 +1,13 @@
 package trees.lockbased;
 
+import contention.abstractions.CompositionalMap;
+import contention.abstractions.MaintenanceAlg;
+
 import java.util.AbstractMap;
 import java.util.Comparator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
-
-import contention.abstractions.CompositionalMap;
-import contention.abstractions.CompositionalMap.Vars;
-import contention.abstractions.MaintenanceAlg;
 
 /**
  * The contention-friendly tree implementation of map 
@@ -24,7 +23,7 @@ import contention.abstractions.MaintenanceAlg;
  * @param <V>
  */
 
-public class LockBasedFriendlyTreeMap<K, V> extends AbstractMap<K, V> implements
+public class LockBasedFriendlyTreeMapNoRotation<K, V> extends AbstractMap<K, V> implements
 		CompositionalMap<K, V>, MaintenanceAlg {
 
 	static final boolean useFairLocks = false;
@@ -35,9 +34,9 @@ public class LockBasedFriendlyTreeMap<K, V> extends AbstractMap<K, V> implements
 	final V DELETED = (V) new Object();
 
 	private class MaintenanceThread extends Thread {
-		LockBasedFriendlyTreeMap<K, V> map;
+		LockBasedFriendlyTreeMapNoRotation<K, V> map;
 
-		MaintenanceThread(LockBasedFriendlyTreeMap<K, V> map) {
+		MaintenanceThread(LockBasedFriendlyTreeMapNoRotation<K, V> map) {
 			this.map = map;
 		}
 
@@ -136,12 +135,12 @@ public class LockBasedFriendlyTreeMap<K, V> extends AbstractMap<K, V> implements
 	private long structMods = 0;
 
 	// Constructors
-	public LockBasedFriendlyTreeMap() {
+	public LockBasedFriendlyTreeMapNoRotation() {
 		// temporary
 		this.startMaintenance();
 	}
 
-	public LockBasedFriendlyTreeMap(final Comparator<? super K> comparator) {
+	public LockBasedFriendlyTreeMapNoRotation(final Comparator<? super K> comparator) {
 		// temporary
 		this.startMaintenance();
 		this.comparator = comparator;
@@ -387,7 +386,7 @@ public class LockBasedFriendlyTreeMap<K, V> extends AbstractMap<K, V> implements
 	}
 
 	@Override
-	public Set<java.util.Map.Entry<K, V>> entrySet() {
+	public Set<Entry<K, V>> entrySet() {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -439,208 +438,6 @@ public class LockBasedFriendlyTreeMap<K, V> extends AbstractMap<K, V> implements
 		return true;
 	}
 
-	int rightRotate(Node<K, V> parent, char direction, boolean doRotate) {
-		Node<K, V> n, l, lr, r, newNode;
-		if (parent.removed)
-			return 0;
-		n = direction == Left ? parent.left : parent.right;
-		if (n == null)
-			return 0;
-		l = n.left;
-		if (l == null)
-			return 0;
-		if (l.bal.lefth - l.bal.righth < 0 && !doRotate) {
-			// should do a double rotate
-			return 2;
-		}
-		if (allocateOutside) {
-			newNode = new Node<K, V>(null, null);
-		}
-		parent.lock.lock();
-		n.lock.lock();
-		l.lock.lock();
-		lr = l.right;
-		r = n.right;
-		if (allocateOutside) {
-			newNode.setupNode(n.key,
-					Math.max(1 + l.bal.righth, 1 + n.bal.righth), l.bal.righth,
-					n.bal.righth, n.value, lr, r);
-		} else {
-			newNode = new Node<K, V>(n.key, Math.max(1 + l.bal.righth,
-					1 + n.bal.righth), l.bal.righth, n.bal.righth, n.value, lr,
-					r);
-		}
-		l.right = newNode;
-		n.removed = true;
-		if (direction == Left) {
-			parent.left = l;
-		} else {
-			parent.right = l;
-		}
-		l.lock.unlock();
-		n.lock.unlock();
-		parent.lock.unlock();
-		// need to update balance values
-		l.bal.righth = newNode.bal.localh;
-		l.updateLocalh();
-		if (direction == Left) {
-			parent.bal.lefth = l.bal.localh;
-		} else {
-			parent.bal.righth = l.bal.localh;
-		}
-		parent.updateLocalh();
-		if (STRUCT_MODS) {
-			vars.rotations++;
-			counts.get().structMods++;
-		}
-		// System.out.println("right rotate");
-		return 1;
-	}
-
-	int leftRotate(Node<K, V> parent, char direction, boolean doRotate) {
-		Node<K, V> n, r, rl, l, newNode;
-		if (parent.removed)
-			return 0;
-		n = direction == Left ? parent.left : parent.right;
-		if (n == null)
-			return 0;
-		r = n.right;
-		if (r == null)
-			return 0;
-		if (r.bal.lefth - r.bal.righth > 0 && !doRotate) {
-			// should do a double rotate
-			return 3;
-		}
-		if (allocateOutside) {
-			newNode = new Node<K, V>(null, null);
-		}
-		parent.lock.lock();
-		n.lock.lock();
-		r.lock.lock();
-		rl = r.left;
-		l = n.left;
-		if (allocateOutside) {
-			newNode.setupNode(n.key,
-					Math.max(1 + r.bal.lefth, 1 + n.bal.lefth), n.bal.lefth,
-					r.bal.lefth, n.value, l, rl);
-		} else {
-			newNode = new Node<K, V>(n.key, Math.max(1 + r.bal.lefth,
-					1 + n.bal.lefth), n.bal.lefth, r.bal.lefth, n.value, l, rl);
-		}
-		r.left = newNode;
-
-		// temp (Need to fix this!!!!!!!!!!!!!!!!!!!!)
-		n.right = parent;
-		n.left = parent;
-
-		n.removed = true;
-		if (direction == Left) {
-			parent.left = r;
-		} else {
-			parent.right = r;
-		}
-		r.lock.unlock();
-		n.lock.unlock();
-		parent.lock.unlock();
-		// need to update balance values
-		r.bal.righth = newNode.bal.localh;
-		r.updateLocalh();
-		if (direction == Left) {
-			parent.bal.lefth = r.bal.localh;
-		} else {
-			parent.bal.righth = r.bal.localh;
-		}
-		parent.updateLocalh();
-		if (STRUCT_MODS) {
-			vars.rotations++;
-			counts.get().structMods++;
-		}
-		// System.out.println("left rotate");
-		return 1;
-	}
-
-	boolean propagate(Node<K, V> node) {
-		Node<K, V> lchild, rchild;
-
-		lchild = node.left;
-		rchild = node.right;
-
-		if (lchild == null) {
-			node.bal.lefth = 0;
-		} else {
-			node.bal.lefth = lchild.bal.localh;
-		}
-		if (rchild == null) {
-			node.bal.righth = 0;
-		} else {
-			node.bal.righth = rchild.bal.localh;
-		}
-
-		node.updateLocalh();
-		if (STRUCT_MODS)
-			vars.propogations++;
-
-		if (Math.abs(node.bal.righth - node.bal.lefth) >= 2)
-			return true;
-		return false;
-	}
-
-	boolean performRotation(Node<K, V> parent, char direction) {
-		int ret;
-		Node<K, V> node;
-
-		ret = singleRotation(parent, direction, false, false);
-		if (ret == 2) {
-			// Do a LRR
-			node = direction == Left ? parent.left : parent.right;
-			ret = singleRotation(node, Left, true, false);
-			if (ret > 0) {
-				if (singleRotation(parent, direction, false, true) > 0) {
-					// System.out.println("LRR");
-				}
-			}
-		} else if (ret == 3) {
-			// Do a RLR
-			node = direction == Left ? parent.left : parent.right;
-			ret = singleRotation(node, Right, false, true);
-			if (ret > 0) {
-				if (singleRotation(parent, direction, true, false) > 0) {
-					// System.out.println("RLR");
-				}
-			}
-		}
-		if (ret > 0)
-			return true;
-		return false;
-	}
-
-	int singleRotation(Node<K, V> parent, char direction, boolean leftRotation,
-			boolean rightRotation) {
-		int bal, ret = 0;
-		Node<K, V> node, child;
-
-		node = direction == Left ? parent.left : parent.right;
-		bal = node.bal.lefth - node.bal.righth;
-		if (bal >= 2 || rightRotation) {
-			// check reiable and rotate
-			child = node.left;
-			if (child != null) {
-				if (node.bal.lefth == child.bal.localh) {
-					ret = rightRotate(parent, direction, rightRotation);
-				}
-			}
-		} else if (bal <= -2 || leftRotation) {
-			// check reliable and rotate
-			child = node.right;
-			if (child != null) {
-				if (node.bal.righth == child.bal.localh) {
-					ret = leftRotate(parent, direction, leftRotation);
-				}
-			}
-		}
-		return ret;
-	}
-
 	boolean recursivePropagate(Node<K, V> parent, Node<K, V> node,
 			char direction) {
 		Node<K, V> left, right;
@@ -667,17 +464,6 @@ public class LockBasedFriendlyTreeMap<K, V> extends AbstractMap<K, V> implements
 			}
 			if (right != null) {
 				recursivePropagate(node, right, Right);
-			}
-		}
-
-		if (stop) {
-			return true;
-		}
-
-		// no rotations for now
-		if (!node.removed && node != this.root) {
-			if (propagate(node)) {
-				this.performRotation(parent, direction);
 			}
 		}
 
