@@ -9,7 +9,7 @@ import java.lang.reflect.Constructor;
  */
 public class HandReadWriteConditionLock<V> {
     private static class Pair<V> {
-        V value;
+        volatile V value;
         volatile int stamp;
         public Pair(V value, int stamp) {
             this.value = value;
@@ -35,7 +35,7 @@ public class HandReadWriteConditionLock<V> {
         }
     }
 
-    private Pair<V> current;
+    private volatile Pair<V> current;
     private boolean compareAndSet(Pair<V> expected, Pair<V> updated) {
         return unsafe.compareAndSwapObject(this, valueOffset, expected, updated);
     }

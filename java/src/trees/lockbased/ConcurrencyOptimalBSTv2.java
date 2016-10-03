@@ -282,36 +282,53 @@ public class ConcurrencyOptimalBSTv2 extends AbstractCompositionalIntSet
         return size(ROOT) - 1;
     }
 
-    public int depth(Node v) {
+    public int hash(Node v, int power) {
         if (v == null) {
             return 0;
         }
-        return 1 + Math.max(depth(v.l.get()), depth(v.r.get()));
+        return v.v * power + hash(v.l.get(), power * 239) + hash(v.r.get(), power * 533);
     }
 
-    public int sum_depth(Node v, int d) {
+    public int hash() {
+        return hash(ROOT.l.get(), 1);
+    }
+
+    public int maxDepth(Node v) {
         if (v == null) {
             return 0;
         }
-        return (v.state.get() == State.DATA ? d : 0) + sum_depth(v.l.get(), d + 1) + sum_depth(v.r.get(), d + 1);
+        return 1 + Math.max(maxDepth(v.l.get()), maxDepth(v.r.get()));
     }
 
-    public int average_depth() {
-        return sum_depth(ROOT, 0) / size();
+    public int sumDepth(Node v, int d) {
+        if (v == null) {
+            return 0;
+        }
+        return (v.state.get() == State.DATA ? d : 0) + sumDepth(v.l.get(), d + 1) + sumDepth(v.r.get(), d + 1);
     }
 
-    public int depth() {
-        return depth(ROOT);
+    public int averageDepth() {
+        return (sumDepth(ROOT, -1) + 1) / size();
+    }
+
+    public int maxDepth() {
+        return maxDepth(ROOT) - 1;
     }
 
     public boolean stopMaintenance() {
-        System.out.println("Average depth: " + average_depth());
-        System.out.println("Depth: " + depth());
+        System.out.println("Average depth: " + averageDepth());
+        System.out.println("Depth: " + maxDepth());
+        System.out.println("Total depth: " + (sumDepth(ROOT, -1) + 1));
+        System.out.println("Hash: " + hash());
         return true;
     }
 
+    public int numNodes(Node v) {
+      return v == null ? 0 : 1 + numNodes(v.l.get()) + numNodes(v.r.get());
+    }
+
     public int numNodes() {
-        return size();
+        return numNodes(ROOT) - 1;
     }
 
     public long getStructMods() {

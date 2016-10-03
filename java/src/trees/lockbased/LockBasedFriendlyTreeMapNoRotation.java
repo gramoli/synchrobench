@@ -475,8 +475,10 @@ public class LockBasedFriendlyTreeMapNoRotation<K, V> extends AbstractMap<K, V> 
 			this.structMods += counts.get().structMods;
 		System.out.println("Propogations: " + vars.propogations);
 		System.out.println("Rotations: " + vars.rotations);
-		System.out.println("Total depth: " + recursiveDepth(root.left));
-        System.out.println("Average depth: " + averageDepth());
+		System.out.println("Max depth: " + recursiveDepth(root.left));
+                System.out.println("Average depth: " + averageDepth());
+                System.out.println("Total depth: " + totalDepth(root.left, 0));
+                System.out.println("Hash: " + hash());
 		return true;
 	}
 
@@ -550,8 +552,19 @@ public class LockBasedFriendlyTreeMapNoRotation<K, V> extends AbstractMap<K, V> 
     }
 
     int averageDepth() {
-        return totalDepth(root, 0) / size();
+        return totalDepth(root.left, 0) / size();
     }
+
+        int hash(Node<K, V> node, int power) {
+            if (node == null) {
+                return 0;
+            }
+            return node.value.hashCode() * power + hash(node.left, power * 239) + hash(node.right, power * 533);
+        }
+
+        int hash() {
+            return hash(root.left, 1);
+        }
 
 	@Override
 	public void clear() {
