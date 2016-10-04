@@ -17,7 +17,7 @@ public class ConcurrencyOptimalBSTv2 extends AbstractCompositionalIntSet
     }
 
     public class Node {
-        int v;
+        final int v;
         final HandReadWriteConditionLock<State> state;
         final HandReadWriteConditionLock<Node> l, r;
         Node parent;
@@ -100,9 +100,9 @@ public class ConcurrencyOptimalBSTv2 extends AbstractCompositionalIntSet
             }
             prev = curr;
             if (v < curr.v) {
-                curr = curr.l.get();
+                curr = curr.l.current.value;
             } else {
-                curr = curr.r.get();
+                curr = curr.r.current.value;
             }
         }
         return prev;
@@ -263,9 +263,9 @@ public class ConcurrencyOptimalBSTv2 extends AbstractCompositionalIntSet
                 return curr.state.get() == State.DATA;
             }
             if (v < curr.v) {
-                curr = curr.l.get();
+                curr = curr.l.current.value;//curr.l.get();
             } else {
-                curr = curr.r.get();
+                curr = curr.r.current.value;//curr.r.get();
             }
         }
         return false;

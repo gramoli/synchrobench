@@ -69,7 +69,7 @@ public class Test {
 	final private static ThreadLocal<Random> s_random = new ThreadLocal<Random>() {
 		@Override
 		protected synchronized Random initialValue() {
-			return new Random();
+			return new Random(239);
 		}
 	};
 

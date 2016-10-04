@@ -41,7 +41,7 @@ public class ThreadSetLoop implements Runnable {
 	/** The counter of aborts */
 	public long aborts = 0;
 	/** The random number */
-	Random rand = new Random();
+	Random rand = new Random(239);
 
 	public long getCount;
 	public long nodesTraversed;
