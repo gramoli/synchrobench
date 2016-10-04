@@ -9,7 +9,7 @@ import java.lang.reflect.Constructor;
  */
 public class HandReadWriteConditionLockv2<V> {
     public volatile V value;
-    private int stamp;
+    private volatile int stamp;
 
     private static final Unsafe unsafe;
     private static final long stampOffset;
@@ -73,6 +73,7 @@ public class HandReadWriteConditionLockv2<V> {
             if (compareAndSetStamp(0, 1))
                 break;
         }
+        assert this.stamp == 1;
     }
 
     public void readLock() {
@@ -85,16 +86,19 @@ public class HandReadWriteConditionLockv2<V> {
             if (compareAndSetStamp(stamp, stamp + 2))
                 break;
         }
+        assert this.stamp % 2 == 0;
     }
 
     public boolean tryUnlockRead() {
         int stamp = this.stamp;
+        assert stamp % 2 == 0;
         return compareAndSetStamp(stamp, stamp - 2);
         //return compareAndSetStamp(current.stamp, current.stamp - 2);
     }
 
     /* Nobody are not allowed to unlock write except the thread that takes it */
     public boolean tryUnlockWrite() {
+        assert stamp == 1;
         stamp = 0;
         return true;
     }
@@ -103,6 +107,7 @@ public class HandReadWriteConditionLockv2<V> {
         int stamp;
         while (true) {
             stamp = this.stamp;
+            assert stamp % 2 == 0 && stamp > 0;
             if (compareAndSetStamp(stamp, stamp - 2))
                 break;
         }
@@ -115,7 +120,9 @@ public class HandReadWriteConditionLockv2<V> {
 
     public boolean tryReadLockWithCondition(V expected) {
         int stamp;
+        V value;
         do {
+            value = this.value;
             if (!equal(expected, value)) {
                 return false;
             }
@@ -125,7 +132,8 @@ public class HandReadWriteConditionLockv2<V> {
             }
         } while (!compareAndSetStamp(stamp, stamp + 2));
 
-        if (!equal(expected, value)) {
+        if (!equal(expected, this.value)) {
+            assert this.stamp % 2 == 0;
             unlockRead();
             return false;
         }
@@ -134,11 +142,13 @@ public class HandReadWriteConditionLockv2<V> {
 
     public boolean tryWriteLockWithCondition(V expected) {
         int stamp = this.stamp;
+        V value = this.value;
         if (!equal(expected, value) || stamp != 0) {
             return false;
         }
         if (compareAndSetStamp(0, 1)) {
-            if (!equal(expected, value)) {
+            if (!equal(expected, this.value)) {
+                assert this.stamp == 1;
                 unlockWrite();
                 return false;
             }
@@ -150,13 +160,15 @@ public class HandReadWriteConditionLockv2<V> {
 
     public void readLockWithCondition(V expected) {
         int stamp;
+        V value;
         while (true) {
             stamp = this.stamp;
+            value = this.value;
             if (!equal(expected, value) || stamp == 1) {
                 continue;
             }
             if (compareAndSetStamp(stamp, stamp + 2)) {
-                if (!equal(expected, value)) {
+                if (!equal(expected, this.value)) {
                     unlockRead();
                 } else {
                     break;
@@ -167,13 +179,15 @@ public class HandReadWriteConditionLockv2<V> {
 
     public void writeLockWithCondition(V expected) {
         int stamp;
+        V value;
         while (true) {
             stamp = this.stamp;
+            value = this.value;
             if (!equal(expected, value) || stamp != 0) {
                 continue;
             }
             if (compareAndSetStamp(0, 1)) {
-                if (!equal(expected, value)) {
+                if (!equal(expected, this.value)) {
                     unlockWrite();
                 } else {
                     break;
@@ -197,8 +211,10 @@ public class HandReadWriteConditionLockv2<V> {
 
     public boolean multiLockWithCondition(V read, V write) {
         int stamp;
+        V value;
         while (true) {
             stamp = this.stamp;
+            value = this.value;
             if (value == null) {
                 return false;
             }
@@ -210,7 +226,8 @@ public class HandReadWriteConditionLockv2<V> {
                     continue;
                 }
                 if (compareAndSetStamp(stamp, stamp + 2)) {
-                    if (!equal(value, read)) {
+                    if (!equal(this.value, read)) {
+                        assert this.stamp % 2 == 0;
                         unlockRead();
                     } else {
                         return true;
@@ -221,7 +238,8 @@ public class HandReadWriteConditionLockv2<V> {
                     continue;
                 }
                 if (compareAndSetStamp(0, 1)) {
-                    if (!equal(value, write)) {
+                    if (!equal(this.value, write)) {
+                        assert this.stamp == 1;
                         unlockWrite();
                     } else {
                         return true;
@@ -233,6 +251,7 @@ public class HandReadWriteConditionLockv2<V> {
 
     public boolean tryMultiUnlock() {
         int stamp = this.stamp;
+        assert stamp > 0;
         if (stamp == 1) {
             this.stamp = 0;
             return true;
