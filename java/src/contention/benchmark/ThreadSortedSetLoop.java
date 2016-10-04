@@ -39,7 +39,7 @@ public class ThreadSortedSetLoop implements Runnable {
 	/** The counter of aborts */
 	public long aborts = 0;
 	/** The random number */
-	Random rand = new Random(239);
+	Random rand = new Random();
 
 	public long getCount;
 	public long nodesTraversed;
@@ -55,6 +55,7 @@ public class ThreadSortedSetLoop implements Runnable {
 	int[] cdf = new int[3];
 
 	public ThreadSortedSetLoop(short myThreadNum, CompositionalSortedSet<Integer> bench, Method[] methods) {
+	        rand = new Random(myThreadNum);
 		this.myThreadNum = myThreadNum;
 		this.bench = bench;
 		this.methods = methods;

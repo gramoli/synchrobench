@@ -41,7 +41,7 @@ public class ThreadLoop implements Runnable {
 	/** The counter of aborts */
 	public long aborts = 0;
 	/** The random number */
-	Random rand = new Random(239);
+	Random rand;
 
 	public long getCount;
 	public long nodesTraversed;
@@ -58,6 +58,7 @@ public class ThreadLoop implements Runnable {
 
 	public ThreadLoop(short myThreadNum,
 			CompositionalMap<Integer, Integer> bench, Method[] methods) {
+ 	        rand = new Random(myThreadNum);
 		this.myThreadNum = myThreadNum;
 		this.bench = bench;
 		this.methods = methods;
