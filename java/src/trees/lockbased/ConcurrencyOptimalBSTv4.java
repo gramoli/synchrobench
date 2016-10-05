@@ -508,8 +508,7 @@ public class ConcurrencyOptimalBSTv4 extends AbstractCompositionalIntSet
                     restart = false;
                     undoValidateAndTryLock(prev, curr);
 //                    prev.unlockWriteState();
-//                    prev.multiUnlockState();
-                    prev.unlockReadState();
+                    prev.multiUnlockState();
                 }
             }
             curr.unlockWriteState();
