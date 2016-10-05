@@ -200,14 +200,14 @@ public class ConcurrencyOptimalBSTv3 extends AbstractCompositionalIntSet
                 case 0: {
                     final Node prev = curr.parent;
                     //prev.state.writeLock();
-//                    if (!prev.state.multiLockWithCondition(State.DATA, State.ROUTING)) {
-//                        break;
-//                    }
-                    prev.state.readLock();
+                    if (!prev.state.multiLockWithCondition(State.DATA, State.ROUTING)) {
+                        break;
+                    }
+//                    prev.state.readLock();
                     if (!validateAndTryLock(prev, curr)) {
 //                        prev.state.unlockWrite();
-//                        prev.state.multiUnlock();
-                        prev.state.unlockRead();
+                        prev.state.multiUnlock();
+//                        prev.state.unlockRead();
                         break;
                     }
                     if (prev.state.get() == State.DATA) {
@@ -231,8 +231,8 @@ public class ConcurrencyOptimalBSTv3 extends AbstractCompositionalIntSet
                             child.unlockRead();
                             undoValidateAndTryLock(prev, curr);
 //                            prev.state.unlockWrite();
-//                            prev.state.multiUnlock();
-                            prev.state.unlockRead();
+                            prev.state.multiUnlock();
+//                            prev.state.unlockRead();
                             break;
                         }
                         prev.state.set(State.DELETED);
@@ -249,8 +249,8 @@ public class ConcurrencyOptimalBSTv3 extends AbstractCompositionalIntSet
                     restart = false;
                     undoValidateAndTryLock(prev, curr);
 //                    prev.state.unlockWrite();
-//                    prev.state.multiUnlock();
-                    prev.state.unlockRead();
+                    prev.state.multiUnlock();
+//                    prev.state.unlockRead();
                 }
             }
             curr.state.unlockWrite();

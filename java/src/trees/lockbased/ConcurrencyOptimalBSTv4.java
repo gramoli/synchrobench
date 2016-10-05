@@ -444,14 +444,13 @@ public class ConcurrencyOptimalBSTv4 extends AbstractCompositionalIntSet
                 }
                 case 0: {
                     final Node prev = curr.parent;
-//                    if (!prev.multiLockWithConditionState(State.DATA, State.ROUTING)) {
-//                        break;
-//                    }
-                    prev.readLockState();
+                    if (!prev.multiLockWithConditionState(State.DATA, State.ROUTING)) {
+                        break;
+                    }
                     if (!validateAndTryLock(prev, curr)) {
 //                        prev.unlockWriteState();
-//                        prev.multiUnlockState();
-                        prev.unlockReadState();
+                        prev.multiUnlockState();
+//                        prev.unlockReadState();
                         break;
                     }
                     if (prev.state == State.DATA) {
@@ -484,8 +483,8 @@ public class ConcurrencyOptimalBSTv4 extends AbstractCompositionalIntSet
                             }
                             undoValidateAndTryLock(prev, curr);
 //                            prev.unlockWriteState();
-//                            prev.multiUnlockState();
-                            prev.unlockReadState();
+                            prev.multiUnlockState();
+//                            prev.unlockReadState();
                             break;
                         }
                         prev.state = State.DELETED;
