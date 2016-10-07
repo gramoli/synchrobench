@@ -15,26 +15,31 @@ public class TestIntSet {
     public void stressTest(AbstractCompositionalIntSet set, int n, int t) throws Exception {
         ConcurrentHashMap<Integer, Integer> check = new ConcurrentHashMap<>();
         int test = 0;
+
+        final int[][] sets = new int[t][n / t];
+        for (int i = 0; i < sets.length; i++) {
+            for (int j = 0; j < n / t; j++) {
+                sets[i][j] = j * t + i;
+            }
+        }
+
         while (true) {
             Thread[] threads = new Thread[t];
             for (int thread = 0; thread < t; thread++) {
+                final int threadId = thread;
                 threads[thread] = new Thread(() -> {
                     Random rnd = new Random(Thread.currentThread().getId());
                     for (int i = 0; i < 10 * n; i++) {
-                        int x = rnd.nextInt(n) + 1;
+                        int x = sets[threadId][rnd.nextInt(sets[threadId].length)];
                         if (rnd.nextDouble() < 0.8 || check.size() == 0) {
                             if ((check.put(x, 0) == null) != set.addInt(x)) {
-                                if (t == 1) {
-                                    System.err.println("Incorrect insert result");
-                                    System.exit(0);
-                                }
+                                System.err.println("Incorrect insert result");
+                                System.exit(0);
                             }
                         } else {
-                            if ((check.remove(x) != null) != set.removeInt(x)) {
-                                if (t == 1) {
-                                    System.err.println("Incorrect delete result");
-                                    System.exit(0);
-                                }
+                            if ((check.remove(x) == null) != !set.removeInt(x)) {
+                                System.err.println("Incorrect delete result");
+                                System.exit(0);
                             }
                         }
                     }
@@ -44,7 +49,7 @@ public class TestIntSet {
             for (int thread = 0; thread < t; thread++) {
                 threads[thread].join();
             }
-            for (int i = 1; i <= n; i++) {
+            for (int i = 0; i < n; i++) {
                 if (set.containsInt(i) != check.containsKey(i)) {
                     System.err.println("Stress is not passed for " + i);
                     System.exit(0);
@@ -54,8 +59,8 @@ public class TestIntSet {
             System.err.println(test + "-th stress test has passed. Size of the set is " + check.size() + " " + set.size() + ".");
             if (set instanceof ConcurrencyOptimalBSTv2) {
                 ConcurrencyOptimalBSTv2 co = (ConcurrencyOptimalBSTv2)set;
-                System.err.println("Depth of the tree " + co.depth());
-                System.err.println("Average depth " + co.average_depth());
+                System.err.println("Depth of the tree " + co.maxDepth());
+                System.err.println("Average depth " + co.averageDepth());
             }
             set.clear();
             check.clear();
