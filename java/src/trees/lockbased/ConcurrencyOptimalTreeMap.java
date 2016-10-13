@@ -391,13 +391,14 @@ public class ConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
     public Node<K, V> traverse(Object key, Node<K, V> start) {
         Comparable<? super K> k = comparable(key);
         Node<K, V> curr = start;
-        Node<K, V> prev = null;
-        if (start == ROOT) {
-            prev = ROOT;
-            curr = ROOT.l;
-        }
+        Node<K, V> prev = ROOT;
+//        if (start == ROOT) {
+//            prev = ROOT;
+//            curr = ROOT.l;
+//        }
+        int comparison;
         while (curr != null) {
-            int comparison = k.compareTo(curr.key);
+            comparison = k.compareTo(curr.key);
             if (comparison == 0) {
                 return curr;
             }
@@ -413,11 +414,10 @@ public class ConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
 
     @Override
     public V putIfAbsent(K key, V value) {
-        boolean restart = true;
-        Node<K, V> start = ROOT;
+        Node<K, V> start = ROOT.l;
         while (true) {
-            Node<K, V> curr = traverse(key, start);
-            int comparison = curr.key == null ? -1 : compare(key, curr.key);
+            final Node<K, V> curr = traverse(key, start);
+            final int comparison = curr.key == null ? -1 : compare(key, curr.key);
             if (comparison == 0) {
                 boolean lockRetry = true;
                 while (lockRetry) {
@@ -431,7 +431,7 @@ public class ConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
                             return get;
                         case DELETED:
                             lockRetry = false;
-                            start = ROOT;
+                            start = ROOT.l;
                             break;
                         case ROUTING:
                             if (curr.tryWriteLockWithConditionState(State.ROUTING)) {
@@ -447,7 +447,7 @@ public class ConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
                 final Node<K, V> node = new Node<>(key, value);
                 final Node<K, V> prev = curr;
                 prev.readLockState();
-                boolean left = comparison < 0;
+                final boolean left = comparison < 0;
                 if (validateAndTryLock(prev, null, left)) {
                     node.parent = prev;
                     if (left) {
@@ -456,25 +456,23 @@ public class ConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
                         prev.r = node;
                     }
                     undoValidateAndTryLock(prev, left);
-                    restart = false;
+                    prev.unlockReadState();
+                    return null;
                 } else {
                     if (prev.state == State.DELETED) {
-                        start = ROOT;
+                        start = ROOT.l;
                     } else {
                         start = prev;
                     }
                 }
                 prev.unlockReadState();
-                if (!restart) {
-                    return null;
-                }
             }
         }
     }
 
     public V remove(final Object key) {
         boolean restart = true;
-        final Node<K, V> curr = traverse(key, ROOT);
+        final Node<K, V> curr = traverse(key, ROOT.l);
         V get = null;
         while (restart) {
             if (compare((K) key, curr.key) != 0 || curr.value == null) {
@@ -504,7 +502,7 @@ public class ConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
                         child = curr.r;
                     }
                     final Node<K, V> prev = curr.parent;
-                    boolean leftCurr = prev.key == null || compare(curr.key, prev.key) < 0;
+                    final boolean leftCurr = prev.key == null || compare(curr.key, prev.key) < 0;
                     if (!validateAndTryLock(prev, curr, leftCurr)) {
                         if (leftChild) {
                             curr.unlockWriteLeft();
@@ -537,7 +535,7 @@ public class ConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
                     if (!prev.multiLockWithConditionState(State.DATA, State.ROUTING)) {
                         break;
                     }
-                    boolean leftCurr = prev.key == null || compare(curr.key, prev.key) < 0;
+                    final boolean leftCurr = prev.key == null || compare(curr.key, prev.key) < 0;
                     if (!validateAndTryLock(prev, curr, leftCurr)) {
                         prev.multiUnlockState();
                         break;
@@ -565,7 +563,7 @@ public class ConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
                             leftChild = true;
                         }
                         final Node<K, V> gprev = prev.parent;
-                        boolean leftPrev = gprev.key == null || compare(prev.key, gprev.key) < 0;
+                        final boolean leftPrev = gprev.key == null || compare(prev.key, gprev.key) < 0;
                         if (!validateAndTryLock(gprev, prev, leftPrev)) {
                             if (leftChild) {
                                 prev.unlockReadLeft();
@@ -613,8 +611,9 @@ public class ConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
     public V get(final Object key) {
         Node<K, V> curr = ROOT.l;
         Comparable<? super K> k = comparable(key);
+        int comparison;
         while (curr != null) {
-            int comparison = k.compareTo(curr.key);
+            comparison = k.compareTo(curr.key);
             if (comparison == 0) {
                 return curr.value;
             }
