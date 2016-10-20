@@ -112,11 +112,3 @@ void sl_delete_node(sl_node_t *n);
 sl_intset_t *sl_set_new();
 void sl_set_delete(sl_intset_t *set);
 int sl_set_size(sl_intset_t *set);
-
-/* 
- * Returns a pseudo-random value in [1;range).
- * Depending on the symbolic constant RAND_MAX>=32767 defined in stdlib.h,
- * the granularity of rand() could be lower-bounded by the 32767^th which might 
- * be too high for given values of range and initial.
- */
-inline long rand_range(long r);

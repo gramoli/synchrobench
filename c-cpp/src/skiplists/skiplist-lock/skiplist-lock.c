@@ -35,36 +35,30 @@ inline void *xmalloc(size_t size)
 	return p;
 }
 
-
-/* 
- * Returns a pseudo-random value in [1;range).
- * Depending on the symbolic constant RAND_MAX>=32767 defined in stdlib.h,
- * the granularity of rand() could be lower-bounded by the 32767^th which might 
- * be too high for given values of range and initial.
+/*
+ * Returns a random level for inserting a new node, results are hardwired to p=0.5, min=1, max=32.
+ *
+ * "Xorshift generators are extremely fast non-cryptographically-secure random number generators on
+ * modern architectures."
+ *
+ * Marsaglia, George, (July 2003), "Xorshift RNGs", Journal of Statistical Software 8 (14)
  */
-inline long rand_range(long r) {
-	int m = RAND_MAX;
-	long d, v = 0;
-	
-	do {
-		d = (m > r ? r : m);		
-		v += 1 + (long)(d * ((double)rand()/((double)(m)+1.0)));
-		r -= m;
-	} while (r > 0);
-	return v;
-}
-
-
 int get_rand_level() {
-	int i, level = 1;
-	for (i = 0; i < levelmax - 1; i++) {
-		if ((rand_range(100)-1) < 50)
-			level++;
-		else
-			break;
+	static uint32_t y = 2463534242UL;
+	y^=(y<<13);
+	y^=(y>>17);
+	y^=(y<<5);
+	uint32_t temp = y;
+	uint32_t level = 1;
+	while (((temp >>= 1) & 1) != 0) {
+		++level;
 	}
 	/* 1 <= level <= levelmax */
-	return level;
+	if (level > levelmax) {
+		return (int)levelmax;
+	} else {
+		return (int)level;
+	}
 }
 
 int floor_log_2(unsigned int n) {
