@@ -144,7 +144,7 @@ void barrier_cross(barrier_t *b)
   pthread_mutex_unlock(&b->mutex);
 }
 
-/* Re-entrant version of rand_range(r) */
+/* Thread-safe, re-entrant version of rand_range(r) */
 inline long rand_range_re(unsigned int *seed, long r) {
   int m = RAND_MAX;
   long d, v = 0;

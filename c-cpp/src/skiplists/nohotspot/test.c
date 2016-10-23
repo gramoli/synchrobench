@@ -126,6 +126,8 @@ int floor_log_2(unsigned int n) {
  * Depending on the symbolic constant RAND_MAX>=32767 defined in stdlib.h,
  * the granularity of rand() could be lower-bounded by the 32767^th which might 
  * be too high for given values of range and initial.
+ *
+ * Note: this is not thread-safe and will introduce futex locks
  */
 inline long rand_range(long r) {
 	int m = RAND_MAX;
@@ -139,7 +141,7 @@ inline long rand_range(long r) {
 	return v;
 }
 
-/* Re-entrant version of rand_range(r) */
+/* Thread-safe, re-entrant version of rand_range(r) */
 inline long rand_range_re(unsigned int *seed, long r) {
 	int m = RAND_MAX;
 	int d, v = 0;

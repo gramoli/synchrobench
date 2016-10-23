@@ -65,7 +65,27 @@ void barrier_cross(barrier_t *b)
   pthread_mutex_unlock(&b->mutex);
 }
 
-/* Re-entrant version of rand_range(r) */
+/* 
+ * Returns a pseudo-random value in [1;range).
+ * Depending on the symbolic constant RAND_MAX>=32767 defined in stdlib.h,
+ * the granularity of rand() could be lower-bounded by the 32767^th which might 
+ * be too high for given values of range and initial.
+ *
+ * Note: this is not thread-safe and will introduce futex locks
+ */
+inline long rand_range(long r) {
+	int m = RAND_MAX;
+	int d, v = 0;
+	
+	do {
+		d = (m > r ? r : m);		
+		v += 1 + (int)(d * ((double)rand()/((double)(m)+1.0)));
+		r -= m;
+	} while (r > 0);
+	return v;
+}
+
+/* Thread-safe, re-entrant version of rand_range(r) */
 inline long rand_range_re(unsigned int *seed, long r) {
   int m = RAND_MAX;
   long d, v = 0;
