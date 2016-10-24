@@ -1632,7 +1632,7 @@ public class NonBlockingFriendlySkipListMap<K, V> extends AbstractMap<K, V>
 		x ^= x << 13;
 		x ^= x >>> 17;
 		randomSeed = x ^= x << 5;
-		if ((x & 0x8001) != 0) // test highest and lowest bits
+		if ((x & 0x80000001) != 0) // test highest and lowest bits
 			return 0;
 		int level = 1;
 		while (((x >>>= 1) & 1) != 0)
