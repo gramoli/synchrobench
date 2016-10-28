@@ -9,9 +9,11 @@ java=java
 javaopt=-server
 
 threads="1 2 4 8 16 24 32"
-sizes="16384 65536"
+#threads="24"
+sizes="16384 65536 262144 524288 1048576"
 
 writes="0 20 40 60 80 100"
+#writes="100"
 duration="10000"
 warmup="5"
 snapshot="0"
@@ -28,12 +30,13 @@ if [ ! -d "${output}" ]; then
 fi
 if [ ! -d "${output}/log" ]; then
 #  rm -rf ${output}/log
-  mkdir $output
+  mkdir ${output}/log
 fi
 
 #mkdir ${output}/log
+benchs="trees.lockbased.ConcurrencyOptimalBSTv2 trees.lockbased.ConcurrencyOptimalBSTv3 trees.lockbased.ConcurrencyOptimalBSTv4 trees.lockbased.LogicalOrderingAVL trees.lockbased.LockBasedFriendlyTreeMap trees.lockbased.LockBasedFriendlyTreeMapNoRotation trees.lockbased.LockBasedStanfordTreeMap trees.lockfree.NonBlockingTorontoBSTMap"
+#benchs="trees.lockbased.ConcurrencyOptimalBSTv4" #"trees.lockbased.ConcurrencyOptimalBSTv4 trees.lockbased.ConcurrencyOptimalTreeMap trees.lockbased.LogicalOrderingAVL trees.lockbased.LockBasedFriendlyTreeMap  trees.lockbased.LockBasedFriendlyTreeMapNoRotation trees.lockbased.LockBasedStanfordTreeMap trees.lockfree.NonBlockingTorontoBSTMap"
 
-benchs="trees.lockbased.ConcurrencyOptimalBSTv2 trees.lockbased.LockBasedFriendlyTreeMap trees.lockbased.LockBasedStanfordTreeMap trees.lockfree.NonBlockingTorontoBSTMap"
 for bench in ${benchs}; do
   for write in ${writes}; do
     for t in ${threads}; do
@@ -42,10 +45,10 @@ for bench in ${benchs}; do
          r=$((2*${i}))
          out=${output}/log/${bench}-i${i}-u${write}-t${t}-w${warmup}-d${duration}.log
          rm ${out}
-         for (( j=1; j<=${iterations}; j++ )); do
-           echo "${java} ${javaopt} -cp ${CP} ${MAINCLASS} -W ${warmup} -u ${write} -a ${writeall} -s ${snapshot} -d ${duration} -t ${t} -i ${i} -r ${r} -b ${bench}"
-           ${java} ${javaopt} -cp ${CP} ${MAINCLASS} -W ${warmup} -u ${write} -d ${duration} -t ${t} -i ${i} -r ${r} -b ${bench} 2>&1 >> ${out}
-         done
+#         for (( j=1; j<=${iterations}; j++ )); do
+         echo "${java} ${javaopt} -cp ${CP} ${MAINCLASS} -n ${iterations} -W ${warmup} -u ${write} -a ${writeall} -s ${snapshot} -d ${duration} -t ${t} -i ${i} -r ${r} -b ${bench}"
+         ${java} ${javaopt} -cp ${CP} ${MAINCLASS} -n ${iterations} -W ${warmup} -u ${write} -d ${duration} -t ${t} -i ${i} -r ${r} -b ${bench} 2>&1 >> ${out}
+#         done
        done
     done
   done
