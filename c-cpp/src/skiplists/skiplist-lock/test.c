@@ -371,6 +371,7 @@ void *test2(void *data)
     int alternate = DEFAULT_ALTERNATE;
     int effective = DEFAULT_EFFECTIVE;
     sigset_t block_set;
+    struct sl_ptst *ptst;
 		
     while(1) {
       i = 0;
@@ -493,7 +494,15 @@ void *test2(void *data)
       srand(seed);
 		
     levelmax = floor_log_2((unsigned int) initial);
-    set = sl_set_new();
+    /* create the skip list set and do inits */
+    ptst_subsystem_init();
+    gc_subsystem_init();
+    set_subsystem_init();
+
+
+    ptst = ptst_critical_enter();
+    set = sl_set_new(ptst);
+    ptst_critical_exit(ptst);
     stop = 0;
 		
     global_seed = rand();
@@ -700,8 +709,12 @@ void *test2(void *data)
 	   aborts_invalid_memory * 1000.0 / duration);
     printf("Max retries   : %lu\n", max_retries);
 		
+    gc_subsystem_destroy();
+
     /* Delete set */
-    sl_set_delete(set);
+    ptst = ptst_critical_enter();
+    sl_set_delete(set, ptst);
+    ptst_critical_exit(ptst);
 		
 #ifndef TLS
     pthread_key_delete(rng_seed_key);
