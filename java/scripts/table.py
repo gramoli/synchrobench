@@ -25,14 +25,17 @@ def filename(bench, size, write, proc, warmup, duration):
 
 keys = ["throughput"]
 procs = [1, 2, 4, 8, 16, 24, 32]
-sizes = [16384, 65536]
+sizes = [16384, 65536, 262144, 524288, 1048576]
 writes = [0, 20, 40, 60, 80, 100]
-warmup = 0
+warmup = 5
 duration = 10000
-benchmarks = ["trees.lockbased.ConcurrencyOptimalBSTv2",
-#              "trees.lockbased.ConcurrencyOptimalBSTv3",
+benchmarks = [#"trees.lockbased.ConcurrencyOptimalBSTv2",
+              #"trees.lockbased.ConcurrencyOptimalBSTv3",
+              "trees.lockbased.ConcurrencyOptimalBSTv4",
+              "trees.lockbased.ConcurrencyOptimalTreeMap",
               "trees.lockbased.LockBasedFriendlyTreeMap",
-#              "trees.lockbased.LockBasedFriendlyTreeMapNoRotation",
+              "trees.lockbased.LockBasedFriendlyTreeMapNoRotation",
+              "trees.lockbased.LogicalOrderingAVL",
               "trees.lockbased.LockBasedStanfordTreeMap",
               "trees.lockfree.NonBlockingTorontoBSTMap"]
 directory = "../output/data-w" + str(warmup) + "-d" + str(duration)
