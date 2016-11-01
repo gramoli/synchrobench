@@ -33,9 +33,8 @@ if [ ! -d "${output}/log" ]; then
   mkdir ${output}/log
 fi
 
-#mkdir ${output}/log
-benchs="trees.lockbased.ConcurrencyOptimalBSTv2 trees.lockbased.ConcurrencyOptimalBSTv3 trees.lockbased.ConcurrencyOptimalBSTv4 trees.lockbased.LogicalOrderingAVL trees.lockbased.LockBasedFriendlyTreeMap trees.lockbased.LockBasedFriendlyTreeMapNoRotation trees.lockbased.LockBasedStanfordTreeMap trees.lockfree.NonBlockingTorontoBSTMap"
-#benchs="trees.lockbased.ConcurrencyOptimalBSTv4" #"trees.lockbased.ConcurrencyOptimalBSTv4 trees.lockbased.ConcurrencyOptimalTreeMap trees.lockbased.LogicalOrderingAVL trees.lockbased.LockBasedFriendlyTreeMap  trees.lockbased.LockBasedFriendlyTreeMapNoRotation trees.lockbased.LockBasedStanfordTreeMap trees.lockfree.NonBlockingTorontoBSTMap"
+#mkdir ${output}/logbenchs="trees.lockbased.ConcurrencyOptimalBSTv2 trees.lockbased.ConcurrencyOptimalBSTv3 trees.lockbased.ConcurrencyOptimalBSTv4 trees.lockbased.LogicalOrderingAVL trees.lockbased.LockBasedFriendlyTreeMap trees.lockbased.LockBasedFriendlyTreeMapNoRotation trees.lockbased.LockBasedStanfordTreeMap trees.lockfree.NonBlockingTorontoBSTMap"
+benchs="trees.lockbased.ConcurrencyOptimalBSTv4 trees.lockbased.ConcurrencyOptimalTreeMap trees.lockbased.LogicalOrderingAVL trees.lockbased.LockBasedFriendlyTreeMap  trees.lockbased.LockBasedFriendlyTreeMapNoRotation trees.lockbased.LockBasedStanfordTreeMap trees.lockfree.NonBlockingTorontoBSTMap"
 
 for bench in ${benchs}; do
   for write in ${writes}; do
