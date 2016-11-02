@@ -389,7 +389,7 @@ public class ConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
     }
 
     public Node<K, V> traverse(Object key, Node<K, V> start) {
-        Comparable<? super K> k = comparable(key);
+        final Comparable<? super K> k = comparable(key);
         Node<K, V> curr = start;
         Node<K, V> prev = ROOT;
 //        if (start == ROOT) {
@@ -610,7 +610,7 @@ public class ConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
     @Override
     public V get(final Object key) {
         Node<K, V> curr = ROOT.l;
-        Comparable<? super K> k = comparable(key);
+        final Comparable<? super K> k = comparable(key);
         int comparison;
         while (curr != null) {
             comparison = k.compareTo(curr.key);
