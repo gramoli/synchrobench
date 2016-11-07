@@ -33,6 +33,15 @@
 #include <stdint.h>
 
 #include <atomic_ops.h>
+#include "common.h"
+#include "ptst.h"
+#include "garbagecoll.h"
+
+/*
+ * number of unique blk sizes we want to deal with
+ * (1 for node and 1 for next pointer array)
+ */
+#define MAX_SIZES 2
 
 #define DEFAULT_DURATION                10000
 #define DEFAULT_INITIAL                 256
@@ -101,14 +110,16 @@ int floor_log_2(unsigned int n);
 /* 
  * Create a new node without setting its next fields. 
  */
-sl_node_t *sl_new_simple_node(val_t val, int toplevel, int transactional);
+sl_node_t *sl_new_simple_node(val_t val, int toplevel, int transactional, ptst_t *ptst);
 /* 
  * Create a new node with its next field. 
  * If next=NULL, then this create a tail node. 
  */
 sl_node_t *sl_new_node(val_t val, sl_node_t *next, int toplevel, int 
-transactional);
-void sl_delete_node(sl_node_t *n);
-sl_intset_t *sl_set_new();
-void sl_set_delete(sl_intset_t *set);
+transactional, ptst_t *ptst);
+void sl_delete_node(sl_node_t *n, ptst_t *ptst);
+sl_intset_t *sl_set_new(ptst_t *ptst);
+void sl_set_delete(sl_intset_t *set, ptst_t *ptst);
 int sl_set_size(sl_intset_t *set);
+
+void set_subsystem_init(void);
