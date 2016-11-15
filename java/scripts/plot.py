@@ -24,7 +24,7 @@ def filename(bench, size, write, proc, warmup, duration):
    return "../output/log/" + bench + "-i" + str(size) + "-u" + str(write) + "-t" + str(proc) + "-w" + str(warmup) + "-d" + str(duration) + ".log"
 
 keys = ["throughput"]
-procs = [1, 2, 4, 8, 15, 16, 23, 24, 31, 32, 39, 47, 55, 63, 71, 79]
+procs = range(1, 80)#[1, 2, 4, 8, 15, 16, 23, 24, 31, 32, 39, 47, 55, 63, 71, 79]
 sizes = [16384, 65536, 262144, 524288, 1048576]
 writes = [0, 20, 40, 60, 80, 100]
 warmup = 5
