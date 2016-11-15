@@ -1,7 +1,7 @@
 import sys
 import os
 import re
-from statistics import mean
+from statistics import mean, stdev
 
 def read_from_file(filename, keys):
     inf = open(filename, 'r')
@@ -24,7 +24,7 @@ def filename(bench, size, write, proc, warmup, duration):
    return "../output/log/" + bench + "-i" + str(size) + "-u" + str(write) + "-t" + str(proc) + "-w" + str(warmup) + "-d" + str(duration) + ".log"
 
 keys = ["throughput"]
-procs = [1, 2, 4, 8, 16, 24, 32, 39, 47, 55, 63, 71, 79]
+procs = [1, 2, 4, 8, 15, 16, 23, 24, 31, 32, 39, 47, 55, 63, 71, 79]
 sizes = [16384, 65536, 262144, 524288, 1048576]
 writes = [0, 20, 40, 60, 80, 100]
 warmup = 5
@@ -34,11 +34,16 @@ benchmarks = [#"trees.lockbased.ConcurrencyOptimalBSTv2",
 #              "trees.lockbased.ConcurrencyOptimalBSTv4",
               "trees.lockbased.ConcurrencyOptimalTreeMap",
               "trees.lockbased.LockBasedFriendlyTreeMap",
-#              "trees.lockbased.LockBasedFriendlyTreeMapNoRotation",
+              "trees.lockbased.LockBasedFriendlyTreeMapNoRotation",
               "trees.lockbased.LogicalOrderingAVL",
-#              "trees.lockbased.LockBasedStanfordTreeMap",
-#              "trees.lockfree.NonBlockingTorontoBSTMap"
+              "trees.lockbased.LockBasedStanfordTreeMap",
+              "trees.lockfree.NonBlockingTorontoBSTMap"
               ]
+
+error_bars = {
+               "trees.lockbased.ConcurrencyOptimalTreeMap",
+               "trees.lockbased.LockBasedFriendlyTreeMapNoRotation"
+             }
 
 directory = "../output/data-w" + str(warmup) + "-d" + str(duration)
 if not os.path.isdir(directory):
@@ -55,12 +60,20 @@ for key in keys:
                 if not os.path.exists(filename(bench, size, write, 1, warmup, duration)):
                     continue
                 thr1 = mean(read_from_file(filename(bench, size, write, 1, warmup, duration), keys)[key])
-                out.write("\\addplot coordinates {\n")
+                if bench in error_bars:
+                    out.write("\\addplot+[error bars/.cd, y dir=both, y explicit] coordinates {")
+                else:
+                    out.write("\\addplot coordinates {\n")
                 for proc in procs:
                      if not os.path.exists(filename(bench, size, write, proc, warmup, duration)):
                          continue
-                     thr = mean(read_from_file(filename(bench, size, write, proc, warmup, duration), keys)[key])
-                     out.write("\t({}, {:.3})\n".format(proc, int(thr / 1000) / 1000))
+                     results = read_from_file(filename(bench, size, write, proc, warmup, duration), keys)[key]
+                     thr = mean(results)
+                     if bench in error_bars:
+                          error = stdev(results)
+                          out.write("\t({}, {:.3})\n +- (0, {:.2})\n".format(proc, int(thr / 1000) / 1000, error / 1000 / 1000))
+                     else:
+                          out.write("\t({}, {:.3})\n".format(proc, int(thr / 1000) / 1000))
                 out.write("};\n")
                 out.write("\\addlegendentry{" + bench.split(".")[-1] + "};\n")
             out.write("\\end{axis}\n")
