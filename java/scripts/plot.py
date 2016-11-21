@@ -43,12 +43,33 @@ benchmarks = [#"trees.lockbased.ConcurrencyOptimalBSTv2",
 
 error_bars = {
                "trees.lockbased.ConcurrencyOptimalTreeMap",
-               "trees.lockbased.LockBasedFriendlyTreeMapNoRotation"
+               "trees.lockbased.LockBasedFriendlyTreeMapNoRotation",
+               "trees.lockbased.LockBasedStanfordTreeMap"
              }
+
+directory = "../output/data-w" + str(warmup) + "-d" + str(duration) + "/data_files/"
+if not os.path.isdir(directory):
+    os.mkdir(directory)
+
+for key in keys:
+    for size in sizes:
+        for write in writes:
+            for i in range(len(benchmarks)):
+                bench = benchmarks[i]
+                out = open(directory + "trees_comparison_" + str(key) + "_" + str(size) + "_" + str(write) + "_" + str(i) + ".dat", 'w')
+                if not os.path.exists(filename(bench, size, write, 1, warmup, duration)):
+                    continue
+                for proc in procs:
+                    if not os.path.exists(filename(bench, size, write, proc, warmup, duration)):
+                        continue
+                    results = read_from_file(filename(bench, size, write, proc, warmup, duration), keys)[key][1:]
+                    out.write(str(proc) + " " + str(mean(results) / 1000 / 1000) + " " + str(stdev(results) / 1000 / 1000) + "\n")
 
 directory = "../output/data-w" + str(warmup) + "-d" + str(duration)
 if not os.path.isdir(directory):
     os.mkdir(directory)
+
+path_id = 0
 for key in keys:
     for size in sizes:
         out = open(directory + "/trees_comparison_" + str(key) + "_" + str(size) + ".plot", 'w')
@@ -58,25 +79,21 @@ for key in keys:
                       " cycle list name=color,\n title=Update rate: " + str(write) + "\\%\n]\n")
             for i in range(len(benchmarks)):
                 bench = benchmarks[i]
+                data_file = "data/paristech/data_files/trees_comparison_" + str(key) + "_" + str(size) + "_" + str(write) + "_" + str(i) + ".dat"
                 if not os.path.exists(filename(bench, size, write, 1, warmup, duration)):
                     continue
-                thr1 = mean(read_from_file(filename(bench, size, write, 1, warmup, duration), keys)[key])
-                if bench in error_bars:
-                    out.write("\\addplot+[error bars/.cd, y dir=both, y explicit] coordinates {")
-                else:
-                    out.write("\\addplot coordinates {\n")
-                for proc in procs:
-                     if not os.path.exists(filename(bench, size, write, proc, warmup, duration)):
-                         continue
-                     results = read_from_file(filename(bench, size, write, proc, warmup, duration), keys)[key]
-                     thr = mean(results)
-                     if bench in error_bars:
-                          error = stdev(results)
-                          out.write("\t({}, {:.3})\n +- (0, {:.2})\n".format(proc, int(thr / 1000) / 1000, error / 1000 / 1000))
-                     else:
-                          out.write("\t({}, {:.3})\n".format(proc, int(thr / 1000) / 1000))
-                out.write("};\n")
+#  Version with error bars
+#                if bench in error_bars:
+#                    out.write("\\addplot+[error bars/.cd, y dir=both, y explicit] table [x index = 0, y index = 1, y error index = 2] {" + data_file + "};\n")
+#                else:
+# Version with filled curve
+                if True: #bench in error_bars:
+                    out.write("\\addplot [name path=pluserror,draw=none,no markers,forget plot] table [x index = 0, y expr=\\thisrowno{1}+\\thisrowno{2}] {" + data_file + "};\n")
+                    out.write("\\addplot [name path=minuserror,draw=none,no markers,forget plot] table [x index = 0, y expr=\\thisrowno{1}-\\thisrowno{2}] {" + data_file + "};\n")
+                    out.write("\\addplot+[opacity=0.3,forget plot] fill between [of = pluserror and minuserror];\n")
+                out.write("\\addplot table [x index = 0, y index = 1] {" + data_file + "};\n")
                 out.write("\\addlegendentry{" + bench.split(".")[-1] + "};\n")
+
             out.write("\\end{axis}\n")
             out.write("\\end{tikzpicture}\n")
 
