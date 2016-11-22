@@ -156,6 +156,7 @@ inline long rand_range_re(unsigned int *seed, long r) {
   } while (r > 0);
   return v;
 }
+long rand_range_re(unsigned int *seed, long r);
 
 typedef struct thread_data {
   val_t first;
