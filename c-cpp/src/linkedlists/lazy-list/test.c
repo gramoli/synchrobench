@@ -73,6 +73,7 @@ inline long rand_range(long r) {
   } while (r > 0);
   return v;
 }
+long rand_range(long r);
 
 /* Thread-safe, re-entrant version of rand_range(r) */
 inline long rand_range_re(unsigned int *seed, long r) {
@@ -86,6 +87,7 @@ inline long rand_range_re(unsigned int *seed, long r) {
   } while (r > 0);
   return v;
 }
+long rand_range_re(unsigned int *seed, long r);
 
 typedef struct thread_data {
   val_t first;
