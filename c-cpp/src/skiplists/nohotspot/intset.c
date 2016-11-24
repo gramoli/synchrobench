@@ -29,15 +29,15 @@
 
 int sl_contains_old(set_t *set, unsigned int key, int transactional)
 {
-        return sl_contains(set, (key_t) key);
+        return sl_contains(set, (sl_key_t) key);
 }
 
 int sl_add_old(set_t *set, unsigned int key, int transactional)
 {
-        return sl_insert(set, (key_t) key, (val_t) ((long)key));
+        return sl_insert(set, (sl_key_t) key, (val_t) ((long)key));
 }
 
 int sl_remove_old(set_t *set, unsigned int key, int transactional)
 {
-	return sl_delete(set, (key_t) key);
+	return sl_delete(set, (sl_key_t) key);
 }
