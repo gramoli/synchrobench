@@ -13,9 +13,9 @@ CC = g++
 CFLAGS += -std=gnu++0x
 
 main: test.o
-	$(CC) $(CFLAGS) test.o -o $(BINS) $(LDFLAGS)
+	$(CC) $(CFLAGS) ${BUILDIR}/test.o -o $(BINS) $(LDFLAGS)
 
 test.o: wfrbt.h test.c
-	$(CC) $(CFLAGS) -c test.c
+	$(CC) $(CFLAGS) -c -o ${BUILDIR}/test.o test.c
 clean:
-	-rm -f $(BINS)
+	-rm -f $(BINS) *.o
