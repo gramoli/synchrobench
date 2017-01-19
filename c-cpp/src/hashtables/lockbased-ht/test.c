@@ -426,10 +426,10 @@ int main(int argc, char **argv)
 	printf("Update rate  : %d\n", update);
 	printf("Load factor  : %d\n", load_factor);
 	printf("Move rate    : %d\n", move);
-	printf("Update rate  : %d\n", update);
+	printf("Snapshot rate: %d\n", snapshot);
 	printf("Lock alg.    : %d\n", unit_tx);
 	printf("Alternate    : %d\n", alternate);
-	printf("effective    : %d\n", effective);
+	printf("Effective    : %d\n", effective);
 	printf("Type sizes   : int=%d/long=%d/ptr=%d/word=%d\n",
 				 (int)sizeof(int),
 				 (int)sizeof(long),
