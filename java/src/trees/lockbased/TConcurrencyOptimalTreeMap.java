@@ -21,42 +21,56 @@ public class TConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
     }
 
     private static Unsafe unsafe;
-    private static long stateStampOffset, leftStampOffset, rightStampOffset, valueOffset;
+    private static long stateOffset, leftOffset, rightOffset, valueOffset;
 
     private void init() {
         try {
             Constructor<Unsafe> unsafeConstructor = Unsafe.class.getDeclaredConstructor();
             unsafeConstructor.setAccessible(true);
             unsafe = unsafeConstructor.newInstance();
-            stateStampOffset = unsafe.objectFieldOffset(Node.class.getDeclaredField("stateStamp"));
-            leftStampOffset = unsafe.objectFieldOffset(Node.class.getDeclaredField("lStamp"));
-            rightStampOffset = unsafe.objectFieldOffset(Node.class.getDeclaredField("rStamp"));
+            stateOffset = unsafe.objectFieldOffset(Node.class.getDeclaredField("state"));
+            leftOffset = unsafe.objectFieldOffset(Node.class.getDeclaredField("l"));
+            rightOffset = unsafe.objectFieldOffset(Node.class.getDeclaredField("r"));
             valueOffset = unsafe.objectFieldOffset(Node.class.getDeclaredField("value"));
         } catch (Exception e) {
             throw new Error(e);
         }
     }
 
+    public class Pair<T> {
+        T value;
+        int stamp;
+
+        public Pair() {
+        }
+
+        public Pair(T value, int stamp) {
+            this.value = value;
+            this.stamp = stamp;
+        }
+
+        public void set(T value, int stamp) {
+            this.value = value;
+            this.stamp = stamp;
+        }
+    }
+
     public class Node {
         final K key;
         volatile V value;
-        volatile State state;
-        volatile int stateStamp = 0;
 
-        volatile Node l;
-        volatile int lStamp = 0;
-
-        volatile Node r;
-        volatile int rStamp = 0;
+        volatile Pair<State> state;
+        volatile Pair<Node> l;
+        volatile Pair<Node> r;
 
         volatile Node parent;
 
         public Node(K key, V value) {
             this.key = key;
             this.value = value;
-            state = State.DATA;
-            l = null;
-            r = null;
+            state = new Pair<>(State.DATA, 0);
+            l = new Pair<>(null, 0);
+            r = new Pair<>(null, 0);
             parent = null;
         }
 
@@ -72,16 +86,16 @@ public class TConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
             return node.key == key;
         }
 
-        private boolean compareAndSetStateStamp(int expected, int updated) {
-            return unsafe.compareAndSwapInt(this, stateStampOffset, expected, updated);
+        private boolean compareAndSetState(Pair<State> expected, Pair<State> updated) {
+            return unsafe.compareAndSwapObject(this, stateOffset, expected, updated);
         }
 
-        private boolean compareAndSetLeftStamp(int expected, int updated) {
-            return unsafe.compareAndSwapInt(this, leftStampOffset, expected, updated);
+        private boolean compareAndSetLeft(Pair<Node> expected, Pair<Node> updated) {
+            return unsafe.compareAndSwapObject(this, leftOffset, expected, updated);
         }
 
-        private boolean compareAndSetRightStamp(int expected, int updated) {
-            return unsafe.compareAndSwapInt(this, rightStampOffset, expected, updated);
+        private boolean compareAndSetRight(Pair<Node> expected, Pair<Node> updated) {
+            return unsafe.compareAndSwapObject(this, rightOffset, expected, updated);
         }
 
         private boolean compareAndSetValue(V expected, V updated) {
@@ -107,215 +121,246 @@ public class TConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
             return value;
         }
 
+        public void setState(State s) {
+            state = new Pair<>(s, state.stamp);
+        }
+
+        public void setLeft(Node l) {
+            this.l = new Pair<>(l, this.l.stamp);
+        }
+
+        public void setRight(Node r) {
+            this.r = new Pair<>(r, this.r.stamp);
+        }
+
         public void readLockLeft() {
-            int stamp;
+            Pair<Node> current;
+            Pair<Node> replacement = new Pair<>(null, 0);
             while (true) {
-                stamp = this.lStamp;
-                if (stamp == 1) {
+                current = l;
+                if (current.stamp == 1) {
                     continue;
                 }
-                if (compareAndSetLeftStamp(stamp, stamp + 2))
+                replacement.set(current.value, current.stamp + 2);
+                if (compareAndSetLeft(current, replacement))
                     break;
             }
         }
 
         public void readLockRight() {
-            int stamp;
+            Pair<Node> current;
+            Pair<Node> replacement = new Pair<>();
             while (true) {
-                stamp = this.rStamp;
-                if (stamp == 1) {
+                current = r;
+                if (current.stamp == 1) {
                     continue;
                 }
-                if (compareAndSetRightStamp(stamp, stamp + 2))
+                replacement.set(current.value, current.stamp + 2);
+                if (compareAndSetRight(current, replacement))
                     break;
             }
         }
 
         public void readLockState() {
-            int stamp;
+            Pair<State> current;
+            Pair<State> replacement = new Pair<>();
             while (true) {
-                stamp = this.stateStamp;
-                if (stamp == 1) {
+                current = state;
+                if (current.stamp == 1) {
                     continue;
                 }
-                if (compareAndSetStateStamp(stamp, stamp + 2))
+                replacement.set(current.value, current.stamp + 2);
+                if (compareAndSetState(current, replacement))
                     break;
             }
         }
 
         public void writeLockLeft() {
+            Pair<Node> current;
+            Pair<Node> replacement = new Pair<>();
             while (true) {
-                if (lStamp != 0) {
+                current = l;
+                if (current.stamp != 0) {
                     continue;
                 }
-                if (compareAndSetLeftStamp(0, 1))
+                replacement.set(current.value, 1);
+                if (compareAndSetLeft(current, replacement))
                     break;
             }
         }
 
         public void writeLockRight() {
+            Pair<Node> current;
+            Pair<Node> replacement = new Pair<>();
             while (true) {
-                if (rStamp != 0) {
+                current = r;
+                if (current.stamp != 0) {
                     continue;
                 }
-                if (compareAndSetRightStamp(0, 1))
+                replacement.set(current.value, 1);
+                if (compareAndSetRight(current, replacement))
                     break;
             }
         }
 
         public void writeLockState() {
+            Pair<State> current;
+            Pair<State> replacement = new Pair<>();
             while (true) {
-                if (stateStamp != 0) {
+                current = state;
+                if (current.stamp != 0) {
                     continue;
                 }
-                if (compareAndSetStateStamp(0, 1))
+                replacement.set(current.value, 1);
+                if (compareAndSetState(current, replacement))
                     break;
             }
         }
 
         public boolean tryWriteLockWithConditionLeft(Node expected) {
-            Node value = l;
+            Pair<Node> current = l;
 //            if (expected != value || lStamp != 0) {
-            if (lStamp != 0 && !equality(expected, l)) {
+            if (current.stamp != 0 && !equality(expected, l.value)) {
                 return false;
             }
-            if (compareAndSetLeftStamp(0, 1)) {
-                //assert lStamp == 1;
-//                if (expected != l) {
-                if (!equality(expected, l)) {
-                    unlockWriteLeft();
-                    return false;
-                }
-                return true;
-            } else {
-                return false;
-            }
+            Pair<Node> replacement = new Pair<>(expected, 1);
+            return compareAndSetLeft(current, replacement);
+//            if (compareAndSetLeft(0, 1)) {
+//                //assert lStamp == 1;
+////                if (expected != l) {
+//                if (!equality(expected, l)) {
+//                    unlockWriteLeft();
+//                    return false;
+//                }
+//                return true;
+//            } else {
+//                return false;
+//            }
         }
 
         public boolean tryWriteLockWithConditionRight(Node expected) {
-            Node value = r;
+            Pair<Node> current = r;
 //            if (expected != value || rStamp != 0) {
-            if (rStamp != 0 || !equality(expected, r)) {
+            if (current.stamp != 0 || !equality(expected, r.value)) {
                 return false;
             }
-            if (compareAndSetRightStamp(0, 1)) {
-                //assert rStamp == 1;
-//                if (expected != r) {
-                if (!equality(expected, r)) {
-                    unlockWriteRight();
-                    return false;
-                }
-                return true;
-            } else {
-                return false;
-            }
+            Pair<Node> replacement = new Pair<>(expected, 1);
+            return compareAndSetRight(current, replacement);
+//            if (compareAndSetRightStamp(0, 1)) {
+//                //assert rStamp == 1;
+////                if (expected != r) {
+//                if (!equality(expected, r)) {
+//                    unlockWriteRight();
+//                    return false;
+//                }
+//                return true;
+//            } else {
+//                return false;
+//            }
         }
 
         public boolean tryWriteLockWithConditionState(State expected) {
-            State value = state;
-            if (expected != value || stateStamp != 0) {
+            Pair<State> current = state;
+            if (current.stamp != 0 || expected != current.value) {
                 return false;
             }
-            if (compareAndSetStateStamp(0, 1)) {
-                //assert stateStamp == 1;
-                if (expected != state) {
-                    unlockWriteState();
-                    return false;
-                }
-                return true;
-            } else {
-                return false;
-            }
+            Pair<State> replacement = new Pair<>(expected, 1);
+            return compareAndSetState(current, replacement);
+//            State value = state;
+//            if (expected != value || stateStamp != 0) {
+//                return false;
+//            }
+//            if (compareAndSetStateStamp(0, 1)) {
+//                //assert stateStamp == 1;
+//                if (expected != state) {
+//                    unlockWriteState();
+//                    return false;
+//                }
+//                return true;
+//            } else {
+//                return false;
+//            }
         }
 
         public boolean multiLockWithConditionState(State read, State write) {
-            int stamp;
-            State value;
+            Pair<State> current;
+            Pair<State> replacement = new Pair<>();
             while (true) {
-                stamp = this.stateStamp;
-                value = this.state;
-                if (value != read && value != write) {
+                current = state;
+                if (current.value != read && current.value != write) {
                     return false;
                 }
                 if (value == read) {
-                    if (stamp == 1) {
+                    if (current.stamp == 1) {
                         continue;
                     }
-                    if (compareAndSetStateStamp(stamp, stamp + 2)) {
-                        if (this.state != read) {
-                            unlockReadState();
-                        } else {
-                            return true;
-                        }
-                    }
+                    replacement.set(read, current.stamp + 2);
+                    return compareAndSetState(current, replacement);
                 } else {
-                    if (stamp != 0) {
+                    if (current.stamp != 0) {
                         continue;
                     }
-                    if (compareAndSetStateStamp(0, 1)) {
-                        if (this.state != write) {
-                            unlockWriteState();
-                        } else {
-                            return true;
-                        }
-                    }
+                    replacement.set(write, 1);
+                    return compareAndSetState(current, replacement);
                 }
             }
         }
 
         public void unlockReadLeft() {
-            int stamp;
-            while (true) {
-                stamp = this.lStamp;
+            Pair<Node> current = l;
+            Pair<Node> replacement = new Pair<>(current.value, current.stamp - 2);
+            while (!compareAndSetLeft(current, replacement)) {
+                current = l;
+                replacement.stamp = current.stamp - 2;
                 //assert stamp % 2 == 0 && stamp > 0;
-                if (compareAndSetLeftStamp(stamp, stamp - 2))
-                    break;
             }
         }
 
         public void unlockReadRight() {
-            int stamp;
-            while (true) {
-                stamp = this.rStamp;
+            Pair<Node> current = r;
+            Pair<Node> replacement = new Pair<>(current.value, current.stamp - 2);
+            while (!compareAndSetRight(current, replacement)) {
+                current = r;
+                replacement.stamp = current.stamp - 2;
                 //assert stamp % 2 == 0 && stamp > 0;
-                if (compareAndSetRightStamp(stamp, stamp - 2))
-                    break;
             }
         }
 
         public void unlockReadState() {
-            int stamp;
-            while (true) {
-                stamp = this.stateStamp;
+            Pair<State> current = state;
+            Pair<State> replacement = new Pair<>(current.value, current.stamp - 2);
+            while (!compareAndSetState(current, replacement)) {
+                current = state;
+                replacement.stamp = current.stamp - 2;
                 //assert stamp % 2 == 0 && stamp > 0;
-                if (compareAndSetStateStamp(stamp, stamp - 2))
-                    break;
             }
         }
 
         public void unlockWriteLeft() {
             //assert lStamp == 1;
-            lStamp = 0;
+            l.stamp = 0;
         }
 
         public void unlockWriteRight() {
             //assert rStamp == 1;
-            rStamp = 0;
+            r.stamp = 0;
         }
 
         public void unlockWriteState() {
             //assert stateStamp == 1;
-            stateStamp = 0;
+            state.stamp = 0;
         }
 
         public void multiUnlockState() {
-            int stamp = this.stateStamp;
+            Pair<State> current = state;
             //assert stamp > 0 && (stamp == 1 || stamp % 2 == 0);
-            if (stamp == 1) {
-                stateStamp = 0;
+            if (state.stamp == 1) {
+                state.stamp = 0;
             } else {
-                while (!compareAndSetStateStamp(stamp, stamp - 2)) {
-                    stamp = this.stateStamp;
+                Pair<State> replacement = new Pair<>(state.value, state.stamp - 2);
+                while (!compareAndSetState(current, replacement)) {
+                    current = state;
+                    replacement.stamp = current.stamp - 2;
                 }
             }
         }
@@ -372,7 +417,7 @@ public class TConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
         } else {
             ret = parent.tryWriteLockWithConditionRight(child);
         }
-        if (parent.state == State.DELETED) {
+        if (parent.state.value == State.DELETED) {
             if (ret) {
                 if (left) {
                     parent.unlockWriteLeft();
@@ -413,9 +458,9 @@ public class TConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
             }
             prev = curr;
             if (comparison < 0) {
-                curr = curr.l;
+                curr = curr.l.value;
             } else {
-                curr = curr.r;
+                curr = curr.r.value;
             }
         }
         return prev;
@@ -423,14 +468,14 @@ public class TConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
 
     @Override
     public V putIfAbsent(K key, V value) {
-        Node start = ROOT.l;
+        Node start = ROOT.l.value;
         while (true) {
             final Node curr = traverse(key, start);
             final int comparison = curr.key == null ? -1 : compare(key, curr.key);
             if (comparison == 0) {
                 boolean lockRetry = true;
                 while (lockRetry) {
-                    switch (curr.state) {
+                    switch (curr.state.value) {
                         case DATA:
 //                            V get = curr.setAndGetNotNull(value); <- for put
                             V get = curr.value;
@@ -441,17 +486,17 @@ public class TConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
                         case DELETED:
                             lockRetry = false;
                             Node prev = curr.parent;
-                            if (prev.state != State.DELETED) {
+                            if (prev.state.value != State.DELETED) {
                                 start = prev;
                             } else {
-                                start = ROOT.l;
+                                start = ROOT.l.value;
                             }
                             break;
                         case ROUTING:
                             if (curr.tryWriteLockWithConditionState(State.ROUTING)) {
 //                                curr.setAndGet(value); <- for put
                                 curr.value = value;
-                                curr.state = State.DATA;
+                                curr.setState(State.DATA);
                                 curr.unlockWriteState();
                                 return null;
                             }
@@ -465,16 +510,16 @@ public class TConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
                 if (validateAndTryLock(prev, null, left)) {
                     node.parent = prev;
                     if (left) {
-                        prev.l = node;
+                        prev.setLeft(node);
                     } else {
-                        prev.r = node;
+                        prev.setRight(node);
                     }
                     undoValidateAndTryLock(prev, left);
                     prev.unlockReadState();
                     return null;
                 } else {
-                    if (prev.state == State.DELETED) {
-                        start = ROOT.l;
+                    if (prev.state.value == State.DELETED) {
+                        start = ROOT.l.value;
                     } else {
                         start = prev;
                     }
@@ -486,7 +531,7 @@ public class TConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
 
     public V remove(final Object key) {
         boolean restart = true;
-        final Node curr = traverse(key, ROOT.l);
+        final Node curr = traverse(key, ROOT.l.value);
         V get = null;
         while (restart) {
             if (compare((K) key, curr.key) != 0 || curr.value == null) {
@@ -500,7 +545,7 @@ public class TConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
 //                    get = curr.setAndGet(null); <- for put
                     get = curr.value;
                     curr.value = null;
-                    curr.state = State.ROUTING;
+                    curr.setState(State.ROUTING);
                     restart = false;
                     break;
                 }
@@ -510,10 +555,10 @@ public class TConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
                     if (curr.l != null) {
                         leftChild = true;
                         curr.writeLockLeft();
-                        child = curr.l;
+                        child = curr.l.value;
                     } else {
                         curr.writeLockRight();
-                        child = curr.r;
+                        child = curr.r.value;
                     }
                     final Node prev = curr.parent;
                     final boolean leftCurr = prev.key == null || compare(curr.key, prev.key) < 0;
@@ -528,12 +573,12 @@ public class TConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
 //                    get = curr.setAndGet(null); <- for put
                     get = curr.value;
                     curr.value = null;
-                    curr.state = State.DELETED;
+                    curr.setState(State.DELETED);
                     child.parent = prev;
                     if (leftCurr) {
-                        prev.l = child;
+                        prev.setLeft(child);
                     } else {
-                        prev.r = child;
+                        prev.setRight(child);
                     }
                     undoValidateAndTryLock(prev, leftCurr);
                     if (leftChild) {
@@ -554,9 +599,9 @@ public class TConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
                         prev.multiUnlockState();
                         break;
                     }
-                    if (prev.state == State.DATA) {
+                    if (prev.state.value == State.DATA) {
                         get = curr.setAndGet(null);
-                        curr.state = State.DELETED;
+                        curr.setState(State.DELETED);
                         if (leftCurr) {
                             prev.l = null;
                         } else {
@@ -568,11 +613,11 @@ public class TConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
                         boolean leftChild = false;
                         if (leftCurr) {
                             prev.readLockRight();
-                            child = prev.r;
+                            child = prev.r.value;
                             //assert child.state != State.DELETED;
                         } else {
                             prev.readLockLeft();
-                            child = prev.l;
+                            child = prev.l.value;
                             //assert child.state != State.DELETED;
                             leftChild = true;
                         }
@@ -590,16 +635,16 @@ public class TConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
 //                            prev.unlockReadState();
                             break;
                         }
-                        prev.state = State.DELETED;
+                        prev.setState(State.DELETED);
 //                        get = curr.setAndGet(null); <- for put
                         get = curr.value;
                         curr.value = null;
-                        curr.state = State.DELETED;
+                        curr.setState(State.DELETED);
                         child.parent = gprev;
                         if (leftPrev) {
-                            gprev.l = child;
+                            gprev.setLeft(child);
                         } else {
-                            gprev.r = child;
+                            gprev.setRight(child);
                         }
                         //assert child.state != State.DELETED;
                         //assert gprev.state != State.DELETED;
@@ -623,7 +668,7 @@ public class TConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
 
     @Override
     public V get(final Object key) {
-        Node curr = ROOT.l;
+        Node curr = ROOT.l.value;
         final Comparable<? super K> k = comparable(key);
         int comparison;
         while (curr != null) {
@@ -632,9 +677,9 @@ public class TConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
                 return curr.value;
             }
             if (comparison < 0) {
-                curr = curr.l;
+                curr = curr.l.value;
             } else {
-                curr = curr.r;
+                curr = curr.r.value;
             }
         }
         return null;
@@ -654,8 +699,8 @@ public class TConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
         if (v == null) {
             return 0;
         }
-        assert v.state != State.DELETED;
-        return (v.state == State.DATA ? 1 : 0) + size(v.l) + size(v.r);
+        assert v.state.value != State.DELETED;
+        return (v.state.value == State.DATA ? 1 : 0) + size(v.l.value) + size(v.r.value);
     }
 
     @Override
@@ -667,25 +712,25 @@ public class TConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
         if (v == null) {
             return 0;
         }
-        return v.key.hashCode() * power + hash(v.l, power * 239) + hash(v.r, power * 533);
+        return v.key.hashCode() * power + hash(v.l.value, power * 239) + hash(v.r.value, power * 533);
     }
 
     public int hash() {
-        return hash(ROOT.l, 1);
+        return hash(ROOT.l.value, 1);
     }
 
     public int maxDepth(Node v) {
         if (v == null) {
             return 0;
         }
-        return 1 + Math.max(maxDepth(v.l), maxDepth(v.r));
+        return 1 + Math.max(maxDepth(v.l.value), maxDepth(v.r.value));
     }
 
     public int sumDepth(Node v, int d) {
         if (v == null) {
             return 0;
         }
-        return (v.state == State.DATA ? d : 0) + sumDepth(v.l, d + 1) + sumDepth(v.r, d + 1);
+        return (v.state.value == State.DATA ? d : 0) + sumDepth(v.l.value, d + 1) + sumDepth(v.r.value, d + 1);
     }
 
     public int averageDepth() {
@@ -705,7 +750,7 @@ public class TConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
     }
 
     public int numNodes(Node v) {
-        return v == null ? 0 : 1 + numNodes(v.l) + numNodes(v.r);
+        return v == null ? 0 : 1 + numNodes(v.l.value) + numNodes(v.r.value);
     }
 
     public int numNodes() {
@@ -718,7 +763,7 @@ public class TConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
 
     @Override
     public void clear() {
-        ROOT.l = null;
-        ROOT.r = null;
+        ROOT.l = new Pair<>();
+        ROOT.r = new Pair<>();
     }
 }
