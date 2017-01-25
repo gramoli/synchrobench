@@ -219,8 +219,8 @@ public class TConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
 
         public boolean tryWriteLockWithConditionLeft(Node expected) {
             Pair<Node> current = l;
-//            if (expected != value || lStamp != 0) {
-            if (current.stamp != 0 && !equality(expected, l.value)) {
+//            if (current.stamp != 0 || !equality(expected, l.value)) {
+            if (current.stamp != 0 || expected != l.value) {
                 return false;
             }
             Pair<Node> replacement = new Pair<>(expected, 1);
@@ -240,8 +240,8 @@ public class TConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
 
         public boolean tryWriteLockWithConditionRight(Node expected) {
             Pair<Node> current = r;
-//            if (expected != value || rStamp != 0) {
-            if (current.stamp != 0 || !equality(expected, r.value)) {
+//            if (current.stamp != 0 || !equality(expected, r.value)) {
+            if (current.stamp != 0 || expected != r.value) {
                 return false;
             }
             Pair<Node> replacement = new Pair<>(expected, 1);
