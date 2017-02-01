@@ -478,9 +478,8 @@ public class ConcurrencyOptimalTreeMapv2<K, V> extends AbstractMap<K, V>
                 return get;
             } else if (nc == 1) {
                 final Node<K, V> child;
-                boolean leftChild = false;
-                if (left != null) {
-                    leftChild = true;
+                boolean leftChild = left != null;
+                if (leftChild) {
                     child = left;
                 } else {
                     child = right;
@@ -553,15 +552,16 @@ public class ConcurrencyOptimalTreeMapv2<K, V> extends AbstractMap<K, V>
                 } else {
                     final Node<K, V> child;
                     boolean leftChild = false;
+                    if (leftCurr) {
+                        child = prev.r;
+                    } else {
+                        child = prev.l;
+                        leftChild = true;
+                    }
                     final Node<K, V> gprev = prev.parent;
                     final boolean leftPrev = gprev.key == null || compare(prev.key, gprev.key) < 0;
                     if (!validateAndTryLock(prev, curr, leftCurr)) {
                         continue;
-                    }
-                    if (leftCurr) {
-                        curr = prev.l;
-                    } else {
-                        curr = prev.r;
                     }
                     if (!curr.tryWriteLockWithConditionState(State.DATA)) {
                         undoValidateAndTryLock(prev, leftCurr);
