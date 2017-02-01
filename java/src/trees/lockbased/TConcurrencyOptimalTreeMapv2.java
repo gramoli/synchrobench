@@ -190,7 +190,7 @@ public class TConcurrencyOptimalTreeMapv2<K, V> extends AbstractMap<K, V>
 
         public boolean tryWriteLockWithConditionValLeft(Node expected) {
             Node value = l;
-            if (lStamp != 0 || (value == null || compare(expected.key, value.key) == 0)) {
+            if (lStamp != 0 || (value == null || compare(expected.key, value.key) != 0)) {
                 return false;
             }
             if (compareAndSetLeftStamp(0, 1)) {
@@ -257,11 +257,11 @@ public class TConcurrencyOptimalTreeMapv2<K, V> extends AbstractMap<K, V>
             while (true) {
                 stamp = this.stateStamp;
                 value = this.state;
-                if (expected != value || stamp == 1) {
+                if (expected != value || stamp == 1 || deleted) {
                     return false;
                 }
                 if (compareAndSetStateStamp(stamp, stamp + 2)) {
-                    if (this.state != expected) {
+                    if (expected != state || deleted) {
                         unlockReadState();
                     } else {
                         return true;
@@ -387,9 +387,9 @@ public class TConcurrencyOptimalTreeMapv2<K, V> extends AbstractMap<K, V>
     public boolean validateValAndTryLock(Node parent, Node child, boolean left) {
         boolean ret = false;
         if (left) {
-            ret = parent.tryWriteLockWithConditionRefLeft(child);
+            ret = parent.tryWriteLockWithConditionValLeft(child);
         } else {
-            ret = parent.tryWriteLockWithConditionRefRight(child);
+            ret = parent.tryWriteLockWithConditionValRight(child);
         }
         if (parent.deleted) {
             if (ret) {
@@ -554,10 +554,12 @@ public class TConcurrencyOptimalTreeMapv2<K, V> extends AbstractMap<K, V>
                 final Node prev = window.prev;
                 final boolean leftCurr = prev.key == null || compare(curr.key, prev.key) < 0;
                 if (!validateRefAndTryLock(prev, curr, leftCurr)) {
+//                    window.reset();
                     continue;
                 }
                 if (!validateRefAndTryLock(curr, child, leftChild)) {
                     undoValidateAndTryLock(prev, leftCurr);
+//                    window.reset();
                     continue;
                 }
                 if (!curr.tryWriteLockWithConditionState(State.DATA)) {
@@ -588,6 +590,7 @@ public class TConcurrencyOptimalTreeMapv2<K, V> extends AbstractMap<K, V>
                 final boolean leftCurr = prev.key == null || compare(curr.key, prev.key) < 0;
                 if (prev.state == State.DATA) {
                     if (!validateValAndTryLock(prev, curr, leftCurr)) {
+//                        window.reset();
                         continue;
                     }
                     if (leftCurr) {
@@ -607,6 +610,7 @@ public class TConcurrencyOptimalTreeMapv2<K, V> extends AbstractMap<K, V>
                     if (!prev.tryReadLockWithConditionState(State.DATA)) {
                         curr.unlockWriteState();
                         undoValidateAndTryLock(prev, leftCurr);
+//                        window.reset();
                         continue;
                     }
                     get = curr.setAndGet(null);
@@ -632,6 +636,7 @@ public class TConcurrencyOptimalTreeMapv2<K, V> extends AbstractMap<K, V>
                     final Node gprev = window.gprev;
                     final boolean leftPrev = gprev.key == null || compare(prev.key, gprev.key) < 0;
                     if (!validateValAndTryLock(prev, curr, leftCurr)) {
+//                        window.reset();
                         continue;
                     }
                     if (leftCurr) {
@@ -651,12 +656,14 @@ public class TConcurrencyOptimalTreeMapv2<K, V> extends AbstractMap<K, V>
                     if (!validateRefAndTryLock(prev, child, leftChild)) {
                         curr.unlockWriteState();
                         undoValidateAndTryLock(prev, leftCurr);
+//                        window.reset();
                         continue;
                     }
                     if (!validateRefAndTryLock(gprev, prev, leftPrev)) {
                         undoValidateAndTryLock(prev, leftChild);
                         curr.unlockWriteState();
                         undoValidateAndTryLock(prev, leftCurr);
+//                        window.reset();
                         continue;
                     }
                     if (!prev.tryWriteLockWithConditionState(State.ROUTING)) {

@@ -20,7 +20,7 @@ public class ConcurrencyOptimalBSTv2 extends AbstractCompositionalIntSet
         final int v;
         final HandReadWriteConditionLock<State> state;
         final HandReadWriteConditionLock<Node> l, r;
-        Node parent;
+        volatile Node parent;
 
         public Node(int v) {
             this.v = v;

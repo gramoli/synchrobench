@@ -260,11 +260,11 @@ public class TConcurrencyOptimalTreeMapv3<K, V> extends AbstractMap<K, V>
             while (true) {
                 stamp = this.stateStamp;
                 value = this.state;
-                if (expected != value || stamp == 1) {
+                if (expected != value || stamp == 1 || deleted) {
                     return false;
                 }
                 if (compareAndSetStateStamp(stamp, stamp + 2)) {
-                    if (this.state != expected) {
+                    if (this.state != expected || deleted) {
                         unlockReadState();
                     } else {
                         return true;

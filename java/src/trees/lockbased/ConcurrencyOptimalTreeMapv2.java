@@ -231,11 +231,11 @@ public class ConcurrencyOptimalTreeMapv2<K, V> extends AbstractMap<K, V>
             while (true) {
                 stamp = this.stateStamp;
                 value = this.state;
-                if (expected != value || stamp == 1) {
+                if (expected != value || stamp == 1 || deleted) {
                     return false;
                 }
                 if (compareAndSetStateStamp(stamp, stamp + 2)) {
-                    if (this.state != expected) {
+                    if (expected != state || deleted) {
                         unlockReadState();
                     } else {
                         return true;
@@ -453,7 +453,7 @@ public class ConcurrencyOptimalTreeMapv2<K, V> extends AbstractMap<K, V>
     }
 
     public V remove(final Object key) {
-        Node<K, V> curr = traverse(key, ROOT.l);
+        final Node<K, V> curr = traverse(key, ROOT.l);
         V get = null;
 
         while (true) {
