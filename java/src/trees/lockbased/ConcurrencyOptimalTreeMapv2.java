@@ -541,7 +541,7 @@ public class ConcurrencyOptimalTreeMapv2<K, V> extends AbstractMap<K, V>
                         undoValidateAndTryLock(prev, leftCurr);
                         continue;
                     }
-                    get = curr.setAndGet(null);
+                    get = curr.value;//curr.setAndGet(null);
                     curr.deleted = true;
                     if (leftCurr) {
                         prev.l = null;

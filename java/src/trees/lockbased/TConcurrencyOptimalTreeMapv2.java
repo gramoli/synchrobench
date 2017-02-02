@@ -620,7 +620,7 @@ public class TConcurrencyOptimalTreeMapv2<K, V> extends AbstractMap<K, V>
 //                        window.reset();
                         continue;
                     }
-                    get = curr.setAndGet(null);
+                    get = curr.value;//curr.setAndGet(null);
                     curr.deleted = true;
                     if (leftCurr) {
                         prev.l = null;
@@ -708,7 +708,7 @@ public class TConcurrencyOptimalTreeMapv2<K, V> extends AbstractMap<K, V>
         while (curr != null) {
             comparison = k.compareTo(curr.key);
             if (comparison == 0) {
-                return curr.value;
+                return curr.deleted ? null : curr.value;
             }
             if (comparison < 0) {
                 curr = curr.l;
