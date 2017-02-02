@@ -426,23 +426,25 @@ public class ConcurrencyOptimalTreeMapv2<K, V> extends AbstractMap<K, V>
                 final Node<K, V> node = new Node<>(key, value);
                 node.parent = prev;
                 final boolean left = comparison < 0;
-                prev.readLockState();
                 if (validateAndTryLock(prev, null, left)) {
-                    if (left) {
-                        prev.l = node;
-                    } else {
-                        prev.r = node;
+                    prev.readLockState();
+                    if (!prev.deleted) {
+                        if (left) {
+                            prev.l = node;
+                        } else {
+                            prev.r = node;
+                        }
+                        prev.unlockReadState();
+                        undoValidateAndTryLock(prev, left);
+                        return null;
                     }
+                    prev.unlockReadState();
                     undoValidateAndTryLock(prev, left);
-                    prev.unlockReadState();
-                    return null;
+                }
+                if (prev.deleted) {
+                    start = ROOT.l;
                 } else {
-                    if (prev.deleted) {
-                        start = ROOT.l;
-                    } else {
-                        start = prev;
-                    }
-                    prev.unlockReadState();
+                    start = prev;
                 }
             }
         }
@@ -486,22 +488,23 @@ public class ConcurrencyOptimalTreeMapv2<K, V> extends AbstractMap<K, V>
                 }
                 final Node<K, V> prev = curr.parent;
                 final boolean leftCurr = prev.key == null || compare(curr.key, prev.key) < 0;
-                if (!validateAndTryLock(prev, curr, leftCurr)) {
+
+                if (!validateAndTryLock(curr, child, leftChild)) {
                     continue;
                 }
-                if (!validateAndTryLock(curr, child, leftChild)) {
-                    undoValidateAndTryLock(prev, leftCurr);
+                if (!validateAndTryLock(prev, curr, leftCurr)) {
+                    undoValidateAndTryLock(curr, leftChild);
                     continue;
                 }
                 if (!curr.tryWriteLockWithConditionState(State.DATA)) {
-                    undoValidateAndTryLock(curr, leftChild);
                     undoValidateAndTryLock(prev, leftCurr);
+                    undoValidateAndTryLock(curr, leftChild);
                     continue;
                 }
                 if (curr.numberOfChildren() != 1) {
                     curr.unlockWriteState();
-                    undoValidateAndTryLock(curr, leftChild);
                     undoValidateAndTryLock(prev, leftCurr);
+                    undoValidateAndTryLock(curr, leftChild);
                     continue;
                 }
 //                    get = curr.setAndGet(null); <- for put
@@ -514,8 +517,8 @@ public class ConcurrencyOptimalTreeMapv2<K, V> extends AbstractMap<K, V>
                     prev.r = child;
                 }
                 curr.unlockWriteState();
-                undoValidateAndTryLock(child, leftChild);
                 undoValidateAndTryLock(prev, leftCurr);
+                undoValidateAndTryLock(curr, leftChild);
                 return get;
             } else {
                 final Node<K, V> prev = curr.parent;

@@ -232,7 +232,10 @@ public class TConcurrencyOptimalTreeMapv2<K, V> extends AbstractMap<K, V>
                     return false;
                 }
                 return true;
-            } else {return false;}}
+            } else {
+                return false;
+            }
+        }
 
         public boolean tryWriteLockWithConditionState(State expected) {
             State value = state;
@@ -400,7 +403,9 @@ public class TConcurrencyOptimalTreeMapv2<K, V> extends AbstractMap<K, V>
                 }
             }
             return false;
-        }return ret;}
+        }
+        return ret;
+    }
 
     public void undoValidateAndTryLock(Node parent, boolean left) {
         if (left) {
@@ -491,23 +496,25 @@ public class TConcurrencyOptimalTreeMapv2<K, V> extends AbstractMap<K, V>
                 final Node prev = window.prev;
                 final Node node = new Node(key, value);
                 final boolean left = comparison < 0;
-                prev.readLockState();
                 if (validateRefAndTryLock(prev, null, left)) {
-                    if (left) {
-                        prev.l = node;
-                    } else {
-                        prev.r = node;
+                    prev.readLockState();
+                    if (!prev.deleted) {
+                        if (left) {
+                            prev.l = node;
+                        } else {
+                            prev.r = node;
+                        }
+                        prev.unlockReadState();
+                        undoValidateAndTryLock(prev, left);
+                        return null;
                     }
+                    prev.unlockReadState();
                     undoValidateAndTryLock(prev, left);
-                    prev.unlockReadState();
-                    return null;
+                }
+                if (prev.deleted) {
+                    window.reset();
                 } else {
-                    if (prev.deleted) {
-                        window.reset();
-                    } else {
-                        window.set(window.prev, window.gprev);
-                    }
-                    prev.unlockReadState();
+                    window.set(window.prev, window.gprev);
                 }
             }
         }
@@ -553,24 +560,24 @@ public class TConcurrencyOptimalTreeMapv2<K, V> extends AbstractMap<K, V>
                 }
                 final Node prev = window.prev;
                 final boolean leftCurr = prev.key == null || compare(curr.key, prev.key) < 0;
-                if (!validateRefAndTryLock(prev, curr, leftCurr)) {
+                if (!validateRefAndTryLock(curr, child, leftChild)) {
 //                    window.reset();
                     continue;
                 }
-                if (!validateRefAndTryLock(curr, child, leftChild)) {
-                    undoValidateAndTryLock(prev, leftCurr);
+                if (!validateRefAndTryLock(prev, curr, leftCurr)) {
+                    undoValidateAndTryLock(curr, leftChild);
 //                    window.reset();
                     continue;
                 }
                 if (!curr.tryWriteLockWithConditionState(State.DATA)) {
-                    undoValidateAndTryLock(curr, leftChild);
                     undoValidateAndTryLock(prev, leftCurr);
+                    undoValidateAndTryLock(curr, leftChild);
                     continue;
                 }
                 if (curr.numberOfChildren() != 1) {
                     curr.unlockWriteState();
-                    undoValidateAndTryLock(curr, leftChild);
                     undoValidateAndTryLock(prev, leftCurr);
+                    undoValidateAndTryLock(curr, leftChild);
                     continue;
                 }
 //                    get = curr.setAndGet(null); <- for put
@@ -582,8 +589,8 @@ public class TConcurrencyOptimalTreeMapv2<K, V> extends AbstractMap<K, V>
                     prev.r = child;
                 }
                 curr.unlockWriteState();
-                undoValidateAndTryLock(child, leftChild);
                 undoValidateAndTryLock(prev, leftCurr);
+                undoValidateAndTryLock(curr, leftChild);
                 return get;
             } else {
                 final Node prev = window.prev;
