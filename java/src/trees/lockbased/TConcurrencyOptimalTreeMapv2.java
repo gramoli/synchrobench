@@ -479,10 +479,9 @@ public class TConcurrencyOptimalTreeMapv2<K, V> extends AbstractMap<K, V>
                     }
                     if (curr.state == State.DATA) {
                         V get = curr.value;
-                        if (get == null) {
-                            break;
+                        if (get != null) {
+                            return get;
                         }
-                        return get;
                     }
                     if (curr.tryWriteLockWithConditionState(State.ROUTING)) { // Already checked on deleted
 //                      curr.setAndGet(value); <- for put
@@ -545,8 +544,8 @@ public class TConcurrencyOptimalTreeMapv2<K, V> extends AbstractMap<K, V>
                     continue;
                 }
                 get = curr.value;
-                curr.value = null;
                 curr.state = State.ROUTING;
+                curr.value = null;
                 curr.unlockWriteState();
                 return get;
             } else if (nc == 1) {
@@ -708,7 +707,7 @@ public class TConcurrencyOptimalTreeMapv2<K, V> extends AbstractMap<K, V>
         while (curr != null) {
             comparison = k.compareTo(curr.key);
             if (comparison == 0) {
-                return curr.deleted ? null : curr.value;
+                return curr.state == State.DATA && !curr.deleted ? curr.value : null;
             }
             if (comparison < 0) {
                 curr = curr.l;
