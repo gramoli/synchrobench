@@ -726,7 +726,7 @@ public class TConcurrencyOptimalTreeMapv5<K, V> extends AbstractMap<K, V>
             return 0;
         }
         assert !v.deleted;
-        return (v.value == null ? 1 : 0) + size(v.l) + size(v.r);
+        return (v.value != null ? 1 : 0) + size(v.l) + size(v.r);
     }
 
     @Override
