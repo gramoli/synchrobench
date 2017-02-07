@@ -19,6 +19,8 @@ public class SequentialSkipListIntSet implements CompositionalIntSet {
     final private int maxLevel;
     /** The first element of the list */
     final public Node head;
+    /** The last element of the list */
+    final public Node tail;
     /** The thread-private PRNG */
     final private static ThreadLocal<Random> s_random = new ThreadLocal<Random>() {
         @Override
@@ -35,7 +37,7 @@ public class SequentialSkipListIntSet implements CompositionalIntSet {
 	this.maxLevel = maxLevel;
 	this.probability = probability;
 	this.head = new Node(maxLevel, Integer.MIN_VALUE);
-	final Node tail = new Node(maxLevel, Integer.MAX_VALUE);
+	this.tail = new Node(maxLevel, Integer.MAX_VALUE);
 	for (int i = 0; i <= maxLevel; i++) {
 	    head.setNext(i, tail);
 	}
@@ -250,12 +252,14 @@ public class SequentialSkipListIntSet implements CompositionalIntSet {
     }
 
     /** 
-     * This is called after the JVM warmup phase
-     * to make sure the data structure is well initalized.
-     * No need to do anything for this.
+     * This is called after the JVM warmup phase to make sure the data structure is well initalized,
+     * and after each iteration to clear the structure.
      */
     public void clear() {
-    	return;	
+	for (int i = 0; i <= this.maxLevel; i++) {
+		this.head.setNext(i, this.tail);
+	}
+	return;
     }
     
     @Override
