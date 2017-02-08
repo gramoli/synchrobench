@@ -90,7 +90,7 @@ public class NonBlockingFriendlySkipListMap<K, V> extends AbstractMap<K, V>
 	/**
 	 * The maximum height the skip list can reach
 	 */
-	private static final int totalHeight = 40;
+	private static final int totalHeight = 31;
 
 	/**
 	 * The height of the skip list to start

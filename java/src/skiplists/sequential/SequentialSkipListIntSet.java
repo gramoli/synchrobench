@@ -28,7 +28,7 @@ public class SequentialSkipListIntSet implements CompositionalIntSet {
     };
 	
     public SequentialSkipListIntSet() {
-        this(6);
+        this(31);
     }
     
     public SequentialSkipListIntSet(final int maxLevel) {

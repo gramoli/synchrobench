@@ -32,7 +32,7 @@ public class TransactionalPughSkipListSet<K, V> implements CompositionalIntSet,
 	};
 
 	public TransactionalPughSkipListSet() {
-		this(6);
+		this(31);
 	}
 
 	public TransactionalPughSkipListSet(final int maxLevel) {

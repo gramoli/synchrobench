@@ -30,7 +30,7 @@ public class CompositionalSkipListIntSet implements CompositionalIntSet {
     };
 	
     public CompositionalSkipListIntSet() {
-        this(6);
+        this(31);
     }
     
 	public CompositionalSkipListIntSet(final int maxLevel) {
