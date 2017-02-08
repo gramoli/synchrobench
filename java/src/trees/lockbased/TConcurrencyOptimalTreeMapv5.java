@@ -241,7 +241,7 @@ public class TConcurrencyOptimalTreeMapv5<K, V> extends AbstractMap<K, V>
             }
             if (compareAndSetStateStamp(0, 1)) {
                 //assert stateStamp == 1;
-                if (!dataMatch(value, data) || deleted) {
+                if (!dataMatch(this.value, data) || deleted) {
                     unlockWriteState();
                     return false;
                 }
@@ -261,7 +261,7 @@ public class TConcurrencyOptimalTreeMapv5<K, V> extends AbstractMap<K, V>
                     return false;
                 }
                 if (compareAndSetStateStamp(stamp, stamp + 2)) {
-                    if (!dataMatch(value, data) || deleted) {
+                    if (!dataMatch(this.value, data) || deleted) {
                         unlockReadState();
                     } else {
                         return true;
