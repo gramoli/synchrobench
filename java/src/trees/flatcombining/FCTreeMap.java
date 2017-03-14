@@ -400,5 +400,6 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V> implements CompositionalM
     public void clear() {
         fc = new FC();
         //TODO: clean the tree
+        tree.clear();
     }
 }

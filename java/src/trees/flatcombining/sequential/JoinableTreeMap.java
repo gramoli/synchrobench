@@ -144,6 +144,10 @@ public abstract class JoinableTreeMap<K, V> {
         root = join2(result.l, result.r);
     }
 
+    public void clear() {
+        root = null;
+    }
+
     private int size(Node v) {
         return v == null ? 0 : 1 + size(v.l) + size(v.r);
     }
