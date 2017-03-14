@@ -35,6 +35,7 @@ public class Treap<K, V> extends JoinableTreeMap<K, V> {
     }
 
     public Node join(Node l, Node m, Node r) {
+//        return l;
         if (prior(m, l) && prior(m, r)) {
             m.l = l;
             m.r = r;

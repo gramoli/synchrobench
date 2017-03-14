@@ -35,7 +35,7 @@ public abstract class JoinableTreeMap<K, V> {
         K key;
         V value;
 
-        Node l, r;
+        volatile Node l, r;
 
         public Node(K key, V value) {
             this.key = key;
@@ -48,7 +48,7 @@ public abstract class JoinableTreeMap<K, V> {
         }
     }
 
-    public Node root;
+    public volatile Node root;
 
     public V get(K k) {
         Comparable<? super K> key = comparable(k);
@@ -96,6 +96,7 @@ public abstract class JoinableTreeMap<K, V> {
     }
 
     public Node join2(Node l, Node r) {
+//        return l;
         if (l == null) {
             return r;
         }
@@ -107,6 +108,7 @@ public abstract class JoinableTreeMap<K, V> {
     }
 
     public Result split(Node t, Comparable<? super K> key) {
+//        return new Result(t, null, t);
         if (t == null) {
             return new Result(null, null, null);
         }

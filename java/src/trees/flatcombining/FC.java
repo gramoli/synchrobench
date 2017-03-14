@@ -65,7 +65,7 @@ public class FC {
             return;
         }
         FCRequest tail = this.tail.get();
-        while (tail != DUMMY) {
+        while (tail.next != DUMMY) {
             FCRequest next = tail.next;
             if (next == null) {
                 break;

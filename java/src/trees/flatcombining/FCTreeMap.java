@@ -86,14 +86,14 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V> implements CompositionalM
             return comparison == 0 ? type.compareTo(operation.type) : comparison;
         }
 
-        Status status;
+        volatile Status status;
 
         Request searchWait;
         Request parentWait;
         Request leftWait;
         Request rightWait;
 
-        JoinableTreeMap<K, V>.Node treeToWork;
+        volatile JoinableTreeMap<K, V>.Node treeToWork;
 
         public boolean holdsRequest() {
             return status != Status.FINISHED;
@@ -114,7 +114,7 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V> implements CompositionalM
     }
 
     public FCTreeMap() {
-        TRIES = 64; // TODO: number of proc
+        TRIES = Thread.activeCount(); // 3;// 64; // TODO: number of proc
         THRESHOLD = (int) Math.ceil(TRIES / 1.7);
     }
 
@@ -145,28 +145,32 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V> implements CompositionalM
 
         if (DEBUG_ON)
             System.err.println("Children: " + Thread.currentThread().getId() + " " + left + " " + right);
-        while (left != null && left.status != FINISHED) {
+        while (left != null && left.status != JOIN_PHASE_FINISHED) {
         }
 
-        while (right != null && right.status != FINISHED) {
+        while (right != null && right.status != JOIN_PHASE_FINISHED) {
         }
 
         if (DEBUG_ON)
             System.err.println("Proceed to finish: " + Thread.currentThread().getId());
 
+        JoinableTreeMap.Node lNode = left == null ? result.l : left.treeToWork;
+        if (left != null)
+            left.status = FINISHED; // I could free the left thread
+        JoinableTreeMap.Node rNode = right == null ? result.r : right.treeToWork;
+        if (right != null)
+            right.status = FINISHED; // I could free the right thread
+
         if (request.type == OperationType.INSERT) {
             request.treeToWork = tree.join(
-                    left == null ? result.l : left.treeToWork,
+                    lNode,
                     tree.createNode(request.key, request.value),
-                    right == null ? result.r : right.treeToWork
+                    rNode
             );
         } else {
-            request.treeToWork = tree.join2(
-                    left == null ? result.l : left.treeToWork,
-                    right == null ? result.r : right.treeToWork
-            );
+            request.treeToWork = tree.join2(lNode, rNode);
         }
-        request.status = FINISHED;
+        request.status = JOIN_PHASE_FINISHED;
     }
 
     public void handleRequest(Request request) {
@@ -175,15 +179,16 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V> implements CompositionalM
 
         while (request.leader || request.holdsRequest()) {
             if ((leaderExists && request.leader && !leaderInTransition) || (!leaderExists && fc.tryLock())) { // If there is no leader
+//                System.err.println(it++);
                 fc.addRequest(request); // Retry adding. It is probably removed.
                 leaderExists = true;
                 request.leader = true;
-                while (leaderInTransition) {
-                }
 
                 // I'm the leader now and now perform operations TRIES times
                 for (int t = 0; t < TRIES && request.leader; t++) {
+                    long start = System.currentTimeMillis();
                     FCRequest[] requests = fc.loadRequests();
+//                    System.err.println("Load requests " + (System.currentTimeMillis() - start));
 
                     Arrays.sort(requests);
                     if (requests.length == 0) {
@@ -267,13 +272,15 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V> implements CompositionalM
                         }
                     }
 
+//                    System.err.println("Half of the operations has finished after search: " + (System.currentTimeMillis() - start));
+
                     // Now requests contains only requests to perform. We form a tree out of them.
-                    int root = 0;
+                    Request root = null;
                     for (int i = 0; i < l; i++) {
                         int r = Integer.lowestOneBit(i + 1);
                         if (r == i + 1 && 2 * r > l) {
-                            root = i;
-                            ((Request) requests[i]).treeToWork = tree.root;
+                            root = (Request) requests[i];
+                            root.treeToWork = tree.root;
                         }
                         if (r == 1) {
                             ((Request) requests[i]).leftWait = null;
@@ -292,11 +299,10 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V> implements CompositionalM
                         }
                     }
 
-                    if (l > 0 && request != requests[root]) { // Make the root thread to be the leader
+                    if (l > 0 && request != root) { // Make the root thread to be the leader
                         request.leader = false;
                         leaderInTransition = true;
-                        ((Request) requests[root]).leader = true;
-
+                        root.leader = true;
                     }
 
                     // Now start all the operations
@@ -309,22 +315,27 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V> implements CompositionalM
                         performUpdate(request);
                     }
 
+                    // TODO: force the root to finish on his own and set a new tree
                     if (l > 0) {
-                        tree.root = ((Request) requests[root]).treeToWork;
+                        while (root.status != JOIN_PHASE_FINISHED) {} // I should wait while root finishes
+                        root.status = FINISHED;
+                        tree.root = root.treeToWork;
                     }
+
+//                    System.err.println("Root finished " + root + " " + request + ": " + (System.currentTimeMillis() - start));
 
                     fc.cleanup();
                     if (!request.leader) { // I made the root thread to be the leader
                         leaderInTransition = false;
                         return;
                     }
-                    if (requests.length < THRESHOLD) {
-                        break;
-                    }
+//                    if (requests.length < THRESHOLD) {
+//                        break;
+//                    }
                 }
+                fc.unlock();
                 request.leader = false; // We have not given a lock to anybody
                 leaderExists = false;
-                fc.unlock();
             } else {
                 // I'm not a leader and should wait for synchronization (or check the lock)
                 switch (request.status) {
@@ -334,11 +345,12 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V> implements CompositionalM
                     case SEARCH_PHASE_WORKER:
                         request.result = tree.get(request.key);
                         request.status = SEARCH_PHASE_FINISHED;
+                        break;
                     case SEARCH_PHASE_FINISHED:
                         continue;
                     case UPDATE_PHASE_START:
                         performUpdate(request);
-                    case FINISHED:
+                    default:
                         break;
                 }
             }
