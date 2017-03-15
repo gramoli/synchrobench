@@ -15,6 +15,7 @@ public class FC {
     private final static int DELTA = 1000;
 
     AtomicInteger lock = new AtomicInteger();
+//    ReentrantLock lock;
     AtomicReference<FCRequest> tail;
     final FCRequest DUMMY;
     int current_timestamp;
@@ -26,13 +27,19 @@ public class FC {
             }
         };
         tail = new AtomicReference<>(DUMMY);
+//        lock = new ReentrantLock();
     }
 
     public boolean tryLock() {
         return lock.get() == 0 && lock.compareAndSet(0, 1);
+//        if (lock.isLocked())
+//            return false;
+//        return lock.tryLock();
     }
 
     public void unlock() {
+//        System.err.println(Thread.currentThread().getId());
+//        lock.unlock();
         lock.set(0);
     }
 

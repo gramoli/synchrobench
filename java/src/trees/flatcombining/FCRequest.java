@@ -6,9 +6,9 @@ import java.util.concurrent.atomic.AtomicReference;
  * Created by vaksenov on 16.01.2017.
  */
 public abstract class FCRequest {
-    FCRequest next;
+    volatile FCRequest next;
 
-    int timestamp = Integer.MAX_VALUE;
+    volatile int timestamp = Integer.MAX_VALUE;
 
     public abstract boolean holdsRequest();
 

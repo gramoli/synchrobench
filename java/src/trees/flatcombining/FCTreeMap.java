@@ -1,9 +1,11 @@
 package trees.flatcombining;
 
 import contention.abstractions.CompositionalMap;
+import contention.abstractions.MaintenanceAlg;
 import trees.flatcombining.sequential.JoinableTreeMap;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static trees.flatcombining.FCTreeMap.Status.*;
 import static trees.flatcombining.FCTreeMap.OperationType.*;
@@ -11,7 +13,9 @@ import static trees.flatcombining.FCTreeMap.OperationType.*;
 /**
  * Created by vaksenov on 16.01.2017.
  */
-public class FCTreeMap<K, V> extends AbstractMap<K, V> implements CompositionalMap<K, V> {
+@SuppressWarnings("ALL")
+public class FCTreeMap<K, V> extends AbstractMap<K, V>
+        implements CompositionalMap<K, V>, MaintenanceAlg {
     protected JoinableTreeMap<K, V> tree;
     private Comparator<? super K> comparator;
 
@@ -36,8 +40,8 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V> implements CompositionalM
     private int THRESHOLD;
     private FC fc = new FC();
     private ThreadLocal<Request> allocatedRequests = new ThreadLocal<>();
-    private boolean leaderExists = false;
-    private boolean leaderInTransition = false;
+    private volatile boolean leaderExists = false;
+    private volatile boolean leaderInTransition = false;
 
     public enum OperationType {
         INSERT,
@@ -61,9 +65,9 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V> implements CompositionalM
         Comparable<? super K> kk;
         V value;
 
-        V result;
+        volatile V result;
 
-        boolean leader; // is this request is hold by the leader thread
+        volatile boolean leader; // is this request is hold by the leader thread
 
         public Request() {
             status = Status.FINISHED;
@@ -89,9 +93,9 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V> implements CompositionalM
         volatile Status status;
 
         Request searchWait;
-        Request parentWait;
-        Request leftWait;
-        Request rightWait;
+        volatile Request parentWait;
+        volatile Request leftWait;
+        volatile Request rightWait;
 
         volatile JoinableTreeMap<K, V>.Node treeToWork;
 
@@ -114,7 +118,7 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V> implements CompositionalM
     }
 
     public FCTreeMap() {
-        TRIES = Thread.activeCount(); // 3;// 64; // TODO: number of proc
+        TRIES = 3;//Thread.activeCount(); // 3;// 64; // TODO: number of proc
         THRESHOLD = (int) Math.ceil(TRIES / 1.7);
     }
 
@@ -173,12 +177,25 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V> implements CompositionalM
         request.status = JOIN_PHASE_FINISHED;
     }
 
+    AtomicInteger leaderThreads = new AtomicInteger();
+
     public void handleRequest(Request request) {
         request.status = PUSHED;
         fc.addRequest(request);
 
         while (request.leader || request.holdsRequest()) {
-            if ((leaderExists && request.leader && !leaderInTransition) || (!leaderExists && fc.tryLock())) { // If there is no leader
+            if (!leaderExists) {
+                if (fc.tryLock()) {
+                    leaderExists = true;
+                    request.leader = true;
+                }
+            }
+            if (request.leader && !leaderInTransition) { // If there is no leader
+                if (leaderThreads.incrementAndGet() > 1) {
+                    System.err.println("Two leaders, really?!");
+                }
+//                System.err.println("Took " + Thread.currentThread().getId());
+//                fc.tryLock();
 //                System.err.println(it++);
                 fc.addRequest(request); // Retry adding. It is probably removed.
                 leaderExists = true;
@@ -189,6 +206,12 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V> implements CompositionalM
                     long start = System.currentTimeMillis();
                     FCRequest[] requests = fc.loadRequests();
 //                    System.err.println("Load requests " + (System.currentTimeMillis() - start));
+
+                    for (int i = 0; i < requests.length; i++) {
+                        if (((Request) requests[i]).status != PUSHED && ((Request) requests[i]).status != FINISHED) {
+                            System.err.println(requests[i].hashCode() + " " + ((Request) requests[i]).status);
+                        }
+                    }
 
                     Arrays.sort(requests);
                     if (requests.length == 0) {
@@ -219,55 +242,56 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V> implements CompositionalM
                     OperationType toOperate = INSERT;
                     int l = 0;
                     for (int i = 0; i < requests.length; i++) {
-                        if (i == 0 || ((Request) requests[i]).kk.compareTo(((Request) requests[i - 1]).key) != 0) {
-                            while (((Request) requests[i]).status != SEARCH_PHASE_FINISHED) {
+                        Request ri = (Request) requests[i];
+                        if (i == 0 || ri.kk.compareTo(((Request) requests[i - 1]).key) != 0) {
+                            while (ri.status != SEARCH_PHASE_FINISHED) {
                             } // Wait all other threads
                             // The operation that made a search between the same values
                             isFirstInsert = true;
                             isFirstDelete = true;
-                            if (((Request) requests[i]).result == null) { // there is no such key
+                            if (ri.result == null) { // there is no such key
                                 firstInsert = null;
-                                forInsert = ((Request) requests[i]).value;
+                                forInsert = ri.value;
                                 firstDelete = forDelete = null;
                                 toOperate = INSERT;
                             } else { // there is such key
-                                firstInsert = forInsert = ((Request) requests[i]).result;
-                                firstDelete = ((Request) requests[i]).result;
+                                firstInsert = forInsert = ri.result;
+                                firstDelete = ri.result;
                                 forDelete = null;
                                 toOperate = DELETE;
                             }
                         }
-                        switch (((Request) requests[i]).type) {
+                        switch (ri.type) {
                             case CONTAINS:
-                                ((Request) requests[i]).result = firstInsert;
-                                ((Request) requests[i]).status = FINISHED;
+                                ri.result = firstInsert;
+                                ri.status = FINISHED;
                                 break;
                             case INSERT:
                                 if (isFirstInsert) {
-                                    ((Request) requests[i]).result = firstInsert;
+                                    ri.result = firstInsert;
                                     isFirstInsert = false;
                                     if (toOperate == INSERT) {
                                         requests[l++] = requests[i];
                                     } else {
-                                        ((Request) requests[i]).status = FINISHED;
+                                        ri.status = FINISHED;
                                     }
                                 } else {
-                                    ((Request) requests[i]).result = forInsert;
-                                    ((Request) requests[i]).status = FINISHED;
+                                    ri.result = forInsert;
+                                    ri.status = FINISHED;
                                 }
                                 break;
                             case DELETE:
                                 if (isFirstDelete) {
-                                    ((Request) requests[i]).result = firstDelete;
+                                    ri.result = firstDelete;
                                     isFirstDelete = false;
                                     if (toOperate == DELETE) {
                                         requests[l++] = requests[i];
                                     } else {
-                                        ((Request) requests[i]).status = FINISHED;
+                                        ri.status = FINISHED;
                                     }
                                 } else {
-                                    ((Request) requests[i]).result = forDelete;
-                                    ((Request) requests[i]).status = FINISHED;
+                                    ri.result = forDelete;
+                                    ri.status = FINISHED;
                                 }
                         }
                     }
@@ -315,27 +339,39 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V> implements CompositionalM
                         performUpdate(request);
                     }
 
-                    // TODO: force the root to finish on his own and set a new tree
+                    // force the root to finish on his own and set a new tree
+//                    if (request == root) { // I'm the last operation
+//                        request.status = FINISHED;
+//                        tree.root = root.treeToWork;
+//                    }
+//                    else {
+//                        while (request.status != FINISHED) {
+//                        }
+//                    }
+
+                    while (l > 0 && root.status != JOIN_PHASE_FINISHED) {}
                     if (l > 0) {
-                        while (root.status != JOIN_PHASE_FINISHED) {} // I should wait while root finishes
-                        root.status = FINISHED;
                         tree.root = root.treeToWork;
+                        root.status = FINISHED;
                     }
 
 //                    System.err.println("Root finished " + root + " " + request + ": " + (System.currentTimeMillis() - start));
 
                     fc.cleanup();
                     if (!request.leader) { // I made the root thread to be the leader
+                        leaderThreads.decrementAndGet();
                         leaderInTransition = false;
+//                        fc.unlock();
                         return;
                     }
 //                    if (requests.length < THRESHOLD) {
 //                        break;
 //                    }
                 }
-                fc.unlock();
+                leaderThreads.decrementAndGet();
                 request.leader = false; // We have not given a lock to anybody
                 leaderExists = false;
+                fc.unlock();
             } else {
                 // I'm not a leader and should wait for synchronization (or check the lock)
                 switch (request.status) {
@@ -347,9 +383,14 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V> implements CompositionalM
                         request.status = SEARCH_PHASE_FINISHED;
                         break;
                     case SEARCH_PHASE_FINISHED:
-                        continue;
+                        break;
                     case UPDATE_PHASE_START:
                         performUpdate(request);
+//                        if (request.leader) {
+//                            request.status = FINISHED;
+//                            tree.root = request.treeToWork;
+//                        }
+                        break;
                     default:
                         break;
                 }
@@ -391,15 +432,32 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V> implements CompositionalM
         throw new AssertionError("EntrySet is not supported");
     }
 
+    public boolean stopMaintenance() {
+        System.err.println("Depth: " + tree.depth());
+        return true;
+    }
+
     @Override
     public int size() {
         return tree.size();
     }
 
     @Override
+    public int numNodes() {
+        return size();
+    }
+
+    @Override
+    public long getStructMods() {
+        return 0;
+    }
+
+    @Override
     public void clear() {
         fc = new FC();
-        //TODO: clean the tree
+        allocatedRequests = new ThreadLocal<>();
         tree.clear();
+        leaderExists = false;
+        leaderInTransition = false;
     }
 }

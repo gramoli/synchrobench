@@ -148,6 +148,14 @@ public abstract class JoinableTreeMap<K, V> {
         root = null;
     }
 
+    private int depth(Node v) {
+        return v == null ? 0 : 1 + Math.max(depth(v.l), depth(v.r));
+    }
+
+    public int depth() {
+        return depth(root);
+    }
+
     private int size(Node v) {
         return v == null ? 0 : 1 + size(v.l) + size(v.r);
     }
