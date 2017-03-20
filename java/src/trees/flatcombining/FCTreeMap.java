@@ -42,6 +42,7 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V>
     private ThreadLocal<Request> allocatedRequests = new ThreadLocal<>();
     private volatile boolean leaderExists = false;
     private volatile boolean leaderInTransition = false;
+    private volatile Request prev_leader = null;
 
     public enum OperationType {
         INSERT,
@@ -117,6 +118,16 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V>
         return request;
     }
 
+    public void assertRequests() {
+        FCRequest[] requests = fc.loadRequests();
+        for (int i = 0; i < requests.length; i++) {
+            if (((Request) requests[i]).status != PUSHED && ((Request) requests[i]).status != FINISHED) {
+                System.err.println(((Request) requests[i]).status + " " + requests[i].hashCode());
+            }
+            assert ((Request) requests[i]).status == PUSHED || ((Request) requests[i]).status == FINISHED;
+        }
+    }
+
     public FCTreeMap() {
         TRIES = 3;//Thread.activeCount(); // 3;// 64; // TODO: number of proc
         THRESHOLD = (int) Math.ceil(TRIES / 1.7);
@@ -159,11 +170,15 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V>
             System.err.println("Proceed to finish: " + Thread.currentThread().getId());
 
         JoinableTreeMap.Node lNode = left == null ? result.l : left.treeToWork;
-        if (left != null)
+        if (left != null) {
             left.status = FINISHED; // I could free the left thread
+//            System.err.println("Finished " + left.hashCode());
+        }
         JoinableTreeMap.Node rNode = right == null ? result.r : right.treeToWork;
-        if (right != null)
+        if (right != null) {
             right.status = FINISHED; // I could free the right thread
+//            System.err.println("Finished " + right.hashCode());
+        }
 
         if (request.type == OperationType.INSERT) {
             request.treeToWork = tree.join(
@@ -184,38 +199,55 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V>
         fc.addRequest(request);
 
         while (request.leader || request.holdsRequest()) {
-            if (!leaderExists) {
+            if (!leaderExists) { // If there is no leader
                 if (fc.tryLock()) {
                     leaderExists = true;
                     request.leader = true;
                 }
             }
-            if (request.leader && !leaderInTransition) { // If there is no leader
-                if (leaderThreads.incrementAndGet() > 1) {
-                    System.err.println("Two leaders, really?!");
-                }
+            if (request.leader && !leaderInTransition &&
+                    (request.status == PUSHED || request.status == FINISHED)) { // I am ready to become a leader
+//                System.err.println("I'm the root " + request.hashCode());
+                assert leaderExists;
+//                if (leaderThreads.incrementAndGet() > 1) {
+//                    System.err.println("Two leaders, really?!");
+//                }
 //                System.err.println("Took " + Thread.currentThread().getId());
 //                fc.tryLock();
 //                System.err.println(it++);
                 fc.addRequest(request); // Retry adding. It is probably removed.
-                leaderExists = true;
-                request.leader = true;
 
                 // I'm the leader now and now perform operations TRIES times
-                for (int t = 0; t < TRIES && request.leader; t++) {
-                    long start = System.currentTimeMillis();
+                for (int t = 0; t < TRIES; t++) {
+//                    long start = System.currentTimeMillis();
                     FCRequest[] requests = fc.loadRequests();
 //                    System.err.println("Load requests " + (System.currentTimeMillis() - start));
 
-                    for (int i = 0; i < requests.length; i++) {
-                        if (((Request) requests[i]).status != PUSHED && ((Request) requests[i]).status != FINISHED) {
-                            System.err.println(requests[i].hashCode() + " " + ((Request) requests[i]).status);
-                        }
-                    }
+//                    System.err.println(requests.length);
+
+//                    for (int i = 0; i < requests.length; i++) {
+//                        if (((Request)requests[i]).status != PUSHED){
+//                            System.err.println(((Request)requests[i]).status + " " + requests[i].hashCode());
+//                        }
+//                        assert ((Request)requests[i]).status == PUSHED;
+//                    }
 
                     Arrays.sort(requests);
                     if (requests.length == 0) {
-                        break;
+//                        try {
+//                            Thread.currentThread().sleep(10); // Instead of giving up, let us wait slightly
+//                        } catch (InterruptedException e) {
+//                            e.printStackTrace();
+//                        }
+                        continue;
+//                         break;
+                    }
+
+                    if (request.status == FINISHED) { // Give the power to somebody already
+                        request.leader = false;
+                        ((Request) requests[0]).leader = true;
+//                        System.err.println("Freely transit the leadership: " + request.hashCode() + " -> " + ((Request) requests[0]).hashCode());
+                        return;
                     }
 
                     ((Request) requests[0]).status = SEARCH_PHASE_WORKER;
@@ -261,6 +293,8 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V>
                                 toOperate = DELETE;
                             }
                         }
+
+                        assert ri.status == SEARCH_PHASE_FINISHED;
                         switch (ri.type) {
                             case CONTAINS:
                                 ri.result = firstInsert;
@@ -314,6 +348,12 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V>
                             ((Request) requests[i]).leftWait = (Request) requests[left];
                             ((Request) requests[left]).parentWait = (Request) requests[i];
                             int right = i + r / 2;
+                            if (i + 1 != l) {
+                                while (right >= l) {
+                                    r /= 2;
+                                    right = i + r / 2;
+                                }
+                            }
                             if (right < l) {
                                 ((Request) requests[i]).rightWait = (Request) requests[right];
                                 ((Request) requests[right]).parentWait = (Request) requests[i];
@@ -323,10 +363,16 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V>
                         }
                     }
 
+                    for (int i = 0; i < l; i++) {
+                        assert requests[i] == root || ((Request) requests[i]).parentWait != null;
+                    }
+
                     if (l > 0 && request != root) { // Make the root thread to be the leader
+                        prev_leader = request;
                         request.leader = false;
                         leaderInTransition = true;
                         root.leader = true;
+//                        System.err.println("Initialize transition " + request.hashCode() + " -> " + root.hashCode() + " " + root.status);
                     }
 
                     // Now start all the operations
@@ -340,27 +386,32 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V>
                     }
 
                     // force the root to finish on his own and set a new tree
-//                    if (request == root) { // I'm the last operation
-//                        request.status = FINISHED;
-//                        tree.root = root.treeToWork;
-//                    }
-//                    else {
-//                        while (request.status != FINISHED) {
-//                        }
-//                    }
-
-                    while (l > 0 && root.status != JOIN_PHASE_FINISHED) {}
-                    if (l > 0) {
+                    if (request == root) { // I'm the last operation
+                        assert request.status == JOIN_PHASE_FINISHED;
+                        request.status = FINISHED;
                         tree.root = root.treeToWork;
-                        root.status = FINISHED;
+                    } else {
+                        if (l > 0) {
+//                            System.err.println("I'm not a root anymore " + request.hashCode() + " " + root.status);
+                            assert request.status == JOIN_PHASE_FINISHED || request.status == FINISHED;
+                            while (request.status != FINISHED) {
+                            }
+                        }
                     }
+
+//                    while (l > 0 && root.status != JOIN_PHASE_FINISHED) {}
+//                    if (l > 0) {
+//                        tree.root = root.treeToWork;
+//                        root.status = FINISHED;
+//                    }
 
 //                    System.err.println("Root finished " + root + " " + request + ": " + (System.currentTimeMillis() - start));
 
                     fc.cleanup();
                     if (!request.leader) { // I made the root thread to be the leader
-                        leaderThreads.decrementAndGet();
+//                        leaderThreads.decrementAndGet();
                         leaderInTransition = false;
+//                        System.err.println("I'm definitely not a root and exits");
 //                        fc.unlock();
                         return;
                     }
@@ -368,9 +419,11 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V>
 //                        break;
 //                    }
                 }
-                leaderThreads.decrementAndGet();
+//                leaderThreads.decrementAndGet();
+                leaderInTransition = false;
                 request.leader = false; // We have not given a lock to anybody
                 leaderExists = false;
+//                System.err.println("Give up " + request.hashCode());
                 fc.unlock();
             } else {
                 // I'm not a leader and should wait for synchronization (or check the lock)
@@ -381,18 +434,24 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V>
                     case SEARCH_PHASE_WORKER:
                         request.result = tree.get(request.key);
                         request.status = SEARCH_PHASE_FINISHED;
-                        break;
+                        continue;
                     case SEARCH_PHASE_FINISHED:
-                        break;
+                        continue;
                     case UPDATE_PHASE_START:
                         performUpdate(request);
-//                        if (request.leader) {
-//                            request.status = FINISHED;
-//                            tree.root = request.treeToWork;
-//                        }
-                        break;
+//                        assert leaderExists;
+//                        assert request.status == JOIN_PHASE_FINISHED || request.status == FINISHED;
+                        if (request.leader) {
+//                            System.err.println(prev_leader.hashCode() + " -> " + request.hashCode());
+                            assert prev_leader.status == FINISHED || (prev_leader.status == PUSHED && !leaderInTransition);
+                            assert request.status == JOIN_PHASE_FINISHED;
+                            request.status = FINISHED;
+                            assertRequests();
+                            tree.root = request.treeToWork;
+                        }
+                        continue;
                     default:
-                        break;
+                        continue;
                 }
             }
         }
@@ -401,6 +460,7 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V>
     @Override
     public V putIfAbsent(K key, V value) {
         Request request = getLocalRequest();
+//        System.err.println("Insert " + request.hashCode());
         request.set(OperationType.INSERT, key, value);
         handleRequest(request);
         return request.result;
@@ -409,6 +469,7 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V>
     @Override
     public V remove(Object key) {
         Request request = getLocalRequest();
+//        System.err.println("Remove " + request.hashCode());
         request.set(OperationType.DELETE, (K) key, null);
         handleRequest(request);
         return request.result;

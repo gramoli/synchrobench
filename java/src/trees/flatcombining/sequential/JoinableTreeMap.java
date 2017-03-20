@@ -25,7 +25,8 @@ public abstract class JoinableTreeMap<K, V> {
         };
     }
 
-    public JoinableTreeMap() {}
+    public JoinableTreeMap() {
+    }
 
     public JoinableTreeMap(final Comparator<? super K> comparator) {
         this.comparator = comparator;
@@ -75,6 +76,8 @@ public abstract class JoinableTreeMap<K, V> {
         public Result(Node l, Node m, Node r) {
             this.l = l;
             this.m = m;
+            if (m != null)
+                m.clear();
             this.r = r;
         }
     }
@@ -118,14 +121,10 @@ public abstract class JoinableTreeMap<K, V> {
         }
         if (comparison < 0) {
             Result result = split(t.l, key);
-//            Node r = t.r;
-//            t.clear();
             result.r = join(result.r, t, t.r); // Do not forget that t should be empty
             return result;
         } else {
             Result result = split(t.r, key);
-//            Node l = t.l;
-//            t.clear();
             result.l = join(t.l, t, result.l); // Do not forget that t should be empty
             return result;
         }
