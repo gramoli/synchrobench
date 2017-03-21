@@ -426,36 +426,56 @@ public class FCParkTreeMap<K, V> extends AbstractMap<K, V>
                 fc.unlock();
             } else {
                 // I'm not a leader and should wait for synchronization (or check the lock)
-                switch (request.status) {
-                    case PUSHED: // Nobody has started to work with me
-                        fc.addRequest(request); // Probably, I'm out of queue?
-                        continue; // It is better to restart and try to become a leader
-                    case SEARCH_PHASE_WORKER:
-                        request.result = tree.get(request.key);
-                        request.status = SEARCH_PHASE_FINISHED;
-                    case SEARCH_PHASE_FINISHED:
-                        previousStatus = SEARCH_PHASE_FINISHED;
+//                switch (request.status) {
+//                    case PUSHED: // Nobody has started to work with me
+//                        fc.addRequest(request); // Probably, I'm out of queue?
+//                        continue; // It is better to restart and try to become a leader
+//                    case SEARCH_PHASE_WORKER:
+//                        request.result = tree.get(request.key);
+//                        request.status = SEARCH_PHASE_FINISHED;
+//                    case SEARCH_PHASE_FINISHED:
+//                        previousStatus = SEARCH_PHASE_FINISHED;
+//                        LockSupport.park();
+//                        continue;
+//                    case UPDATE_PHASE_START:
+//                        performUpdate(request);
+//                        if (request.leader) {
+//                            request.status = FINISHED;
+////                            assertRequests();
+//                            tree.root = request.treeToWork;
+//                        } else {
+////                            while (request.status != FINISHED) {
+////                            }
+//                            LockSupport.park();
+//                        }
+//                        continue;
+//                    case FINISHED:
+//                        if (previousStatus == PUSHED) { // If it reads PUSHED and then next reads FINISH
+//                            LockSupport.park();
+//                        }
+//                        continue;
+//                    default:
+//                        continue;
+//                }
+                while (!request.leader && request.status == PUSHED) {
+                    fc.addRequest(request);
+                }
+                if (request.leader) {
+                    continue;
+                }
+                if (request.status == SEARCH_PHASE_WORKER) {
+                    request.result = tree.get(request.key);
+                    request.status = SEARCH_PHASE_FINISHED;
+                }
+                LockSupport.park();
+                if (request.status == UPDATE_PHASE_START) {
+                    performUpdate(request);
+                    if (request.leader) {
+                        request.status = FINISHED;
+                        tree.root = request.treeToWork;
+                    } else {
                         LockSupport.park();
-                        continue;
-                    case UPDATE_PHASE_START:
-                        performUpdate(request);
-                        if (request.leader) {
-                            request.status = FINISHED;
-//                            assertRequests();
-                            tree.root = request.treeToWork;
-                        } else {
-//                            while (request.status != FINISHED) {
-//                            }
-                            LockSupport.park();
-                        }
-                        continue;
-                    case FINISHED:
-                        if (previousStatus == PUSHED) { // If it reads PUSHED and then next reads FINISH
-                            LockSupport.park();
-                        }
-                        continue;
-                    default:
-                        continue;
+                    }
                 }
             }
         }
