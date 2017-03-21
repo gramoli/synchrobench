@@ -2,6 +2,7 @@ package contention.benchmark;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.Formatter;
 import java.util.Locale;
 import java.util.Random;
@@ -155,7 +156,8 @@ public class Test {
 			threadLoops = new ThreadLoop[Parameters.numThreads];
 			threads = new Thread[Parameters.numThreads];
 			for (short threadNum = 0; threadNum < Parameters.numThreads; threadNum++) {
-				threadLoops[threadNum] = new ThreadLoop(threadNum, mapBench, methods);
+				threadLoops[threadNum] = Parameters.skewed ? new ThreadSkewedLoop(threadNum, mapBench, methods) :
+						new ThreadLoop(threadNum, mapBench, methods);
 				threads[threadNum] = new Thread(threadLoops[threadNum]);
 			}
 			break;
@@ -320,7 +322,10 @@ public class Test {
 				} else if (currentArg.equals("--verbose")
 						|| currentArg.equals("-v")) {
 					Parameters.detailedStats = true;
-				} else {
+				} else if (currentArg.equals("--skewed")
+                        || currentArg.equals("-S")) {
+                    Parameters.skewed = true;
+                } else {
 					String optionValue = args[argNumber++];
 					if (currentArg.equals("--thread-nums")
 							|| currentArg.equals("-t"))
@@ -472,7 +477,10 @@ public class Test {
 				+ Parameters.iterations
 				+ "\n"
 				+ "  Benchmark:               \t"
-				+ Parameters.benchClassName;
+				+ Parameters.benchClassName
+                + "\n"
+                + "  Skewed:                  \t"
+                + Parameters.skewed;
 		System.out.println(params);
 	}
 
