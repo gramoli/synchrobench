@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.LockSupport;
 
 import static trees.flatcombining.FCParkTreeMap.OperationType.DELETE;
@@ -159,11 +160,15 @@ public class FCParkTreeMap<K, V> extends AbstractMap<K, V>
         Request left = request.leftWait;
         if (left != null) {
             left.treeToWork = result.l;
+            left.status = UPDATE_PHASE_START;
+//            assert left.status == UPDATE_PHASE_START;
             LockSupport.unpark(left.owner);
         }
         Request right = request.rightWait;
         if (right != null) {
             right.treeToWork = result.r;
+            right.status = UPDATE_PHASE_START;
+//            assert right.status == UPDATE_PHASE_START;
             LockSupport.unpark(right.owner);
         }
         request.status = SPLIT_PHASE_FINISHED;
@@ -218,19 +223,11 @@ public class FCParkTreeMap<K, V> extends AbstractMap<K, V>
             }
             if (request.leader && !leaderInTransition &&
                     (request.status == PUSHED || request.status == FINISHED)) { // I am ready to become a leader
-                assert leaderExists;
                 fc.addRequest(request); // Retry adding. It is probably removed.
 
                 // I'm the leader now and now perform operations TRIES times
                 for (int t = 0; t < TRIES; t++) {
                     FCRequest[] requests = fc.loadRequests();
-
-//                    for (int i = 0; i < requests.length; i++) {
-//                        if (((Request)requests[i]).status != PUSHED){
-//                            System.err.println(((Request)requests[i]).status + " " + requests[i].hashCode());
-//                        }
-//                        assert ((Request)requests[i]).status == PUSHED;
-//                    }
 
                     Arrays.sort(requests);
                     if (requests.length == 0) {
@@ -288,7 +285,7 @@ public class FCParkTreeMap<K, V> extends AbstractMap<K, V>
                             }
                         }
 
-                        assert ri.status == SEARCH_PHASE_FINISHED;
+//                        assert ri.status == SEARCH_PHASE_FINISHED;
                         switch (ri.type) {
                             case CONTAINS:
                                 ri.result = firstInsert;
@@ -323,11 +320,11 @@ public class FCParkTreeMap<K, V> extends AbstractMap<K, V>
                                 }
                         }
                         if (ri != request && ri.status == FINISHED) {
+//                            Status status = ri.status;
+//                            assert status == FINISHED || status == PUSHED;
                             LockSupport.unpark(ri.owner);
                         }
                     }
-
-//                    System.err.println("Half of the operations has finished after search: " + (System.currentTimeMillis() - start));
 
                     // Now requests contains only requests to perform. We form a tree out of them.
                     Request root = null;
@@ -369,22 +366,21 @@ public class FCParkTreeMap<K, V> extends AbstractMap<K, V>
                         request.leader = false;
                         leaderInTransition = true;
                         root.leader = true;
-//                        System.err.println("Initialize transition " + request.hashCode() + " -> " + root.hashCode() + " " + root.status);
                     }
 
-                    // Now start all the operations
-                    for (int i = 0; i < l; i++) {
-                        ((Request) requests[i]).status = UPDATE_PHASE_START;
-                    }
-
+                    // Now start the root
                     if (request != root) {
                         if (root != null) {
+//                            assert root.status == UPDATE_PHASE_START;
+                            root.status = UPDATE_PHASE_START;
                             LockSupport.unpark(root.owner);
                         }
                     }
                     if (request.holdsRequest()) {
                         if (request != root) {
-                            LockSupport.park();
+                            while (request.status != UPDATE_PHASE_START) {
+                                LockSupport.park();
+                            }
                         }
 
                         // Check if I have to participate too
@@ -392,91 +388,66 @@ public class FCParkTreeMap<K, V> extends AbstractMap<K, V>
 
                         // force the root to finish on his own and set a new tree
                         if (request == root) { // I'm the last operation
-                            assert request.status == JOIN_PHASE_FINISHED;
+//                            assert request.status == JOIN_PHASE_FINISHED;
                             request.status = FINISHED;
                             tree.root = root.treeToWork;
                         } else {
-//                            System.err.println("I'm not a root anymore " + request.hashCode() + " " + root.status);
-                            assert request.status == JOIN_PHASE_FINISHED || request.status == FINISHED;
-//                            while (request.status != FINISHED) {
-//                            }
-                            LockSupport.park();
+//                            assert request.status == JOIN_PHASE_FINISHED || request.status == FINISHED;
+                            while (request.status != FINISHED) {
+                                LockSupport.park();
+                            }
+//                            if (request.status != FINISHED)
+//                                System.err.println(request.status);
+//                            assert request.status == FINISHED;
                         }
                     }
 
-//                    System.err.println("Root finished " + root + " " + request + ": " + (System.currentTimeMillis() - start));
-
                     fc.cleanup();
                     if (!request.leader) { // I made the root thread to be the leader
-//                        leaderThreads.decrementAndGet();
                         leaderInTransition = false;
-//                        System.err.println("I'm definitely not a root and exits");
-//                        fc.unlock();
                         return;
                     }
-//                    if (requests.length < THRESHOLD) {
-//                        break;
-//                    }
                 }
-//                leaderThreads.decrementAndGet();
                 leaderInTransition = false;
                 request.leader = false; // We have not given a lock to anybody
                 leaderExists = false;
-//                System.err.println("Give up " + request.hashCode());
                 fc.unlock();
             } else {
                 // I'm not a leader and should wait for synchronization (or check the lock)
-//                switch (request.status) {
-//                    case PUSHED: // Nobody has started to work with me
-//                        fc.addRequest(request); // Probably, I'm out of queue?
-//                        continue; // It is better to restart and try to become a leader
-//                    case SEARCH_PHASE_WORKER:
-//                        request.result = tree.get(request.key);
-//                        request.status = SEARCH_PHASE_FINISHED;
-//                    case SEARCH_PHASE_FINISHED:
-//                        previousStatus = SEARCH_PHASE_FINISHED;
-//                        LockSupport.park();
-//                        continue;
-//                    case UPDATE_PHASE_START:
-//                        performUpdate(request);
-//                        if (request.leader) {
-//                            request.status = FINISHED;
-////                            assertRequests();
-//                            tree.root = request.treeToWork;
-//                        } else {
-////                            while (request.status != FINISHED) {
-////                            }
-//                            LockSupport.park();
-//                        }
-//                        continue;
-//                    case FINISHED:
-//                        if (previousStatus == PUSHED) { // If it reads PUSHED and then next reads FINISH
-//                            LockSupport.park();
-//                        }
-//                        continue;
-//                    default:
-//                        continue;
-//                }
                 while (!request.leader && request.status == PUSHED) {
                     fc.addRequest(request);
                 }
                 if (request.leader) {
                     continue;
                 }
+//                Status status = request.status;
+//                assert status == SEARCH_PHASE_WORKER || status == SEARCH_PHASE_FINISHED || status == FINISHED;
                 if (request.status == SEARCH_PHASE_WORKER) {
                     request.result = tree.get(request.key);
                     request.status = SEARCH_PHASE_FINISHED;
                 }
-                LockSupport.park();
+                while (request.status != UPDATE_PHASE_START && request.status != FINISHED) {
+                    LockSupport.park();
+                }
+//                status = request.status;
+//                if (status != FINISHED && status != UPDATE_PHASE_START) {
+//                    System.err.println(status + " " + request.hashCode());
+//                }
+//                assert status == FINISHED || status == UPDATE_PHASE_START;
                 if (request.status == UPDATE_PHASE_START) {
                     performUpdate(request);
                     if (request.leader) {
                         request.status = FINISHED;
                         tree.root = request.treeToWork;
                     } else {
-                        LockSupport.park();
+                        while (request.status != FINISHED) {
+                            LockSupport.park();
+                        }
                     }
                 }
+//                if (request.status != FINISHED)
+//                    System.err.println("End " + request.status);
+//                assert request.status == FINISHED;
             }
         }
     }
