@@ -232,15 +232,8 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V>
 //                        assert ((Request)requests[i]).status == PUSHED;
 //                    }
 
-                    Arrays.sort(requests);
                     if (requests.length == 0) {
-//                        try {
-//                            Thread.currentThread().sleep(10); // Instead of giving up, let us wait slightly
-//                        } catch (InterruptedException e) {
-//                            e.printStackTrace();
-//                        }
                         continue;
-//                         break;
                     }
 
                     if (request.status == FINISHED) { // Give the power to somebody already
@@ -249,6 +242,8 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V>
 //                        System.err.println("Freely transit the leadership: " + request.hashCode() + " -> " + ((Request) requests[0]).hashCode());
                         return;
                     }
+
+                    Arrays.sort(requests);
 
                     ((Request) requests[0]).status = SEARCH_PHASE_WORKER;
                     for (int i = 1; i < requests.length; i++) {
@@ -294,7 +289,7 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V>
                             }
                         }
 
-                        assert ri.status == SEARCH_PHASE_FINISHED;
+//                        assert ri.status == SEARCH_PHASE_FINISHED;
                         switch (ri.type) {
                             case CONTAINS:
                                 ri.result = firstInsert;
@@ -363,9 +358,9 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V>
                         }
                     }
 
-                    for (int i = 0; i < l; i++) {
-                        assert requests[i] == root || ((Request) requests[i]).parentWait != null;
-                    }
+//                    for (int i = 0; i < l; i++) {
+//                        assert requests[i] == root || ((Request) requests[i]).parentWait != null;
+//                    }
 
                     if (l > 0 && request != root) { // Make the root thread to be the leader
                         prev_leader = request;
@@ -387,13 +382,13 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V>
 
                     // force the root to finish on his own and set a new tree
                     if (request == root) { // I'm the last operation
-                        assert request.status == JOIN_PHASE_FINISHED;
+//                        assert request.status == JOIN_PHASE_FINISHED;
                         request.status = FINISHED;
                         tree.root = root.treeToWork;
                     } else {
                         if (l > 0) {
 //                            System.err.println("I'm not a root anymore " + request.hashCode() + " " + root.status);
-                            assert request.status == JOIN_PHASE_FINISHED || request.status == FINISHED;
+//                            assert request.status == JOIN_PHASE_FINISHED || request.status == FINISHED;
                             while (request.status != FINISHED) {
                             }
                         }
@@ -443,10 +438,10 @@ public class FCTreeMap<K, V> extends AbstractMap<K, V>
 //                        assert request.status == JOIN_PHASE_FINISHED || request.status == FINISHED;
                         if (request.leader) {
 //                            System.err.println(prev_leader.hashCode() + " -> " + request.hashCode());
-                            assert prev_leader.status == FINISHED || (prev_leader.status == PUSHED && !leaderInTransition);
-                            assert request.status == JOIN_PHASE_FINISHED;
+//                            assert prev_leader.status == FINISHED || (prev_leader.status == PUSHED && !leaderInTransition);
+//                            assert request.status == JOIN_PHASE_FINISHED;
                             request.status = FINISHED;
-                            assertRequests();
+//                            assertRequests();
                             tree.root = request.treeToWork;
                         }
                         continue;
