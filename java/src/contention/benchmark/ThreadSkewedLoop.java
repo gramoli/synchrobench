@@ -32,7 +32,7 @@ public class ThreadSkewedLoop extends ThreadLoop implements Runnable {
 							CompositionalMap<Integer, Integer> bench, Method[] methods) {
 		super(myThreadNum, bench, methods);
 
-		operated = new int[Parameters.range / Parameters.numThreads];
+		operated = new int[Parameters.skewed * Parameters.numThreads];
 		for (int i = 0; i < operated.length; i++) {
 			operated[i] = -i * Parameters.numThreads - myThreadNum;
 		}

@@ -17,7 +17,7 @@ public class Parameters {
 	size = 1024,
 	warmUp = 5,
     	iterations = 1;
-	public static boolean skewed = false;
+	public static int skewed = 0;
     
     public static boolean detailedStats = true;
 
