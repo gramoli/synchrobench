@@ -26,7 +26,6 @@ public class ThreadSkewedLoop extends ThreadLoop implements Runnable {
 	 * |--writeAll--|--writeSome--|--readAll--|--readSome--|
 	 * |-----------write----------|--readAll--|--readSome--| cdf[1]
 	 */
-	int[] cdf = new int[3];
 
 	public ThreadSkewedLoop(short myThreadNum,
 							CompositionalMap<Integer, Integer> bench, Method[] methods) {
@@ -34,7 +33,7 @@ public class ThreadSkewedLoop extends ThreadLoop implements Runnable {
 
 		operated = new int[Parameters.skewed * Parameters.numThreads];
 		for (int i = 0; i < operated.length; i++) {
-			operated[i] = -i * Parameters.numThreads - myThreadNum;
+			operated[i] = -i * Parameters.numThreads - myThreadNum - 1;
 		}
 	}
 
@@ -45,14 +44,20 @@ public class ThreadSkewedLoop extends ThreadLoop implements Runnable {
 			int coin = rand.nextInt(1000);
 			if (coin < cdf[1]) {
 				if (id < operated.length) {
-					bench.putIfAbsent(operated[id], operated[id]);
-					numAdd++;
+					if (bench.putIfAbsent(operated[id], operated[id]) == null) {
+                        numAdd++;
+                    } else {
+                        failures++;
+                    }
 				} else {
-					bench.remove(operated[id - operated.length]);
-					numRemove++;
+					if (bench.remove(operated[id - operated.length]) != null) {
+                        numRemove++;
+                    } else {
+                        failures++;
+                    }
 				}
 
-				id = (id + 1) % operated.length;
+				id = (id + 1) % (2 * operated.length);
 			} else {
 
 				if (bench.get(operated[rand.nextInt(operated.length)]) != null)
