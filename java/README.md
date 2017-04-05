@@ -16,6 +16,7 @@ Data structures in Java
 The Java version of synchrobench (synchrobench-java) provides variants of the 
 algorithms presented in these papers:
  - V. Gramoli, P. Kuznetsov, S. Ravi, D. Shang. A Concurrency-Optimal List-Based Set. arXiv:1502.01633, 2015.
+ - K. Sagonas and K. Winblad. Contention Adapting Search Trees. In ISPDC 2015.
  - V. Gramoli and R. Guerraoui. Reusable Concurrent Data Types. In ECOOP 2014.
  - D. Drachsler, M. Vechev and E. Yahav. Practical concurrent binary search 
    trees via logical ordering. In PPoPP, pages 343–356, 2014.
