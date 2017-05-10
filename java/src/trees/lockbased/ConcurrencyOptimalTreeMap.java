@@ -1,28 +1,19 @@
 package trees.lockbased;
 
-import contention.abstractions.AbstractCompositionalIntSet;
+import contention.abstractions.CompositionalMap;
 import contention.abstractions.MaintenanceAlg;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Constructor;
 import java.util.AbstractMap;
-
-import contention.abstractions.CompositionalMap;
-
-import java.util.Set;
 import java.util.Comparator;
+import java.util.Set;
 
 /**
  * Created by vaksenov on 16.09.2016.
  */
 public class ConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
         implements CompositionalMap<K, V>, MaintenanceAlg {
-    public enum State {
-        DATA,
-        ROUTING,
-        DELETED
-    }
-
     private static final Unsafe unsafe;
     private static final long stateStampOffset, leftStampOffset, rightStampOffset, valueOffset;
 
@@ -31,48 +22,45 @@ public class ConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
             Constructor<Unsafe> unsafeConstructor = Unsafe.class.getDeclaredConstructor();
             unsafeConstructor.setAccessible(true);
             unsafe = unsafeConstructor.newInstance();
-            stateStampOffset = unsafe.objectFieldOffset(Node.class.getDeclaredField("stateStamp"));
-            leftStampOffset = unsafe.objectFieldOffset(Node.class.getDeclaredField("lStamp"));
-            rightStampOffset = unsafe.objectFieldOffset(Node.class.getDeclaredField("rStamp"));
-            valueOffset = unsafe.objectFieldOffset(Node.class.getDeclaredField("value"));
+            stateStampOffset = unsafe.objectFieldOffset(ConcurrencyOptimalTreeMap.Node.class.getDeclaredField("stateStamp"));
+            leftStampOffset = unsafe.objectFieldOffset(ConcurrencyOptimalTreeMap.Node.class.getDeclaredField("lStamp"));
+            rightStampOffset = unsafe.objectFieldOffset(ConcurrencyOptimalTreeMap.Node.class.getDeclaredField("rStamp"));
+            valueOffset = unsafe.objectFieldOffset(ConcurrencyOptimalTreeMap.Node.class.getDeclaredField("value"));
         } catch (Exception e) {
             throw new Error(e);
         }
     }
 
-    public static class Node<K, V> {
+    public class Node {
         final K key;
         volatile V value;
-        volatile State state;
+        volatile boolean deleted;
         volatile int stateStamp = 0;
 
-        volatile Node<K, V> l;
+        volatile Node l;
         volatile int lStamp = 0;
 
-        volatile Node<K, V> r;
+        volatile Node r;
         volatile int rStamp = 0;
-
-        volatile Node<K, V> parent;
 
         public Node(K key, V value) {
             this.key = key;
             this.value = value;
-            state = State.DATA;
+            deleted = false;
             l = null;
             r = null;
-            parent = null;
-        }
-
-        public int numberOfChildren() {
-            return (l != null ? 1 : 0) + (r != null ? 1 : 0);
         }
 
         public boolean equals(Object o) {
-            if (!(o instanceof Node)) {
+            if (!(o instanceof ConcurrencyOptimalTreeMap.Node)) {
                 return false;
             }
             Node node = (Node) o;
             return node.key == key;
+        }
+
+        public int numberOfChildren() {
+            return (l == null ? 0 : 1) + (r == null ? 0 : 1);
         }
 
         private boolean compareAndSetStateStamp(int expected, int updated) {
@@ -176,7 +164,7 @@ public class ConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
             }
         }
 
-        public boolean tryWriteLockWithConditionLeft(Node expected) {
+        public boolean tryWriteLockWithConditionRefLeft(Node expected) {
             Node value = l;
             if (expected != value || lStamp != 0) {
                 return false;
@@ -193,7 +181,23 @@ public class ConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
             }
         }
 
-        public boolean tryWriteLockWithConditionRight(Node expected) {
+        public boolean tryWriteLockWithConditionValLeft(Node expected) {
+            Node value = l;
+            if (lStamp != 0 || (value == null || compare(expected.key, value.key) != 0)) {
+                return false;
+            }
+            if (compareAndSetLeftStamp(0, 1)) {
+                if (l == null || compare(expected.key, l.key) != 0) {
+                    unlockWriteLeft();
+                    return false;
+                }
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        public boolean tryWriteLockWithConditionRefRight(Node expected) {
             Node value = r;
             if (expected != value || rStamp != 0) {
                 return false;
@@ -210,14 +214,34 @@ public class ConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
             }
         }
 
-        public boolean tryWriteLockWithConditionState(State expected) {
-            State value = state;
-            if (expected != value || stateStamp != 0) {
+        public boolean tryWriteLockWithConditionValRight(Node expected) {
+            Node value = r;
+            if (rStamp != 0 || (value == null || compare(expected.key, value.key) != 0)) {
+                return false;
+            }
+            if (compareAndSetRightStamp(0, 1)) {
+                if (r == null || compare(expected.key, r.key) != 0) {
+                    unlockWriteRight();
+                    return false;
+                }
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        private boolean dataMatch(V value, boolean data) {
+            return data ^ (value == null);
+        }
+
+        public boolean tryWriteLockWithConditionState(boolean data) {
+            V value = this.value;
+            if (stateStamp != 0 || !dataMatch(value, data) || deleted) {
                 return false;
             }
             if (compareAndSetStateStamp(0, 1)) {
                 //assert stateStamp == 1;
-                if (expected != state) {
+                if (!dataMatch(this.value, data) || deleted) {
                     unlockWriteState();
                     return false;
                 }
@@ -227,36 +251,20 @@ public class ConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
             }
         }
 
-        public boolean multiLockWithConditionState(State read, State write) {
+        public boolean tryReadLockWithConditionState(boolean data) {
             int stamp;
-            State value;
+            V value;
             while (true) {
                 stamp = this.stateStamp;
-                value = this.state;
-                if (value != read && value != write) {
+                value = this.value;
+                if (stamp == 1 || !dataMatch(value, data) || deleted) {
                     return false;
                 }
-                if (value == read) {
-                    if (stamp == 1) {
-                        continue;
-                    }
-                    if (compareAndSetStateStamp(stamp, stamp + 2)) {
-                        if (this.state != read) {
-                            unlockReadState();
-                        } else {
-                            return true;
-                        }
-                    }
-                } else {
-                    if (stamp != 0) {
-                        continue;
-                    }
-                    if (compareAndSetStateStamp(0, 1)) {
-                        if (this.state != write) {
-                            unlockWriteState();
-                        } else {
-                            return true;
-                        }
+                if (compareAndSetStateStamp(stamp, stamp + 2)) {
+                    if (!dataMatch(this.value, data) || deleted) {
+                        unlockReadState();
+                    } else {
+                        return true;
                     }
                 }
             }
@@ -321,7 +329,7 @@ public class ConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
 
     }
 
-    private final Node<K, V> ROOT = new Node(null, null);
+    private final Node ROOT = new Node(null, null);
     private Comparator<? super K> comparator;
 
     public ConcurrencyOptimalTreeMap() {
@@ -356,14 +364,14 @@ public class ConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
         return comparator.compare(k1, k2);
     }
 
-    public boolean validateAndTryLock(Node<K, V> parent, Node child, boolean left) {
+    public boolean validateRefAndTryLock(Node parent, Node child, boolean left) {
         boolean ret = false;
         if (left) {
-            ret = parent.tryWriteLockWithConditionLeft(child);
+            ret = parent.tryWriteLockWithConditionRefLeft(child);
         } else {
-            ret = parent.tryWriteLockWithConditionRight(child);
+            ret = parent.tryWriteLockWithConditionRefRight(child);
         }
-        if (parent.state == State.DELETED) {
+        if (parent.deleted) {
             if (ret) {
                 if (left) {
                     parent.unlockWriteLeft();
@@ -376,7 +384,27 @@ public class ConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
         return ret;
     }
 
-    public void undoValidateAndTryLock(Node<K, V> parent, boolean left) {
+    public boolean validateValAndTryLock(Node parent, Node child, boolean left) {
+        boolean ret = false;
+        if (left) {
+            ret = parent.tryWriteLockWithConditionValLeft(child);
+        } else {
+            ret = parent.tryWriteLockWithConditionValRight(child);
+        }
+        if (parent.deleted) {
+            if (ret) {
+                if (left) {
+                    parent.unlockWriteLeft();
+                } else {
+                    parent.unlockWriteRight();
+                }
+            }
+            return false;
+        }
+        return ret;
+    }
+
+    public void undoValidateAndTryLock(Node parent, boolean left) {
         if (left) {
             parent.unlockWriteLeft();
         } else {
@@ -384,238 +412,295 @@ public class ConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
         }
     }
 
-    public void undoValidateAndTryLock(Node<K, V> parent, Node<K, V> child) {
+    public void undoValidateAndTryLock(Node parent, Node child) {
         undoValidateAndTryLock(parent, compare(child.key, parent.key) < 0);
     }
 
-    public Node<K, V> traverse(Object key, Node<K, V> start) {
+    public class Window {
+        Node curr, prev, gprev;
+
+        public Window() {
+            this.prev = ROOT;
+            this.curr = ROOT.l;
+        }
+
+        public void reset() {
+            this.prev = ROOT;
+            this.curr = ROOT.l;
+        }
+
+        public void set(Node curr, Node prev) {
+            this.prev = prev;
+            this.curr = curr;
+        }
+
+        public void add(Node next) {
+            gprev = prev;
+            prev = curr;
+            curr = next;
+        }
+    }
+
+    public Window traverse(Object key, Window window) {
         final Comparable<? super K> k = comparable(key);
-        Node<K, V> curr = start;
-        Node<K, V> prev = ROOT;
-//        if (start == ROOT) {
-//            prev = ROOT;
-//            curr = ROOT.l;
-//        }
         int comparison;
+        Node curr = window.curr;
         while (curr != null) {
             comparison = k.compareTo(curr.key);
             if (comparison == 0) {
-                return curr;
+                return window;
             }
-            prev = curr;
             if (comparison < 0) {
                 curr = curr.l;
             } else {
                 curr = curr.r;
             }
+            window.add(curr);
         }
-        return prev;
+        return window;
     }
 
     @Override
     public V putIfAbsent(K key, V value) {
-        Node<K, V> start = ROOT.l;
+        final Window window = new Window();
         while (true) {
-            final Node<K, V> curr = traverse(key, start);
-            final int comparison = curr.key == null ? -1 : compare(key, curr.key);
+            final Node curr = traverse(key, window).curr;
+            final int comparison = curr == null ?
+                    (window.prev.key == null ? -1 : compare(key, window.prev.key)) :
+                    (curr.key == null ? -1 : compare(key, curr.key));
             if (comparison == 0) {
-                boolean lockRetry = true;
-                while (lockRetry) {
-                    switch (curr.state) {
-                        case DATA:
-//                            V get = curr.setAndGetNotNull(value); <- for put
-                            V get = curr.value;
-                            if (get == null) {
-                                break;
-                            }
-                            return get;
-                        case DELETED:
-                            lockRetry = false;
-                            start = ROOT.l;
-                            break;
-                        case ROUTING:
-                            if (curr.tryWriteLockWithConditionState(State.ROUTING)) {
-//                                curr.setAndGet(value); <- for put
-                                curr.value = value;
-                                curr.state = State.DATA;
-                                curr.unlockWriteState();
-                                return null;
-                            }
+                while (true) {
+                    if (curr.deleted) {
+                        window.reset();
+                        break;
+                    }
+                    V get = curr.value;
+                    if (get != null) {
+                        return get;
+                    }
+                    if (curr.tryWriteLockWithConditionState(false)) { // Already checked on deleted
+//                      curr.setAndGet(value); <- for put
+                        curr.value = value;
+                        curr.unlockWriteState();
+                        return null;
                     }
                 }
             } else {
-                final Node<K, V> node = new Node<>(key, value);
-                final Node<K, V> prev = curr;
-                prev.readLockState();
+                final Node prev = window.prev;
+                final Node node = new Node(key, value);
                 final boolean left = comparison < 0;
-                if (validateAndTryLock(prev, null, left)) {
-                    node.parent = prev;
-                    if (left) {
-                        prev.l = node;
-                    } else {
-                        prev.r = node;
+                if (validateRefAndTryLock(prev, null, left)) {
+                    prev.readLockState();
+                    if (!prev.deleted) {
+                        if (left) {
+                            prev.l = node;
+                        } else {
+                            prev.r = node;
+                        }
+                        prev.unlockReadState();
+                        undoValidateAndTryLock(prev, left);
+                        return null;
                     }
-                    undoValidateAndTryLock(prev, left);
                     prev.unlockReadState();
-                    return null;
-                } else {
-                    if (prev.state == State.DELETED) {
-                        start = ROOT.l;
-                    } else {
-                        start = prev;
-                    }
+                    undoValidateAndTryLock(prev, left);
                 }
-                prev.unlockReadState();
+                if (prev.deleted) {
+                    window.reset();
+                } else {
+                    window.set(window.prev, window.gprev);
+                }
             }
         }
     }
 
+    public int numberOfChildren(Node l, Node r) {
+        return (l == null ? 0 : 1) + (r == null ? 0 : 1);
+    }
+
     public V remove(final Object key) {
-        boolean restart = true;
-        final Node<K, V> curr = traverse(key, ROOT.l);
         V get = null;
-        while (restart) {
-            if (compare((K) key, curr.key) != 0 || curr.value == null) {
+        final Window window = new Window();
+        while (true) {
+            window.reset();
+            Node curr = traverse(key, window).curr;
+            if (curr == null || curr.value == null || curr.deleted) {
                 return null;
             }
-            if (!curr.tryWriteLockWithConditionState(State.DATA)) {
-                continue;
-            }
-            switch (curr.numberOfChildren()) {
-                case 2: {
-//                    get = curr.setAndGet(null); <- for put
-                    get = curr.value;
-                    curr.value = null;
-                    curr.state = State.ROUTING;
-                    restart = false;
-                    break;
+            Node left = curr.l;
+            Node right = curr.r;
+            int nc = numberOfChildren(left, right);
+            if (nc == 2) {
+                if (!curr.tryWriteLockWithConditionState(true)) {
+                    continue;
                 }
-                case 1: {
-                    final Node<K, V> child;
-                    boolean leftChild = false;
-                    if (curr.l != null) {
-                        leftChild = true;
-                        curr.writeLockLeft();
-                        child = curr.l;
-                    } else {
-                        curr.writeLockRight();
-                        child = curr.r;
-                    }
-                    final Node<K, V> prev = curr.parent;
-                    final boolean leftCurr = prev.key == null || compare(curr.key, prev.key) < 0;
-                    if (!validateAndTryLock(prev, curr, leftCurr)) {
-                        if (leftChild) {
-                            curr.unlockWriteLeft();
-                        } else {
-                            curr.unlockWriteRight();
-                        }
-                        break;
-                    }
+                if (curr.numberOfChildren() != 2) {
+                    curr.unlockWriteState();
+                    continue;
+                }
+                get = curr.value;
+                curr.value = null;
+                curr.unlockWriteState();
+                return get;
+            } else if (nc == 1) {
+                final Node child;
+                boolean leftChild = false;
+                if (left != null) {
+                    leftChild = true;
+                    child = left;
+                } else {
+                    child = right;
+                }
+                final Node prev = window.prev;
+                final boolean leftCurr = prev.key == null || compare(curr.key, prev.key) < 0;
+                if (!validateRefAndTryLock(curr, child, leftChild)) {
+//                    window.reset();
+                    continue;
+                }
+                if (!validateRefAndTryLock(prev, curr, leftCurr)) {
+                    undoValidateAndTryLock(curr, leftChild);
+//                    window.reset();
+                    continue;
+                }
+                if (!curr.tryWriteLockWithConditionState(true)) {
+                    undoValidateAndTryLock(prev, leftCurr);
+                    undoValidateAndTryLock(curr, leftChild);
+                    continue;
+                }
+                if (curr.numberOfChildren() != 1) {
+                    curr.unlockWriteState();
+                    undoValidateAndTryLock(prev, leftCurr);
+                    undoValidateAndTryLock(curr, leftChild);
+                    continue;
+                }
 //                    get = curr.setAndGet(null); <- for put
-                    get = curr.value;
-                    curr.value = null;
-                    curr.state = State.DELETED;
-                    child.parent = prev;
+                get = curr.value;
+                curr.deleted = true;
+                if (leftCurr) {
+                    prev.l = child;
+                } else {
+                    prev.r = child;
+                }
+                curr.unlockWriteState();
+                undoValidateAndTryLock(prev, leftCurr);
+                undoValidateAndTryLock(curr, leftChild);
+                return get;
+            } else {
+                final Node prev = window.prev;
+                final boolean leftCurr = prev.key == null || compare(curr.key, prev.key) < 0;
+                if (prev.value != null) {
+                    if (!validateValAndTryLock(prev, curr, leftCurr)) {
+//                        window.reset();
+                        continue;
+                    }
                     if (leftCurr) {
-                        prev.l = child;
+                        curr = prev.l;
                     } else {
-                        prev.r = child;
+                        curr = prev.r;
                     }
+                    if (!curr.tryWriteLockWithConditionState(true)) {
+                        undoValidateAndTryLock(prev, leftCurr);
+                        continue;
+                    }
+                    if (curr.numberOfChildren() != 0) {
+                        curr.unlockWriteState();
+                        undoValidateAndTryLock(prev, leftCurr);
+                        continue;
+                    }
+                    if (!prev.tryReadLockWithConditionState(true)) {
+                        curr.unlockWriteState();
+                        undoValidateAndTryLock(prev, leftCurr);
+//                        window.reset();
+                        continue;
+                    }
+                    get = curr.value;//curr.setAndGet(null);
+                    curr.deleted = true;
+                    if (leftCurr) {
+                        prev.l = null;
+                    } else {
+                        prev.r = null;
+                    }
+                    prev.unlockReadState();
+                    curr.unlockWriteState();
                     undoValidateAndTryLock(prev, leftCurr);
-                    if (leftChild) {
-                        curr.unlockWriteLeft();
+                    return get;
+                } else {
+                    final Node child;
+                    boolean leftChild = false;
+                    if (leftCurr) {
+                        child = prev.r;
                     } else {
-                        curr.unlockWriteRight();
+                        child = prev.l;
+                        leftChild = true;
                     }
-                    restart = false;
-                    break;
-                }
-                case 0: {
-                    final Node<K, V> prev = curr.parent;
-                    if (!prev.multiLockWithConditionState(State.DATA, State.ROUTING)) {
-                        break;
+                    final Node gprev = window.gprev;
+                    final boolean leftPrev = gprev.key == null || compare(prev.key, gprev.key) < 0;
+                    if (!validateValAndTryLock(prev, curr, leftCurr)) {
+//                        window.reset();
+                        continue;
                     }
-                    final boolean leftCurr = prev.key == null || compare(curr.key, prev.key) < 0;
-                    if (!validateAndTryLock(prev, curr, leftCurr)) {
-                        prev.multiUnlockState();
-                        break;
-                    }
-                    if (prev.state == State.DATA) {
-                        get = curr.setAndGet(null);
-                        curr.state = State.DELETED;
-                        if (leftCurr) {
-                            prev.l = null;
-                        } else {
-                            prev.r = null;
-                        }
+                    if (leftCurr) {
+                        curr = prev.l;
                     } else {
-                        //assert prev.state != State.DELETED;
-                        final Node<K, V> child;
-                        boolean leftChild = false;
-                        if (leftCurr) {
-                            prev.readLockRight();
-                            child = prev.r;
-                            //assert child.state != State.DELETED;
-                        } else {
-                            prev.readLockLeft();
-                            child = prev.l;
-                            //assert child.state != State.DELETED;
-                            leftChild = true;
-                        }
-                        final Node<K, V> gprev = prev.parent;
-                        final boolean leftPrev = gprev.key == null || compare(prev.key, gprev.key) < 0;
-                        if (!validateAndTryLock(gprev, prev, leftPrev)) {
-                            if (leftChild) {
-                                prev.unlockReadLeft();
-                            } else {
-                                prev.unlockReadRight();
-                            }
-                            undoValidateAndTryLock(prev, leftCurr);
-//                            prev.unlockWriteState();
-                            prev.multiUnlockState();
-//                            prev.unlockReadState();
-                            break;
-                        }
-                        prev.state = State.DELETED;
-//                        get = curr.setAndGet(null); <- for put
-                        get = curr.value;
-                        curr.value = null;
-                        curr.state = State.DELETED;
-                        child.parent = gprev;
-                        if (leftPrev) {
-                            gprev.l = child;
-                        } else {
-                            gprev.r = child;
-                        }
-                        //assert child.state != State.DELETED;
-                        //assert gprev.state != State.DELETED;
+                        curr = prev.r;
+                    }
+                    if (!curr.tryWriteLockWithConditionState(true)) {
+                        undoValidateAndTryLock(prev, leftCurr);
+                        continue;
+                    }
+                    if (curr.numberOfChildren() != 0) {
+                        curr.unlockWriteState();
+                        undoValidateAndTryLock(prev, leftCurr);
+                        continue;
+                    }
+                    if (!validateRefAndTryLock(prev, child, leftChild)) {
+                        curr.unlockWriteState();
+                        undoValidateAndTryLock(prev, leftCurr);
+//                        window.reset();
+                        continue;
+                    }
+                    if (!validateRefAndTryLock(gprev, prev, leftPrev)) {
+                        undoValidateAndTryLock(prev, leftChild);
+                        curr.unlockWriteState();
+                        undoValidateAndTryLock(prev, leftCurr);
+//                        window.reset();
+                        continue;
+                    }
+                    if (!prev.tryWriteLockWithConditionState(false)) {
                         undoValidateAndTryLock(gprev, leftPrev);
-                        if (leftChild) {
-                            prev.unlockReadLeft();
-                        } else {
-                            prev.unlockReadRight();
-                        }
+                        undoValidateAndTryLock(prev, leftChild);
+                        curr.unlockWriteState();
+                        undoValidateAndTryLock(prev, leftCurr);
+                        continue;
                     }
-                    restart = false;
+                    prev.deleted = true;
+//                        get = curr.setAndGet(null); <- for put
+                    get = curr.value;
+                    curr.deleted = true;
+                    if (leftPrev) {
+                        gprev.l = child;
+                    } else {
+                        gprev.r = child;
+                    }
+                    prev.unlockWriteState();
+                    undoValidateAndTryLock(gprev, leftPrev);
+                    undoValidateAndTryLock(prev, leftChild);
+                    curr.unlockWriteState();
                     undoValidateAndTryLock(prev, leftCurr);
-//                    prev.unlockWriteState();
-                    prev.multiUnlockState();
+                    return get;
                 }
             }
-            curr.unlockWriteState();
         }
-        return get;
     }
 
     @Override
     public V get(final Object key) {
-        Node<K, V> curr = ROOT.l;
+        Node curr = ROOT.l;
         final Comparable<? super K> k = comparable(key);
         int comparison;
         while (curr != null) {
             comparison = k.compareTo(curr.key);
             if (comparison == 0) {
-                return curr.value;
+                return curr.deleted ? null : curr.value;
             }
             if (comparison < 0) {
                 curr = curr.l;
@@ -632,7 +717,7 @@ public class ConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
     }
 
     @Override
-    public Set<java.util.Map.Entry<K, V>> entrySet() {
+    public Set<Entry<K, V>> entrySet() {
         throw new AssertionError("Entry set is not implemented");
     }
 
@@ -640,8 +725,8 @@ public class ConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
         if (v == null) {
             return 0;
         }
-        assert v.state != State.DELETED;
-        return (v.state == State.DATA ? 1 : 0) + size(v.l) + size(v.r);
+        assert !v.deleted;
+        return (v.value != null ? 1 : 0) + size(v.l) + size(v.r);
     }
 
     @Override
@@ -671,7 +756,7 @@ public class ConcurrencyOptimalTreeMap<K, V> extends AbstractMap<K, V>
         if (v == null) {
             return 0;
         }
-        return (v.state == State.DATA ? d : 0) + sumDepth(v.l, d + 1) + sumDepth(v.r, d + 1);
+        return (v.value == null ? d : 0) + sumDepth(v.l, d + 1) + sumDepth(v.r, d + 1);
     }
 
     public int averageDepth() {
