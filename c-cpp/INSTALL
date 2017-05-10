@@ -23,6 +23,11 @@ INSTALL
    * sequential-rbtree
    * sequential-skiplist
 
+LANGUAGE STANDARD REVISIONS
+------------------------
+   Most data structures compile with GNU89 however some require GNU11 features 
+   only supported with: GCC from version 4.9 and Clang from version 3.6.
+
 SYNCHRONIZATIONS
 ----------------
    

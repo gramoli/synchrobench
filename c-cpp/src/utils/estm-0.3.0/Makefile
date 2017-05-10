@@ -10,6 +10,7 @@ MODULES := $(patsubst %.c,%.o,$(wildcard $(SRCDIR)/mod_*.c))
 all:	$(TMLIB)
 
 $(TMLIB):	$(SRCDIR)/$(TM).o $(SRCDIR)/wrappers.o $(SRCDIR)/gc.o $(MODULES)
+	@mkdir -p lib
 	$(AR) cru $@ $^
 
 clean:

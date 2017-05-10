@@ -25,16 +25,30 @@
 
 unsigned int levelmax;
 
+/*
+ * Returns a random level for inserting a new node, results are hardwired to p=0.5, min=1, max=32.
+ *
+ * "Xorshift generators are extremely fast non-cryptographically-secure random number generators on
+ * modern architectures."
+ *
+ * Marsaglia, George, (July 2003), "Xorshift RNGs", Journal of Statistical Software 8 (14)
+ */
 int get_rand_level() {
-	int i, level = 1;
-	for (i = 0; i < levelmax - 1; i++) {
-		if ((rand_range(100)-1) < 50)
-			level++;
-		else
-			break;
+	static uint32_t y = 2463534242UL;
+	y^=(y<<13);
+	y^=(y>>17);
+	y^=(y<<5);
+	uint32_t temp = y;
+	uint32_t level = 1;
+	while (((temp >>= 1) & 1) != 0) {
+		++level;
 	}
 	/* 1 <= level <= levelmax */
-	return level;
+	if (level > levelmax) {
+		return (int)levelmax;
+	} else {
+		return (int)level;
+	}
 }
 
 int floor_log_2(unsigned int n) {

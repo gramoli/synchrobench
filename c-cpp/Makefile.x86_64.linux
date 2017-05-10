@@ -1,7 +1,7 @@
 .PHONY:	all
 
 BENCHS = src/trees/sftree src/linkedlists/lockfree-list src/hashtables/lockfree-ht src/trees/rbtree src/skiplists/sequential
-LBENCHS = src/trees/tree-lock src/linkedlists/lock-coupling-list src/linkedlists/lazy-list src/hashtables/lockbased-ht src/skiplists/skiplist-lock 
+LBENCHS = src/trees/tree-lock src/linkedlists/lock-coupling-list src/linkedlists/lazy-list src/linkedlists/versioned src/hashtables/lockbased-ht src/skiplists/skiplist-lock 
 LFBENCHS = src/trees/lfbstree src/linkedlists/lockfree-list src/hashtables/lockfree-ht src/skiplists/rotating src/skiplists/fraser src/skiplists/nohotspot
 
 #MAKEFLAGS+=-j4

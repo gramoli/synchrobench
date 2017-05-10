@@ -17,11 +17,17 @@ CFLAGS += -Wall -pedantic -std=gnu11
 
 all: selfish fomitchev
 
+selfish.o:
+	$(CC) $(CFLAGS) -c -o $(BUILDIR)/selfish.o selfish.c
+
 selfish: selfish.o test.c
-	$(CC) $(CFLAGS) -DSELFISH selfish.o test.c -o $(BINDIR)/lockfree-selfishlist $(LDFLAGS)
+	$(CC) $(CFLAGS) -DSELFISH $(BUILDIR)/selfish.o test.c -o $(BINDIR)/lockfree-selfishlist $(LDFLAGS)
+
+fomitchev.o:
+	$(CC) $(CFLAGS) -c -o $(BUILDIR)/fomitchev.o fomitchev.c
 
 fomitchev: fomitchev.o test.c
-	$(CC) $(CFLAGS) -DFOMITCHEV fomitchev.o test.c -o $(BINDIR)/lockfree-fomitchevlist $(LDFLAGS)
+	$(CC) $(CFLAGS) -DFOMITCHEV $(BUILDIR)/fomitchev.o test.c -o $(BINDIR)/lockfree-fomitchevlist $(LDFLAGS)
 
 clean:	
-	-rm -f *.o $(BINDIR)/selfish-list $(BINDIR)/fomitchev-list 
+	-rm -f *.o $(BINS)

@@ -45,6 +45,8 @@
 			<exclude name="arrays/transactional/Vector.java" />
 			<exclude name="arrays/sequential/SequentialVector.java" />
 			<exclude name="arrays/lockbased/Vector.java" />
+			<exclude name="trees/lockbased/CATreeMapAVL.java" />
+			<exclude name="trees/lockbased/catreeutils/*" />
                         <compilerarg value="-XDignore.symbol.file"/>
                 </javac>
  	</target>

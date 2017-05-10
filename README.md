@@ -24,6 +24,7 @@ Synchrobench includes variants of the algorithms presented in these papers:
    Selfish. In DISC, 2015.
  - V. Gramoli, P. Kuznetsov, S. Ravi, D. Shang. A Concurrency-Optimal 
    List-Based Set. arXiv:1502.01633, February 2015 and DISC 2015.
+ - K. Sagonas and K. Winblad. Contention Adapting Search Trees. In ISPDC 2015.
  - I. Dick, A. Fekete and V. Gramoli. Logarithmic data structures for
    multicores. Technical Report 697, University of Sydney, September
    2014.

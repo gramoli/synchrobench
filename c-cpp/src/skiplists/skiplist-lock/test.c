@@ -65,7 +65,28 @@ void barrier_cross(barrier_t *b)
   pthread_mutex_unlock(&b->mutex);
 }
 
-/* Re-entrant version of rand_range(r) */
+/* 
+ * Returns a pseudo-random value in [1;range).
+ * Depending on the symbolic constant RAND_MAX>=32767 defined in stdlib.h,
+ * the granularity of rand() could be lower-bounded by the 32767^th which might 
+ * be too high for given values of range and initial.
+ *
+ * Note: this is not thread-safe and will introduce futex locks
+ */
+inline long rand_range(long r) {
+	int m = RAND_MAX;
+	int d, v = 0;
+	
+	do {
+		d = (m > r ? r : m);		
+		v += 1 + (int)(d * ((double)rand()/((double)(m)+1.0)));
+		r -= m;
+	} while (r > 0);
+	return v;
+}
+long rand_range(long r);
+
+/* Thread-safe, re-entrant version of rand_range(r) */
 inline long rand_range_re(unsigned int *seed, long r) {
   int m = RAND_MAX;
   long d, v = 0;
@@ -77,6 +98,7 @@ inline long rand_range_re(unsigned int *seed, long r) {
   } while (r > 0);
   return v;
 }
+long rand_range_re(unsigned int *seed, long r);
 
 typedef struct thread_data {
   val_t first;
@@ -351,6 +373,7 @@ void *test2(void *data)
     int alternate = DEFAULT_ALTERNATE;
     int effective = DEFAULT_EFFECTIVE;
     sigset_t block_set;
+    struct sl_ptst *ptst;
 		
     while(1) {
       i = 0;
@@ -473,7 +496,15 @@ void *test2(void *data)
       srand(seed);
 		
     levelmax = floor_log_2((unsigned int) initial);
-    set = sl_set_new();
+    /* create the skip list set and do inits */
+    ptst_subsystem_init();
+    gc_subsystem_init();
+    set_subsystem_init();
+
+
+    ptst = ptst_critical_enter();
+    set = sl_set_new(ptst);
+    ptst_critical_exit(ptst);
     stop = 0;
 		
     global_seed = rand();
@@ -680,8 +711,12 @@ void *test2(void *data)
 	   aborts_invalid_memory * 1000.0 / duration);
     printf("Max retries   : %lu\n", max_retries);
 		
+    gc_subsystem_destroy();
+
     /* Delete set */
-    sl_set_delete(set);
+    ptst = ptst_critical_enter();
+    sl_set_delete(set, ptst);
+    ptst_critical_exit(ptst);
 		
 #ifndef TLS
     pthread_key_delete(rng_seed_key);
