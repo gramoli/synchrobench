@@ -89,5 +89,3 @@ void sl_delete_node(sl_node_t *n);
 sl_intset_t *sl_set_new();
 void sl_set_delete(sl_intset_t *set);
 unsigned long sl_set_size(sl_intset_t *set);
-
-inline long rand_range(long r); /* declared in test.c */

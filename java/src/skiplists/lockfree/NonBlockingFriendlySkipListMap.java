@@ -67,18 +67,6 @@ public class NonBlockingFriendlySkipListMap<K, V> extends AbstractMap<K, V>
 	private static final ConcurrentLinkedQueue<NonBlockingFriendlySkipListMap> skipLists = new ConcurrentLinkedQueue<NonBlockingFriendlySkipListMap>();
 
 	/**
-	 * Seed for simple random number generator. Not volatile since it doesn't
-	 * matter too much if different threads don't see updates.
-	 */
-	private transient int randomSeed;
-
-	/**
-	 * Generates the initial random seed for the cheaper per-instance random
-	 * number generators used in randomLevel.
-	 */
-	private static final Random seedGenerator = new Random();
-
-	/**
 	 * Number of times the bottom indexItem level has been removed
 	 */
 	private final AtomicInteger bottomLevelRaiseCount = new AtomicInteger();
@@ -102,7 +90,7 @@ public class NonBlockingFriendlySkipListMap<K, V> extends AbstractMap<K, V>
 	/**
 	 * The maximum height the skip list can reach
 	 */
-	private static final int totalHeight = 40;
+	private static final int totalHeight = 31;
 
 	/**
 	 * The height of the skip list to start
@@ -432,7 +420,6 @@ public class NonBlockingFriendlySkipListMap<K, V> extends AbstractMap<K, V>
 		begin.next = null;
 		begin.vars.topLevel = totalHeight;
 		// begin.vars.bottomLevel = 0;
-		randomSeed = seedGenerator.nextInt() | 0x0100;
 
 		// The following lines create a new node of maximum initial height
 		// used as the "root" node in the list, and points the beginning
@@ -1628,16 +1615,7 @@ public class NonBlockingFriendlySkipListMap<K, V> extends AbstractMap<K, V>
 	 * acceptable here.
 	 */
 	private int randomLevel() {
-		int x = randomSeed;
-		x ^= x << 13;
-		x ^= x >>> 17;
-		randomSeed = x ^= x << 5;
-		if ((x & 0x8001) != 0) // test highest and lowest bits
-			return 0;
-		int level = 1;
-		while (((x >>>= 1) & 1) != 0)
-			++level;
-		return level;
+		return Math.min((totalHeight - 1), (skiplists.RandomLevelGenerator.randomLevel()));
 	}
 
 	/**

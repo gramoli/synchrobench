@@ -16,12 +16,15 @@ Data structures
 Note that the proposed data structures are not synchronized with each individual
 synchronization technique, 30+ algorithms from the literature are provided.
 Synchrobench includes variants of the algorithms presented in these papers:
+ - V. Aksenov, V. Gramoli, P. Kuznetsov, A. Malova, S. Ravi. A Concurrency-Optimal Binary Search Tree.
+   In Euro-Par, 2017. arXiv:1705.02851
  - I. Dick, A. Fekete, V. Gramoli. A Skip List for Multicore. Concurrency and Computation: Practice and Experience. 2016.
  - M. Herlihy, N. Shavit. The Art of Multiprocessor Programming. 2008.
  - J. Gibson, V. Gramoli. Why Non-Blocking Operations Should Be
    Selfish. In DISC, 2015.
  - V. Gramoli, P. Kuznetsov, S. Ravi, D. Shang. A Concurrency-Optimal 
    List-Based Set. arXiv:1502.01633, February 2015 and DISC 2015.
+ - K. Sagonas and K. Winblad. Contention Adapting Search Trees. In ISPDC 2015.
  - I. Dick, A. Fekete and V. Gramoli. Logarithmic data structures for
    multicores. Technical Report 697, University of Sydney, September
    2014.

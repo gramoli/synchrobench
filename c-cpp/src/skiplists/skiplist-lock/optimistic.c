@@ -150,7 +150,9 @@ int optimistic_insert(sl_intset_t *set, val_t val) {
       continue;
     }
 		
-    new_node = sl_new_simple_node(val, toplevel, 2);
+    ptst_t *ptst = ptst_critical_enter();
+    new_node = sl_new_simple_node(val, toplevel, 2, ptst);
+    ptst_critical_exit(ptst);
     for (i = 0; i < toplevel; i++) {
       new_node->next[i] = succs[i];
       preds[i]->next[i] = new_node;
@@ -233,6 +235,9 @@ int optimistic_delete(sl_intset_t *set, val_t val) {
 	preds[i]->next[i] = node_todel->next[i];
       UNLOCK(&node_todel->lock);	
       unlock_levels(preds, highest_locked, 22);
+      ptst_t *ptst = ptst_critical_enter();
+      sl_delete_node(node_todel, ptst);
+      ptst_critical_exit(ptst);
       return 1;
     } else {
       return 0;
