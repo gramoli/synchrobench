@@ -13,13 +13,13 @@ import contention.abstractions.CompositionalIterator;
  */
 public class SequentialSkipListIntSet implements CompositionalIntSet {
 
-    /** The probability to increase level */
-    final private double probability;
     /** The maximum number of levels */
     final private int maxLevel;
     /** The first element of the list */
     final public Node head;
-    /** The thread-private PRNG */
+    /** The last element of the list */
+    final public Node tail;
+    /** The thread-private PRNG, used for fil(), not for height/level determination. */
     final private static ThreadLocal<Random> s_random = new ThreadLocal<Random>() {
         @Override
         protected synchronized Random initialValue() {
@@ -28,14 +28,13 @@ public class SequentialSkipListIntSet implements CompositionalIntSet {
     };
 	
     public SequentialSkipListIntSet() {
-        this(6, 0.25);
+        this(31);
     }
     
-    public SequentialSkipListIntSet(final int maxLevel, final double probability) {
+    public SequentialSkipListIntSet(final int maxLevel) {
 	this.maxLevel = maxLevel;
-	this.probability = probability;
 	this.head = new Node(maxLevel, Integer.MIN_VALUE);
-	final Node tail = new Node(maxLevel, Integer.MAX_VALUE);
+	this.tail = new Node(maxLevel, Integer.MAX_VALUE);
 	for (int i = 0; i <= maxLevel; i++) {
 	    head.setNext(i, tail);
 	}
@@ -46,15 +45,11 @@ public class SequentialSkipListIntSet implements CompositionalIntSet {
 	    this.addInt(s_random.get().nextInt(range));
 	}
     }
-    
-    protected int randomLevel() {
-	int l = 0;
-	while (l < maxLevel && s_random.get().nextDouble() < probability) {
-	    l++;
+
+	private int randomLevel() {
+	    return Math.min((maxLevel - 1), (skiplists.RandomLevelGenerator.randomLevel()));
 	}
-	return l;
-    }
-    
+
     @Override
     public boolean containsInt(final int value) { 
 	boolean result;
@@ -250,12 +245,14 @@ public class SequentialSkipListIntSet implements CompositionalIntSet {
     }
 
     /** 
-     * This is called after the JVM warmup phase
-     * to make sure the data structure is well initalized.
-     * No need to do anything for this.
+     * This is called after the JVM warmup phase to make sure the data structure is well initalized,
+     * and after each iteration to clear the structure.
      */
     public void clear() {
-    	return;	
+	for (int i = 0; i <= this.maxLevel; i++) {
+		this.head.setNext(i, this.tail);
+	}
+	return;
     }
     
     @Override

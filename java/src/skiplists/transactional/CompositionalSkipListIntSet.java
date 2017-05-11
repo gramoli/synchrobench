@@ -17,13 +17,11 @@ import contention.abstractions.CompositionalIterator;
  */
 public class CompositionalSkipListIntSet implements CompositionalIntSet {
 
-	/** The probability to increase level */
-    final private double probability;
     /** The maximum number of levels */
     final private int maxLevel;
     /** The first element of the list */
     final public Node head;
-    /** The thread-private PRNG */
+    /** The thread-private PRNG, used for fil(), not for height/level determination. */
     final private static ThreadLocal<Random> s_random = new ThreadLocal<Random>() {
         @Override
         protected synchronized Random initialValue() {
@@ -32,12 +30,11 @@ public class CompositionalSkipListIntSet implements CompositionalIntSet {
     };
 	
     public CompositionalSkipListIntSet() {
-        this(6, 0.25);
+        this(31);
     }
     
-	public CompositionalSkipListIntSet(final int maxLevel, final double probability) {
+	public CompositionalSkipListIntSet(final int maxLevel) {
 		this.maxLevel = maxLevel;
-		this.probability = probability;
 		this.head = new Node(maxLevel, Integer.MIN_VALUE);
 		final Node tail = new Node(maxLevel, Integer.MAX_VALUE);
 		for (int i = 0; i <= maxLevel; i++) {
@@ -52,11 +49,7 @@ public class CompositionalSkipListIntSet implements CompositionalIntSet {
 	}
 	
 	protected int randomLevel() {
-		int l = 0;
-		while (l < maxLevel && s_random.get().nextDouble() < probability) {
-			l++;
-		}
-		return l;
+	    return Math.min((maxLevel - 1), (skiplists.RandomLevelGenerator.randomLevel()));
 	}
 	
 	@Override

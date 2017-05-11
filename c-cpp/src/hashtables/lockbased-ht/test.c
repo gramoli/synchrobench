@@ -62,6 +62,8 @@ void barrier_cross(barrier_t *b)
  * Depending on the symbolic constant RAND_MAX>=32767 defined in stdlib.h,
  * the granularity of rand() could be lower-bounded by the 32767^th which might 
  * be too high for given values of range and initial.
+ *
+ * Note: this is not thread-safe and will introduce futex locks
  */
 inline long rand_range(long r) {
 	int m = RAND_MAX;
@@ -74,8 +76,9 @@ inline long rand_range(long r) {
 	} while (r > 0);
 	return v;
 }
+long rand_range(long r);
 
-/* Re-entrant version of rand_range(r) */
+/* Thread-safe, re-entrant version of rand_range(r) */
 inline long rand_range_re(unsigned int *seed, long r) {
 	int m = RAND_MAX;
 	long d, v = 0;
@@ -87,6 +90,7 @@ inline long rand_range_re(unsigned int *seed, long r) {
 	} while (r > 0);
 	return v;
 }
+long rand_range_re(unsigned int *seed, long r);
 
 
 typedef struct thread_data {
@@ -422,10 +426,10 @@ int main(int argc, char **argv)
 	printf("Update rate  : %d\n", update);
 	printf("Load factor  : %d\n", load_factor);
 	printf("Move rate    : %d\n", move);
-	printf("Update rate  : %d\n", update);
+	printf("Snapshot rate: %d\n", snapshot);
 	printf("Lock alg.    : %d\n", unit_tx);
 	printf("Alternate    : %d\n", alternate);
-	printf("effective    : %d\n", effective);
+	printf("Effective    : %d\n", effective);
 	printf("Type sizes   : int=%d/long=%d/ptr=%d/word=%d\n",
 				 (int)sizeof(int),
 				 (int)sizeof(long),

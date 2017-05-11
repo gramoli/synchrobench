@@ -36,21 +36,23 @@ public class Test {
 	/** The observed duration of the benchmark */
 	private double elapsedTime;
 	/** The throughput */
-	private double throughput = 0;
+	private double[] throughput = null;
+	/** The iteration */
+	private int currentIteration = 0;
 
 	/** The total number of operations for all threads */
-	private int total = 0;
+	private long total = 0;
 	/** The total number of successful operations for all threads */
-	private int numAdd = 0;
-	private int numRemove = 0;
-	private int numAddAll = 0;
-	private int numRemoveAll = 0;
-	private int numSize = 0;
-	private int numContains = 0;
+	private long numAdd = 0;
+	private long numRemove = 0;
+	private long numAddAll = 0;
+	private long numRemoveAll = 0;
+	private long numSize = 0;
+	private long numContains = 0;
 	/** The total number of failed operations for all threads */
-	private int failures = 0;
+	private long failures = 0;
 	/** The total number of aborts */
-	private int aborts = 0;
+	private long aborts = 0;
 	/** The instance of the benchmark */
 	private Type benchType = null;
 	private CompositionalIntSet setBench = null;
@@ -186,6 +188,7 @@ public class Test {
 			e.printStackTrace();
 		}
 		instanciateAbstraction(Parameters.benchClassName);
+		this.throughput = new double[Parameters.iterations];
 	}
 
 	/**
@@ -298,7 +301,13 @@ public class Test {
 			test.printBasicStats();
 			if (Parameters.detailedStats)
 				test.printDetailedStats();
+
 			firstIteration = false;
+			test.currentIteration++;
+		}
+
+		if (Parameters.iterations > 1) {
+			test.printIterationStats();
 		}
 	}
 
@@ -526,14 +535,14 @@ public class Test {
 				break;
 			}
 		}
-		throughput = ((double) total / elapsedTime);
+		throughput[currentIteration] = ((double) total / elapsedTime);
 		printLine('-');
 		System.out.println("Benchmark statistics");
 		printLine('-');
 		System.out.println("  Average traversal length: \t"
 				+ (double) nodesTraversed / (double) getCount);
 		System.out.println("  Struct Modifications:     \t" + structMods);
-		System.out.println("  Throughput (ops/s):       \t" + throughput);
+		System.out.println("  Throughput (ops/s):       \t" + throughput[currentIteration]);
 		System.out.println("  Elapsed time (s):         \t" + elapsedTime);
 		System.out.println("  Operations:               \t" + total
 				+ "\t( 100 %)");
@@ -925,6 +934,37 @@ public class Test {
 		System.out.println("  Number of elastic reads       " + elasticReads);
 		System.out
 				.println("  Number of reads in RO prefix  " + readsInROPrefix);
+	}
+
+	/**
+	 * Print the iteration statistics on the standard output
+	 */
+	private void printIterationStats() {
+		printLine('-');
+		System.out.println("Iteration statistics");
+		printLine('-');
+
+		int n = Parameters.iterations;
+		System.out.println("  Iterations:                 \t" + n);
+		double sum = 0;
+		for (int i = 0; i < n; i++) {
+			sum += ((throughput[i]/1024)/1024);
+		}
+		System.out.println("  Total throughput (mebiops/s): " + sum);
+		double mean = sum / n;
+		System.out.println("  |--Mean:                    \t" + mean);
+		double temp = 0;
+		for (int i = 0; i < n; i++) {
+			double diff = ((throughput[i]/1024)/1024) - mean;
+			temp += diff * diff;
+		}
+		double var = temp / n;
+		System.out.println("  |--Variance:                \t" + var);
+		double stdevp = java.lang.Math.sqrt(var);
+		System.out.println("  |--Standard deviation pop:  \t" + stdevp);
+		double sterr = stdevp / java.lang.Math.sqrt(n);
+		System.out.println("  |--Standard error:          \t" + sterr);
+		System.out.println("  |--Margin of error (95% CL):\t" + (sterr * 1.96));
 	}
 
 	private static String formatDouble(double result) {

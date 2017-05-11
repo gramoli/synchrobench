@@ -57,6 +57,7 @@ all:	$(TMLIB)
 	unifdef $(D) $< > $@ || true
 
 $(TMLIB):	$(SRCDIR)/$(TM).o $(SRCDIR)/wrappers.o $(GC) $(MODULES)
+	@mkdir -p lib
 	$(AR) cru $@ $^
 
 bench:	$(TMLIB)
