@@ -348,11 +348,16 @@ int main(int argc, char **argv)
 	sigset_t block_set;
         unsigned long top;
         node_t *node = NULL;
-        int unbalanced = DEFAULT_UNBALANCED;
+				int unbalanced = DEFAULT_UNBALANCED;
+	
+	// By default, do not use mono int
+  int mono_int = 0;
+  // By default do not use reverse int also
+  int reverse_int = 0;
 
 	while(1) {
 		i = 0;
-		c = getopt_long(argc, argv, "hAf:d:i:t:r:S:u:U:", long_options, &i);
+		c = getopt_long(argc, argv, "hAmvf:d:i:t:r:S:u:U:", long_options, &i);
 
 		if(c == -1)
 			break;
@@ -389,11 +394,21 @@ int main(int argc, char **argv)
 								 "        RNG seed (0=time-based, default=" XSTR(DEFAULT_SEED) ")\n"
 								 "  -u, --update-rate <int>\n"
 								 "        Percentage of update transactions (default=" XSTR(DEFAULT_UPDATE) ")\n"
+								 "  -m, --mono-int\n"
+                 "        Monotonically increasing integer values, beginning from 0\n"
+                 "  -v, --reverse-int\n"
+                 "        Reverse integers (i.e. from maximum to zero, monotonically decreasing)\n"
 					       );
 					exit(0);
 				case 'A':
 					alternate = 1;
 					break;
+				case 'm':
+          mono_int = 1;
+          break;
+        case 'v':
+          reverse_int = 1;
+          break;
 				case 'f':
 					effective = atoi(optarg);
 					break;
@@ -426,6 +441,12 @@ int main(int argc, char **argv)
 		}
 	}
 
+	// Only one of these two can be valid
+  if(reverse_int == 1 && mono_int == 1) {
+    printf("ERROR: Can only choose one from -v and -m\n");
+    exit(1);
+  }
+
 	assert(duration >= 0);
 	assert(initial >= 0);
 	assert(nb_threads > 0);
@@ -442,6 +463,8 @@ int main(int argc, char **argv)
 	printf("Elasticity   : %d\n", unit_tx);
 	printf("Alternate    : %d\n", alternate);
 	printf("Efffective   : %d\n", effective);
+	printf("Mono int     : %d\n", mono_int);
+  printf("Reverse int  : %d\n", reverse_int);
 	printf("Type sizes   : int=%d/long=%d/ptr=%d/word=%d\n",
 				 (int)sizeof(int),
 				 (int)sizeof(long),
@@ -495,10 +518,20 @@ int main(int argc, char **argv)
 	i = 0;
 
 	while (i < initial) {
-                if (unbalanced)
-		        val = rand_range_re(&global_seed, initial);
-	        else
-                        val = rand_range_re(&global_seed, range);
+    if(mono_int) {
+      val = i;
+    } else if(reverse_int) {
+      val = initial - 1 - i;
+    } else {
+      // Whether the key is unbalanced, if it is then just insert keys
+      // in the given range (i.e. the number of iterations)
+      if(unbalanced) {
+        val = rand_range_re(&global_seed, initial);
+      } else {
+        val = rand_range_re(&global_seed, range);
+      }
+		}
+		
 		if (sl_add_old(set, val, 0)) {
 			last = val;
 			i++;
