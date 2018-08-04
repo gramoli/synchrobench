@@ -2,7 +2,7 @@
 
 BENCHS = src/trees/sftree src/linkedlists/lockfree-list src/hashtables/lockfree-ht src/trees/rbtree src/skiplists/sequential
 LBENCHS = src/trees/tree-lock src/linkedlists/lock-coupling-list src/linkedlists/lazy-list src/hashtables/lockbased-ht src/skiplists/skiplist-lock
-LFBENCHS = src/trees/lfbstree src/linkedlists/lockfree-list src/hashtables/lockfree-ht src/skiplists/rotating src/skiplists/fraser src/skiplists/nohotspot
+LFBENCHS = src/trees/lfbstree src/linkedlists/lockfree-list src/hashtables/lockfree-ht src/skiplists/rotating src/skiplists/fraser src/skiplists/nohotspot src/skiplists/numask
 
 # Only compile C11/GNU11 algorithms with compatible compiler
 GCC_GTEQ_490 := $(shell expr `gcc -dumpversion | sed -e 's/\.\([0-9][0-9]\)/\1/g' -e 's/\.\([0-9]\)/0\1/g' -e 's/^[0-9]\{3,4\}$$/&00/'` \>= 40900)
