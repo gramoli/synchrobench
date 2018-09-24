@@ -232,6 +232,10 @@ extern unsigned int levelmax;
 #define TMRBTREE_CONTAINS(r, k)   TMrbtree_contains(TM_ARG  r, (void*)(k))
 #endif
 
+#ifdef __APPLE__ && __MACH__
+typedef unsigned int uint;
+typedef unsigned long ulong;
+#endif
 
 typedef intptr_t val_t;
 //#define val_t void*
