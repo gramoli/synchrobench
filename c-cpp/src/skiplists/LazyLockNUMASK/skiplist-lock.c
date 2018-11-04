@@ -94,7 +94,7 @@ size_t getSize(skipList_t* skipList) {
   	int size = -1;
 	node_t* runner = skipList -> head -> next[0];
   	while (runner -> next[0] != NULL) {
-    	if (runner -> fullylinked && !runner -> markedToDelete) {
+    	if (runner -> fullylinked && runner -> markedToDelete == 0) {
       		size++;
     	}
     	runner = runner -> next[0];
