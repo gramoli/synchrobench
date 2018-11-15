@@ -36,7 +36,7 @@ public:
 	int sleep_time;
 	bool repopulate;
 
-	search_layer(int nzone, inode_t* ssentinel, update_queue* q);
+	search_layer(int nzone, inode_t* ssentinel, update_queue* q);;
 	~search_layer();
 	void start_helper(int);
 	void stop_helper(void);
@@ -45,6 +45,19 @@ public:
 	int get_zone(void);
 	update_queue* get_queue(void);
 	void reset_sentinel(void);
+
+#ifdef ADDRESS_CHECKING
+	bool			index_ignore;
+	volatile long 	bg_local_accesses;
+	volatile long 	bg_foreign_accesses;
+	volatile long 	ap_local_accesses;
+	volatile long 	ap_foreign_accesses;
+#endif
+	#ifdef BG_STATS
+	bg_stats_t shadow_stats;
+	void bg_stats(void);
+#endif
+
 };
 
 #endif

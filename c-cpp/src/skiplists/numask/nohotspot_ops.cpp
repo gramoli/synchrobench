@@ -209,31 +209,16 @@ int sl_do_operation(search_layer *sl, sl_optype_t optype, sl_key_t key, val_t va
         /* find an entry-point to the node-level */
         item = sl->get_sentinel();
         int this_node = sl->get_zone();
-#ifdef ADDRESS_CHECKING
-		zone_access_check(this_node, item, &sl->ap_local_accesses, &sl->ap_foreign_accesses, false);
-#endif
         while (1) {
                 next_item = item->right;
-#ifdef ADDRESS_CHECKING
-		zone_access_check(this_node, next_item, &sl->ap_local_accesses, &sl->ap_foreign_accesses, false);
-#endif
                 if (NULL == next_item || next_item->key > key) {
                         next_item = item->down;
-#ifdef ADDRESS_CHECKING
-		zone_access_check(this_node, next_item, &sl->ap_local_accesses, &sl->ap_foreign_accesses, false);
-#endif
                         if (NULL == next_item) {
                         	node = item->intermed->node;
-#ifdef ADDRESS_CHECKING
-		zone_access_check(this_node, node, &sl->ap_local_accesses, &sl->ap_foreign_accesses, false);
-#endif
 							break;
                         }
                 } else if (next_item->key == key) {
                 	node = item->intermed->node;
-#ifdef ADDRESS_CHECKING
-		zone_access_check(this_node, node, &sl->ap_local_accesses, &sl->ap_foreign_accesses, false);
-#endif
 					break;
                 }
                 item = next_item;
@@ -241,14 +226,8 @@ int sl_do_operation(search_layer *sl, sl_optype_t optype, sl_key_t key, val_t va
         while (1) {
         		while (node == (node_val = node->val)) {
         				node = node->prev;
-#ifdef ADDRESS_CHECKING
-		zone_access_check(this_node, node, &sl->ap_local_accesses, &sl->ap_foreign_accesses, false);
-#endif
         		}
         		next = node->next;
-#ifdef ADDRESS_CHECKING
-		zone_access_check(this_node, next, &sl->ap_local_accesses, &sl->ap_foreign_accesses, false);
-#endif
 				if(NULL != next) {
 					next_val = next->val;
 					if((node_t*)next_val == next) {

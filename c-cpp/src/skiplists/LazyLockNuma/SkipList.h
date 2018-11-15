@@ -1,3 +1,6 @@
+#ifndef SKIPLIST_H
+#define SKIPLIST_H
+
 #include <pthread.h>
 #include <signal.h>
 #include <stdlib.h>
@@ -12,11 +15,11 @@
 
 //data layer node
 typedef struct node {
-  int val; //stores the value at the node
-  struct node* next; //stores the next data layer node
-  volatile int markedToDelete; //stores whether marked for deletion
-  volatile int fullylinked; //stores whether fullylinked or in the middle of insertion
-  pthread_mutex_t lock; //node-specific mutex
+ 	int val; //stores the value at the node
+  	struct node* next; //stores the next data layer node
+  	volatile int markedToDelete; //stores whether marked for deletion
+  	volatile int references; //stores the number of pointers pointing to the data layer node form the numa zones
+  	pthread_mutex_t lock; //node-specific mutex
 } node_t;
 
 node_t* constructNode(int val);
@@ -47,3 +50,5 @@ size_t getSize(skipList_t* set);
 //Helper Methods
 int floor_log_2(unsigned int n);
 int getRandomLevel(unsigned int maxLevel);
+
+#endif

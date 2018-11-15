@@ -28,8 +28,9 @@
 #include "common.h"
 
 /* Constructor */
-numa_allocator::numa_allocator(unsigned ssize) : buf_size(ssize), empty(false), num_buffers(0), buf_old(NULL),
-	 											 other_buffers(NULL), last_alloc_half(false), cache_size(CACHE_LINE_SIZE)
+numa_allocator::numa_allocator(unsigned ssize)
+	: buf_size(ssize), empty(false), num_buffers(0), buf_old(NULL),
+	  other_buffers(NULL), last_alloc_half(false), cache_size(CACHE_LINE_SIZE)
 {
 	buf_cur = buf_start = numa_alloc_local(buf_size);
 }
@@ -43,15 +44,15 @@ numa_allocator::~numa_allocator() {
 /* nalloc() - service allocation request */
 void* numa_allocator::nalloc(unsigned ssize) {
 	// get cache-line alignment for request
-	int alignment = (ssize <= cache_size / 2) ? cache_size / 2 : cache_size;
+	int alignment = (ssize <= cache_size / 2)? cache_size / 2: cache_size;
 
 	/* if the last allocation was half a cache line and we want a full cache line, we move
 	   the free space pointer forward a half cache line so we don't spill over cache lines */
-	if (last_alloc_half && alignment == cache_size) {
+	if(last_alloc_half && (alignment == cache_size)) {
 		buf_cur = (char*)buf_cur + (cache_size / 2);
 		last_alloc_half = false;
 	}
-	else if(last_alloc_half == false && alignment == cache_size / 2) {
+	else if(!last_alloc_half && (alignment == cache_size / 2)) {
 		last_alloc_half = true;
 	}
 
@@ -72,14 +73,14 @@ void* numa_allocator::nalloc(unsigned ssize) {
 /* nfree() - "frees" space (in practice this does nothing unless the allocation was the last request) */
 void numa_allocator::nfree(void *ptr, unsigned ssize) {
 	// get alignment size
-	int alignment = (ssize <= cache_size / 2) ? cache_size / 2 : cache_size;
+	int alignment = (ssize <= cache_size / 2)? cache_size / 2: cache_size;
 	unsigned aligned_size = align(ssize, alignment);
 
 	// only "free" if last allocation
-	if(memcmp(ptr, buf_old, aligned_size) == false) {
+	if(!memcmp(ptr, buf_old, aligned_size)) {
 		buf_cur = buf_old;
 		memset(buf_cur, 0, aligned_size);
-		if(last_alloc_half && alignment == cache_size / 2) {
+		if(last_alloc_half && (alignment == cache_size / 2)) {
 			last_alloc_half = false;
 		}
 	}
@@ -87,8 +88,8 @@ void numa_allocator::nfree(void *ptr, unsigned ssize) {
 
 /* nreset() - frees all memory buffers */
 void numa_allocator::nreset(void) {
-	//if the buffers aren't empty
-	if(empty == false) {
+	if(!empty) {
+		empty = true;
 		// free other_buffers, if used
 		if(other_buffers != NULL) {
 			int i = num_buffers - 1;
@@ -100,14 +101,12 @@ void numa_allocator::nreset(void) {
 		}
 		// free primary buffer
 		numa_free(buf_start, buf_size);
-		//memory buffers are now empty
-		empty = true;
 	}
 }
 
 /* nrealloc() - allocates a new buffer */
 void numa_allocator::nrealloc(void) {
-	//increase size of our old_buffers to store the previously allocated memory
+	// increase size of our old_buffers to store the previously allocated memory
 	num_buffers++;
 	if(other_buffers == NULL) {
 		assert(num_buffers == 1);
