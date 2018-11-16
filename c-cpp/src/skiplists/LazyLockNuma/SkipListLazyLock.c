@@ -1,11 +1,11 @@
-#include "lazylock.h"
+#include "SkipListLazyLock.h"
 
 //Lazily searches the skip list, not regarding locks
 //stores the predeccor and successor nodes during a traversal of the skip list.
 //if the value is found, then returns the first index in the successor where it was found
 //if the value is not found, returns -1
-inline int search(searchLayer_t *set, int val, node_t **predecessors, node_t **successors) {
-  node_t *previous = set -> head, *current = NULL;
+inline int search(inode_t *sentinel, int val, inode_t **predecessors, inode_t **successors) {
+  inode_t *previous = sentinel, *current = NULL;
   int idx = -1;
   for (int i = previous -> topLevel - 1; i >= 0; i--) {
     current = previous -> next[i];
@@ -25,15 +25,15 @@ inline int search(searchLayer_t *set, int val, node_t **predecessors, node_t **s
 //return true if the value was found and is valid
 //returns false if the value was not found, or the the value was
 //found and its invalid (in an intermediate state and not linearizable)
-int contains(skipList_t *set, int val) {
-  node_t *predecessors[set -> maxLevel], *successors[set -> maxLevel];
-  int idx = search(set, val, predecessors, successors);
+int contains(inode_t *sentinel, int val) {
+  inode_t *predecessors[sentinel -> topLevel], *successors[sentinel -> topLevel];
+  int idx = search(sentinel, val, predecessors, successors);
   return idx != -1 && successors[idx] -> fullylinked && successors[idx] -> markedToDelete == 0;
 }
 
 //unlocks all the levels that were locked previously
-inline void unlockLevels(node_t **nodes, int topLevel) {
-  node_t* previous = NULL;
+inline void unlockLevels(inode_t **nodes, int topLevel) {
+  inode_t* previous = NULL;
   for (int i = 0; i <= topLevel; i++) {
     if (nodes[i] != previous) {
       pthread_mutex_unlock(&nodes[i] -> lock);
@@ -43,9 +43,9 @@ inline void unlockLevels(node_t **nodes, int topLevel) {
 }
 
 //Inserts a value into the skip list when the value is not logically in the list
-int add(skipList_t *set, int val) {
-  const int topLevel = getRandomLevel(set -> maxLevel);
-  node_t *predecessors[set -> maxLevel], *successors[set -> maxLevel];
+int add(inode_t *sentinel, int val) {
+  const int topLevel = getRandomLevel(sentinel -> topLevel);
+  inode_t *predecessors[sentinel -> topLevel], *successors[sentinel -> topLevel];
   unsigned int backoff = 1;
   struct timespec timeout; 
   char retry = 1;
@@ -55,7 +55,7 @@ int add(skipList_t *set, int val) {
     int idx = search(set, val, predecessors, successors);
     //if already inside the tree
     if (idx != -1) {
-      node_t* candidate = successors[idx];
+      inode_t* candidate = successors[idx];
       //if it isnt markedToDelete for removal, wait until it has been fully linked and return false
       if (candidate -> markedToDelete == 0) {
         while (candidate -> fullylinked == 0) {}
@@ -67,7 +67,7 @@ int add(skipList_t *set, int val) {
     //if it hasn't been found in the tree, attempt to lock all the necessary
     //levels and then insert the new tower of nodes
     int highest_locked = -1;
-    node_t *previous = NULL, *runner = NULL, *prev_pred = NULL;
+    inode_t *previous = NULL, *runner = NULL, *prev_pred = NULL;
     char valid = 1;
     for (int i = 0; i < topLevel && valid; i++) {
       previous = predecessors[i];
@@ -80,7 +80,7 @@ int add(skipList_t *set, int val) {
       //ensures that all values that have been seen remain valid
       valid = previous -> markedToDelete == 0 &&
               runner -> markedToDelete == 0 &&
-              (volatile node_t*)previous -> next[i] == (volatile node_t*)runner;
+              (volatile inode_t*)previous -> next[i] == (volatile inode_t*)runner;
     }
 
     //if we broke out of the loop because one of the nodes wasn't valid, then we unlock
@@ -97,7 +97,7 @@ int add(skipList_t *set, int val) {
     }
     //otherwise, all nodes in our critical sections have been locked and we can
     //insert into the list
-    node_t* insertion = constructNode(val, topLevel);
+    inode_t* insertion = constructNode(val, topLevel);
     for (int i = 0; i < topLevel; i++) {
       insertion -> next[i] = successors[i];
       predecessors[i] -> next[i] = insertion;
@@ -109,14 +109,14 @@ int add(skipList_t *set, int val) {
 }
 
 //returns whether or not the candidate node is valid for deletion
-inline int validDeletion(node_t *candidate, int idx) {
+inline int validDeletion(inode_t *candidate, int idx) {
   return candidate -> fullylinked && (candidate -> topLevel - 1) == idx && candidate -> markedToDelete;
 }
 
 //removes a value in the skip list when present
-int removeNode(skipList_t *set, int val) {
-  node_t *predecessors[set -> maxLevel], *successors[set -> maxLevel];
-  node_t* candidate = NULL;
+int removeNode(inode_t *sentinel, int val) {
+  inode_t *predecessors[sentinel -> topLevel], *successors[sentinel -> topLevel];
+  inode_t* candidate = NULL;
   int markedToDelete = 0, topLevel = -1;
   unsigned int backoff;
   struct timespec timeout;
@@ -143,7 +143,7 @@ int removeNode(skipList_t *set, int val) {
       //attempt to gain control of all relevant locks before deletion
       int highest_locked = -1;
       int valid = 1;
-      node_t *previous, *runner = NULL, *prev_pred = NULL;
+      inode_t *previous, *runner = NULL, *prev_pred = NULL;
       for (int i = 0; i < topLevel && valid; i++) {
         previous = predecessors[i];
         runner = successors[i];
@@ -153,7 +153,7 @@ int removeNode(skipList_t *set, int val) {
           prev_pred = previous;
         }
         valid = previous -> markedToDelete == 0 &&
-              (volatile node_t*)previous -> next[i] == (volatile node_t*)runner;
+              (volatile inode_t*)previous -> next[i] == (volatile inode_t*)runner;
       }
 
       //if we broke out of the loop because one of the nodes wasn't valid, then we unlock
@@ -175,6 +175,7 @@ int removeNode(skipList_t *set, int val) {
       }
       pthread_mutex_unlock(&candidate -> lock);
       unlockLevels(predecessors, highest_locked);
+      candidate -> dataLayer -> references--;
       return 1;
     }
     //otherwise we didn't find a node with the value and nothing was markedToDelete for deletion,

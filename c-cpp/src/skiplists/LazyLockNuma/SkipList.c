@@ -4,9 +4,6 @@
 #include "SkipList.h"
 #include "allocator.h"
 
-numa_allocator_t** allocators;
-int maxLevel;
-
 //constructor that initializes data fields of the index node and its lock,
 //but does not link the node to other towers
 inode_t* constructIndexNode(int val, int topLevel, int zone) {

@@ -7,7 +7,6 @@ static void nreset(numa_allocator_t* allocator);
 static void nrealloc(numa_allocator_t* allocator);
 inline unsigned align(unsigned old, unsigned alignment);
 
-
 numa_allocator_t* constructAllocator(unsigned ssize) {
 	numa_allocator_t* allocator = (numa_allocator_t*)malloc(sizeof(numa_allocator_t));
 	allocator -> buf_size = ssize;
@@ -18,7 +17,7 @@ numa_allocator_t* constructAllocator(unsigned ssize) {
 	allocator -> last_alloc_half = 0;
 	allocator -> cache_size = CACHE_LINE_SIZE;
 
-	allocator -> buf_cur = allocator -> buf_old = numa_alloc_local(buf_size);
+	allocator -> buf_cur = allocator -> buf_old = numa_alloc_local(allocator -> buf_size);
 }
 
 void destructAllocator(numa_allocator_t* allocator, unsigned ssize) {
@@ -58,7 +57,7 @@ void* nalloc(numa_allocator_t* allocator, unsigned ssize) {
 	return allocator -> buf_old;
 }
 
-void nfree(numa_allocator_t* allocator, void *ptr, unsigned size) {
+void nfree(numa_allocator_t* allocator, void *ptr, unsigned ssize) {
 	const unsigned cache_size = allocator -> cache_size;
 
 	//get alignment size
@@ -104,7 +103,7 @@ static void nrealloc(numa_allocator_t* allocator) {
 		for (int i = 0; i < allocator -> num_buffers - 1; i++) {
 			new_bufs[i] = allocator -> other_buffers[i];
 		}
-		new_bufs[num_buffers - 1] = allocator -> buf_start;
+		new_bufs[allocator -> num_buffers - 1] = allocator -> buf_start;
 		free(allocator -> other_buffers);
 		allocator -> other_buffers = new_bufs;
 	}

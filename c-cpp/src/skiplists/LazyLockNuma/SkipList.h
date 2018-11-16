@@ -13,6 +13,9 @@
 #define INT_MIN -2147483648
 #define INT_MAX 2147483647
 
+numa_allocator_t** allocators;
+int levelmax;
+
 //data layer node
 typedef struct node {
  	int val; //stores the value at the node
