@@ -1,3 +1,6 @@
+#ifndef SKIPLISTLAZYLOCK_C
+#define SKIPLISTLAZYLOCK_C
+
 #include "SkipListLazyLock.h"
 
 //Lazily searches the skip list, not regarding locks
@@ -185,3 +188,5 @@ int removeNode(inode_t *sentinel, int val) {
     }
   }
 }
+
+#endif

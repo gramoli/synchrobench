@@ -1,5 +1,8 @@
+#ifndef DATA_LAYER_H
+#define DATA_LAYER_H
+
 #include "SearchLayer.h"
-#include "SkipList.h"
+#include "Nodes.h"
 #include "JobQueue.h"
 
 //Driver Functions
@@ -11,3 +14,5 @@ int lazyRemove(searchLayer_t* numask, int val);
 inline node_t* getPreviousElement(inode_t* sentinel, const int val);
 inline void dispatchSignal(int val, Job operation);
 inline int validateLink(node_t* previous, node_t* current);
+
+#endif

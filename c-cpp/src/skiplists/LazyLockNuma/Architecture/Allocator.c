@@ -1,7 +1,9 @@
+#ifndef ALLOCATOR_C
+#define ALLOCATOR_C
+
 #include <stdlib.h>
 #include <numa.h>
 #include "Allocator.h"
-#include "Common.h"
 
 static void nreset(numa_allocator_t* allocator);
 static void nrealloc(numa_allocator_t* allocator);
@@ -30,7 +32,7 @@ void* nalloc(numa_allocator_t* allocator, unsigned ssize) {
 	const unsigned cache_size = allocator -> cache_size;
 	char last_alloc_half = allocator -> last_alloc_half;
 
-	// get cache-line alignment for request
+	//get cache-line alignment for request
 	int alignment = (ssize <= cache_size / 2)? cache_size / 2: cache_size;
 
 	//if the last allocation was half a cache line and we want a full cache line, we move
@@ -114,3 +116,5 @@ static void nrealloc(numa_allocator_t* allocator) {
 inline unsigned align(unsigned old, unsigned alignment) {
 	return old + ((alignment - (old % alignment))) % alignment;
 }
+
+#endif

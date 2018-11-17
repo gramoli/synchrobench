@@ -1,7 +1,8 @@
 #ifndef JOB_QUEUE_H_
 #define JOB_QUEUE_H_
 
-#include "SkipList.h"
+#include "Nodes.h"
+#include <stdlib.h>
 
 typedef enum job {
 	INSERTION,

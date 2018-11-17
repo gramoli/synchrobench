@@ -1,7 +1,9 @@
+#ifndef SEARCH_LAYER_C
+#define SEARCH_LAYER_C
+
 #include "SearchLayer.h"
 #include "SkipListLazyLock.h"
-#include <pthread.h>
-#include <assert.h>
+#include <time.h>
 #include <unistd.h>
 #include <numaif.h>
 #include <atomic_ops.h>
@@ -73,3 +75,5 @@ int runJob(inode_t* sentinel, q_node* job) {
 	}
 	return 1;
 }
+
+#endif

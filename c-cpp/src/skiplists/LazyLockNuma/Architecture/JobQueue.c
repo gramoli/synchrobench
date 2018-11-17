@@ -1,3 +1,6 @@
+#ifndef JOB_QUEUE_C
+#define JOB_QUEUE_C
+
 #include "JobQueue.h"
 
 q_node_t* constructQNode(int val, Job operation) {
@@ -38,3 +41,5 @@ q_node_t* pop(job_queue_t* jobs) {
 	front -> node = jobs -> head -> node;
 	return front;
 }
+
+#endif

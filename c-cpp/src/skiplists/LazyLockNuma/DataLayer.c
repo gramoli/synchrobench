@@ -1,3 +1,6 @@
+#ifndef DATA_LAYER_C
+#define DATA_LAYER_C
+
 #include "DataLayer.h"
 #include "LinkedListLazyLock.h"
 #include <pthread.h>
@@ -95,3 +98,5 @@ int lazyRemove(searchLayer_t* numask, int val) {
 		pthread_mutex_unlock(&current -> lock);
 	}
 }
+
+#endif

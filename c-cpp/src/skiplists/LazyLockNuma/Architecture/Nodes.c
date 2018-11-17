@@ -1,8 +1,7 @@
-#ifndef SKIPLIST_C
-#define SKIPLIST_C
+#ifndef NODES_C
+#define NODES_C
 
-#include "SkipList.h"
-#include "allocator.h"
+#include "Nodes.h"
 
 //constructor that initializes data fields of the index node and its lock,
 //but does not link the node to other towers

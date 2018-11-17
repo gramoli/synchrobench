@@ -2,7 +2,7 @@
  * Allocator.h: custom allocator for search layers
  *
  * Source: Henry Daly, 2018
- * Modified by: Thomas Salemy, 2018, for Lazy Lock implementation in C
+ * Modified by: Thomas Salemy, 2018, for Lazy Lock Based implementation in C
  * 
  * Module Overview:
  *
@@ -25,6 +25,7 @@
 #define ALLOCATOR_H
 
 #include <stdlib.h>
+
 typedef struct numa_allocator {
 	void*		buf_start;
 	unsigned	buf_size;
@@ -32,10 +33,10 @@ typedef struct numa_allocator {
 	char		empty;
 	void*		buf_old;
 	unsigned	cache_size;
-	// for keeping track of the number of buffers
+	//for keeping track of the number of buffers
 	void**		other_buffers;
 	unsigned	num_buffers;
-	// for half cache line alignment
+	//for half cache line alignment
 	char		last_alloc_half;
 } numa_allocator_t;
 

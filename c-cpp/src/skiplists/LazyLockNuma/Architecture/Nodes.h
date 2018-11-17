@@ -1,20 +1,15 @@
-#ifndef SKIPLIST_H
-#define SKIPLIST_H
+#ifndef NODES_H
+#define NODES_H
 
-#include <pthread.h>
-#include <signal.h>
 #include <stdlib.h>
-#include <stdio.h>
-#include <sys/time.h>
-#include <time.h>
-#include <stdint.h>
-#include <atomic_ops.h>
+#include <pthread.h>
+#include "Allocator.h"
 
 #define INT_MIN -2147483648
 #define INT_MAX 2147483647
 
-numa_allocator_t** allocators;
-int levelmax;
+extern numa_allocator_t** allocators;
+extern int levelmax;
 
 //data layer node
 typedef struct node {
