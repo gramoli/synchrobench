@@ -25,6 +25,9 @@
 #define ALLOCATOR_H
 
 #include <stdlib.h>
+#include <assert.h>
+
+#define CACHE_LINE_SIZE 64
 
 typedef struct numa_allocator {
 	void*		buf_start;

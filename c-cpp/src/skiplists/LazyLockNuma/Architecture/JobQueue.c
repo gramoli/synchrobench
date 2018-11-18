@@ -10,7 +10,7 @@ q_node_t* constructQNode(int val, Job operation) {
 	return new_job;
 }
 
-job_queue_t constructJobQueue() {
+job_queue_t* constructJobQueue() {
 	job_queue_t* jobs = (job_queue_t*)malloc(sizeof(job_queue_t));
 	jobs -> sentinel = constructQNode(0, NONE);
 	jobs -> tail = jobs -> head = jobs -> sentinel;
@@ -27,7 +27,7 @@ void destructJobQueue(job_queue_t* jobs) {
 }
 
 void push(job_queue_t* jobs, int val, Job operation) {
-	q_node_t* new_job = constructQNode(job);
+	q_node_t* new_job = constructQNode(val, operation);
 	jobs -> tail -> next = new_job;
 	jobs -> tail = new_job;
 }
@@ -36,9 +36,10 @@ q_node_t* pop(job_queue_t* jobs) {
 	if (jobs -> head -> next == NULL) {
 		return NULL;
 	}
-	q_node_t* front = jobs ->head;
+	q_node_t* front = jobs -> head;
 	jobs -> head = jobs -> head -> next;
-	front -> node = jobs -> head -> node;
+	front -> val = jobs -> head -> val;
+    front -> operation = jobs -> head -> operation;
 	return front;
 }
 

@@ -2,13 +2,14 @@
 #define NODES_C
 
 #include "Nodes.h"
+#include <stdint.h>
 
 //constructor that initializes data fields of the index node and its lock,
 //but does not link the node to other towers
 inode_t* constructIndexNode(int val, int topLevel, int zone) {
 	numa_allocator_t* allocator = allocators[zone];
-	inode_t* node = (inode_t*)(allocator -> nalloc(sizeof(inode_t)));
-	node -> next = (inode_t**)(allocator -> nalloc(topLevel * sizeof(inode_t*)));
+	inode_t* node = (inode_t*)(nalloc(allocator, sizeof(inode_t)));
+	node -> next = (inode_t**)(nalloc(allocator, topLevel * sizeof(inode_t*)));
 	node -> val = val;
 	node -> topLevel = topLevel;
 	node -> markedToDelete = 0;
@@ -20,7 +21,7 @@ inode_t* constructIndexNode(int val, int topLevel, int zone) {
 //constructor that initializes data fields of the index node and its lock, as well as
 //pointing each level of the tower to the provided next node
 inode_t* constructLinkedIndexNode(int val, int topLevel, int zone, inode_t* next) {
-	node_t* node = constructNode(val, topLevel, zone);
+	inode_t* node = constructIndexNode(val, topLevel, zone);
 	for (int i = 0; i < topLevel; i++) {
 		node -> next[i] = next;
 	}
@@ -45,30 +46,6 @@ node_t* constructLinkedNode(int val, node_t* next) {
 	node_t* node = constructNode(val);
 	node -> next = next;
 	return node;
-}
-
-
-//constructor that initializes the head and tail of the skip list
-skipList_t* constructSkipList() {
-	skipList_t* set = (skipList_t*)malloc(sizeof(skipList_t));
-	set -> tail = constructLinkedNode(INT_MAX, maxLevel, NULL);
-	set -> head = constructLinkedNode(INT_MIN, maxLevel, tail);
-	tail -> fullylinked = 1;
-	head -> fullylinked = 1;
-	set -> head = head;
-	return set;
-}
-
-//gets size of skip list, not concurrent
-size_t getSize(skipList_t* set) {
-	node_t* runner = set -> head -> next;
-	int size = -1;
-	while (runner != NULL) {
-		if (runner -> markedToDelete == 0) {
-			size++;
-		}
-	}
-	return size;
 }
 
 /*
