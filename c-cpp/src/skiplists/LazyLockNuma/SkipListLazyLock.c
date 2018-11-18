@@ -3,6 +3,11 @@
 
 #include "SkipListLazyLock.h"
 
+//helper function definitions
+inline int search(inode_t *sentinel, int val, inode_t **predecessors, inode_t **successors);
+inline int validDeletion(inode_t *candidate, int idx);
+inline void unlockLevels(inode_t **nodes, int topLevel);
+
 //Lazily searches the skip list, not regarding locks
 //stores the predeccor and successor nodes during a traversal of the skip list.
 //if the value is found, then returns the first index in the successor where it was found
@@ -28,7 +33,7 @@ inline int search(inode_t *sentinel, int val, inode_t **predecessors, inode_t **
 //return true if the value was found and is valid
 //returns false if the value was not found, or the the value was
 //found and its invalid (in an intermediate state and not linearizable)
-int contains(inode_t *sentinel, int val) {
+int contains(inode_t *sentinel, int val, int zone) {
   inode_t *predecessors[sentinel -> topLevel], *successors[sentinel -> topLevel];
   int idx = search(sentinel, val, predecessors, successors);
   return idx != -1 && successors[idx] -> fullylinked && successors[idx] -> markedToDelete == 0;
@@ -46,7 +51,7 @@ inline void unlockLevels(inode_t **nodes, int topLevel) {
 }
 
 //Inserts a value into the skip list when the value is not logically in the list
-int add(inode_t *sentinel, int val) {
+int add(inode_t *sentinel, int val, int zone) {
   const int topLevel = getRandomLevel(sentinel -> topLevel);
   inode_t *predecessors[sentinel -> topLevel], *successors[sentinel -> topLevel];
   unsigned int backoff = 1;
@@ -55,7 +60,7 @@ int add(inode_t *sentinel, int val) {
   
   while(retry) {
     //store the result of a traveral through the skip list while searching for a value
-    int idx = search(set, val, predecessors, successors);
+    int idx = search(sentinel, val, predecessors, successors);
     //if already inside the tree
     if (idx != -1) {
       inode_t* candidate = successors[idx];
@@ -100,7 +105,7 @@ int add(inode_t *sentinel, int val) {
     }
     //otherwise, all nodes in our critical sections have been locked and we can
     //insert into the list
-    inode_t* insertion = constructNode(val, topLevel);
+    inode_t* insertion = constructIndexNode(val, topLevel, zone);
     for (int i = 0; i < topLevel; i++) {
       insertion -> next[i] = successors[i];
       predecessors[i] -> next[i] = insertion;
@@ -117,7 +122,7 @@ inline int validDeletion(inode_t *candidate, int idx) {
 }
 
 //removes a value in the skip list when present
-int removeNode(inode_t *sentinel, int val) {
+int removeNode(inode_t *sentinel, int val, int zone) {
   inode_t *predecessors[sentinel -> topLevel], *successors[sentinel -> topLevel];
   inode_t* candidate = NULL;
   int markedToDelete = 0, topLevel = -1;
@@ -127,7 +132,7 @@ int removeNode(inode_t *sentinel, int val) {
 
   while (retry) {
     //store the result of a traveral through the skip list while searching for a value
-    int idx = search(set, val, predecessors, successors);
+    int idx = search(sentinel, val, predecessors, successors);
     //if we're marked to delete or we found a valid value to delete, then attempt to remove
     if (markedToDelete || (idx != -1 && validDeletion(successors[idx], idx))) {
       //if the candidate node hasn't already been marked to delete, grab its lock and mark it for deletion

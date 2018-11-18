@@ -17,7 +17,7 @@ typedef struct searchLayer {
 
 //driver functions
 void* updateNumaZone(void* args);
-int runJob(inode_t* sentinel, q_node* job);
+int runJob(inode_t* sentinel, q_node_t* job, int zone);
 
 
 //helper functions

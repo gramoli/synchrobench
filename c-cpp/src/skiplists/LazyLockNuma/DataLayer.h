@@ -6,7 +6,7 @@
 #include "JobQueue.h"
 
 //Driver Functions
-int lazyFind(search_layer_t* numask, int val);
+int lazyFind(searchLayer_t* numask, int val);
 int lazyAdd(searchLayer_t* numask, int val);
 int lazyRemove(searchLayer_t* numask, int val);
 

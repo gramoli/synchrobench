@@ -2,14 +2,14 @@
 #define DATA_LAYER_C
 
 #include "DataLayer.h"
-#include "LinkedListLazyLock.h"
 #include <pthread.h>
+#include <assert.h>
 
-extern search_layer** numaLayers; 
+extern searchLayer_t** numaLayers; 
 extern int numberNumaZones;
 
 inline node_t* getPreviousElement(inode_t* sentinel, const int val) {
-	inode_t* previous = sentinel, current = NULL;
+	inode_t *previous = sentinel, *current = NULL;
 	for (int i = previous -> topLevel - 1; i >= 0; i--) {
 		current = previous -> next[i];
 		while (current -> val < val) {
@@ -31,7 +31,7 @@ inline int validateLink(node_t* previous, node_t* current) {
 	return (previous -> markedToDelete == 0 && current -> markedToDelete == 0) && previous -> next == current;
 }
 
-int lazyFind(search_layer_t* numask, int val) {
+int lazyFind(searchLayer_t* numask, int val) {
 	node_t* current = getPreviousElement(numask -> sentinel, val);
 	while (current -> val < val) {
 		current = current -> next;
@@ -77,7 +77,7 @@ int lazyRemove(searchLayer_t* numask, int val) {
 		node_t* current = previous -> next;
 		while (current -> val < val) {
 			previous = current;
-			current = current -> next;ß
+			current = current -> next;
 		}
 		pthread_mutex_lock(&previous -> lock);
 		pthread_mutex_lock(&current -> lock);

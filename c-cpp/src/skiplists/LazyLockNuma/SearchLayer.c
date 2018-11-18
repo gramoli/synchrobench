@@ -1,18 +1,23 @@
 #ifndef SEARCH_LAYER_C
 #define SEARCH_LAYER_C
 
+#define _GNU_SOURCE
 #include "SearchLayer.h"
 #include "SkipListLazyLock.h"
+#include "JobQueue.h"
+#include <stdlib.h>
 #include <time.h>
+#include <pthread.h>
 #include <unistd.h>
 #include <numaif.h>
 #include <atomic_ops.h>
 #include <numa.h>
+#include <sched.h>
 
 searchLayer_t* constructSearchLayer(int zone, inode_t* sentinel, job_queue_t* q) {
 	searchLayer_t* numask = (searchLayer_t*)malloc(sizeof(searchLayer_t));
-	numask -> finished = false;
-	numask -> running = true;
+	numask -> finished = 0;
+	numask -> running = 1;
 	numask -> numaZone = zone;
 	numask -> sentinel = sentinel;
 	numask -> updates = q;
@@ -36,7 +41,7 @@ void start(searchLayer_t* numask, int sleep_time) {
 }
 
 void stop(searchLayer_t* numask) {
-	if (seacher -> running) {
+	if (numask -> running) {
 		numask -> finished = 1;
 		pthread_join(numask -> helper, NULL);
 		numask -> running = 0;
@@ -45,7 +50,7 @@ void stop(searchLayer_t* numask) {
 
 void* updateNumaZone(void* args) {
 	searchLayer_t* numask = (searchLayer_t*)args;
-	job_queue_t* updates = args -> updates;
+	job_queue_t* updates = numask -> updates;
 	inode_t* sentinel = numask -> sentinel;
 	const int numaZone = numask -> numaZone;
 
@@ -57,21 +62,21 @@ void* updateNumaZone(void* args) {
 
 	while (numask -> finished == 0) {
 		usleep(numask -> sleep_time);
-		while (numask -> finished == 0 && runJob(sentinel, updates -> pop())) {}
+		while (numask -> finished == 0 && runJob(sentinel, pop(updates), numask -> numaZone)) {}
 	}
 
 	return NULL;
 }
 
-int runJob(inode_t* sentinel, q_node* job) {
+int runJob(inode_t* sentinel, q_node_t* job, int zone) {
 	if (job == NULL) {
 		return 0;
 	}
 	else if (job -> operation == INSERTION) {
-		add(sentinel, job -> value);
+		add(sentinel, job -> val, zone);
 	}
 	else if (job -> operation == REMOVAL) {
-		removeNode(sentinel, job -> value);
+		removeNode(sentinel, job -> val, zone);
 	}
 	return 1;
 }
