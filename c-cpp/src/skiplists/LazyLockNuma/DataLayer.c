@@ -20,6 +20,9 @@ inline node_t* getElement(inode_t* sentinel, const int val) {
 			current = current -> next[i];
 		}
 	}
+	if (current -> val == val) {
+		return current -> dataLayer;
+	}
 	return previous -> dataLayer;
 }
 
@@ -131,7 +134,7 @@ void* backgroundRemoval(void* input) {
 }
 
 void startDataLayerThread(node_t* sentinel) {
-	remover.sleep_time = 100000;
+	remover.sleep_time = 1000000;
 	if (remover.running == 0) {
 		remover.running = 1;
 		remover.finished = 0;

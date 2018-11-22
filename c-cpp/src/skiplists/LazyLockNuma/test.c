@@ -642,6 +642,7 @@ int main(int argc, char **argv)
 			exit(1);
 		}
 	}
+	printf("Joined back all threads\n");
 
 	duration = (endTime.tv_sec * 1000 + endTime.tv_usec / 1000) - (startTime.tv_sec * 1000 + startTime.tv_usec / 1000);
 	aborts = 0;
