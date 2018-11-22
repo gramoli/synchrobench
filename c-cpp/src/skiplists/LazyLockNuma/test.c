@@ -486,14 +486,15 @@ int main(int argc, char **argv)
 	//create sentinel node on NUMA zone 0
 	node_t* tail = constructNode(INT_MAX, numberNumaZones);
 	node_t* head = constructLinkedNode(INT_MIN, numberNumaZones, tail);
-
+	printf("Created Data Layer Sentinels\n");
 	//create search layers
 	numaLayers = (searchLayer_t**)malloc(numberNumaZones * sizeof(searchLayer_t*));
-
+	printf("Constructed Numa Layer \n");
 	pthread_t* thds = (pthread_t*)malloc(numberNumaZones * sizeof(pthread_t));
 
 	//create allocators
 	allocators = (numa_allocator_t**)malloc(numberNumaZones * sizeof(numa_allocator_t*));
+	printf("Constructed Allocators\n");
 	unsigned num_expected_nodes = (unsigned)(16 * initial * (1.0 + (update / 100.0)));
 	unsigned buffer_size = CACHE_LINE_SIZE * num_expected_nodes;
 
@@ -511,6 +512,7 @@ int main(int argc, char **argv)
 		pthread_join(thds[i], NULL);
 	}
 
+	printf("Initialized search layers\n");
 	stop_condition = 0;
 
         global_seed = rand();
@@ -554,7 +556,7 @@ int main(int argc, char **argv)
 		if (sl_add(numaLayers[cur_zone], val)) {
 			last = val;
 			i++;
-			if(i %(initial / 4) == 0 && cur_zone != 3) {
+			if(i % (initial / 4) == 0 && cur_zone != numberNumaZones - 1) {
 				numa_run_on_node(++cur_zone);
 			}
 		}
@@ -733,10 +735,10 @@ int main(int argc, char **argv)
 	printf("Max retries   : %lu\n", max_retries);
 
 	printf("Cleaning up...\n");
-	// Stop background threads
+	// Stop background threads and destruct
 	test_complete = 1;
 	for(int i = 0; i < numberNumaZones; ++i) {
-		stop(numaLayers[i]);
+		destructSearchLayer(numaLayers[i]);
 	}
 	stopDataLayerThread();
 

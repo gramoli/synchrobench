@@ -19,6 +19,7 @@ numa_allocator_t* constructAllocator(unsigned ssize) {
 	allocator -> last_alloc_half = 0;
 	allocator -> cache_size = CACHE_LINE_SIZE;
 	allocator -> buf_cur = allocator -> buf_old = numa_alloc_local(allocator -> buf_size);
+	return allocator;
 }
 
 void destructAllocator(numa_allocator_t* allocator, unsigned ssize) {
@@ -32,7 +33,7 @@ void* nalloc(numa_allocator_t* allocator, unsigned ssize) {
 	char last_alloc_half = allocator -> last_alloc_half;
 
 	//get cache-line alignment for request
-	int alignment = (ssize <= cache_size / 2)? cache_size / 2: cache_size;
+	int alignment = (ssize <= cache_size / 2) ? cache_size / 2: cache_size;
 
 	//if the last allocation was half a cache line and we want a full cache line, we move
 	//the free space pointer forward a half cache line so we don't spill over cache lines */

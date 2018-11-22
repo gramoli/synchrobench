@@ -22,6 +22,7 @@ searchLayer_t* constructSearchLayer(inode_t* sentinel, int zone) {
 	numask -> finished = 0;
 	numask -> running = 0;
 	numask -> sleep_time = 0;
+	return numask;
 }
 
 searchLayer_t* destructSearchLayer(searchLayer_t* numask) {

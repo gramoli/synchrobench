@@ -4,7 +4,7 @@ include $(ROOT)/common/Makefile.common
 
 BINS = $(BINDIR)/lazy-numa
 EXTRA_PATHS = -I./Architecture -I../../atomic_ops
-EXTRA_FLAGS = -lpthread
+EXTRA_FLAGS = -lpthread -g
 .PHONY:	all clean
 
 all:	main
