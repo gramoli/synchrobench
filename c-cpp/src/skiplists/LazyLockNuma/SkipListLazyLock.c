@@ -30,15 +30,6 @@ inline int search(inode_t *sentinel, int val, inode_t **predecessors, inode_t **
   return idx;
 }
 
-//return true if the value was found and is valid
-//returns false if the value was not found, or the the value was
-//found and its invalid (in an intermediate state and not linearizable)
-int contains(inode_t *sentinel, int val, int zone) {
-  inode_t *predecessors[sentinel -> topLevel], *successors[sentinel -> topLevel];
-  int idx = search(sentinel, val, predecessors, successors);
-  return idx != -1 && successors[idx] -> fullylinked && successors[idx] -> markedToDelete == 0;
-}
-
 //unlocks all the levels that were locked previously
 inline void unlockLevels(inode_t **nodes, int topLevel) {
   inode_t* previous = NULL;
@@ -51,7 +42,7 @@ inline void unlockLevels(inode_t **nodes, int topLevel) {
 }
 
 //Inserts a value into the skip list when the value is not logically in the list
-int add(inode_t *sentinel, int val, int zone) {
+int add(inode_t *sentinel, int val, node_t* dataLayer, int zone) {
   const int topLevel = getRandomLevel(sentinel -> topLevel);
   inode_t *predecessors[sentinel -> topLevel], *successors[sentinel -> topLevel];
   unsigned int backoff = 1;
@@ -105,7 +96,7 @@ int add(inode_t *sentinel, int val, int zone) {
     }
     //otherwise, all nodes in our critical sections have been locked and we can
     //insert into the list
-    inode_t* insertion = constructIndexNode(val, topLevel, zone);
+    inode_t* insertion = constructIndexNode(val, topLevel, dataLayer, zone);
     for (int i = 0; i < topLevel; i++) {
       insertion -> next[i] = successors[i];
       predecessors[i] -> next[i] = insertion;
@@ -181,9 +172,12 @@ int removeNode(inode_t *sentinel, int val, int zone) {
       for (int i = topLevel - 1; i >= 0; i--) {
         predecessors[i] -> next[i] = candidate -> next[i];
       }
+      pthread_mutex_lock(&candidate -> dataLayer -> lock); //QUESTION: is this needed?
+      candidate -> dataLayer -> references--;
+      pthread_mutex_unlock(&candidate -> dataLayer -> lock);
+      candidate -> dataLayer = NULL; //QUESTION: will this be a problem and is it needed?
       pthread_mutex_unlock(&candidate -> lock);
       unlockLevels(predecessors, highest_locked);
-      candidate -> dataLayer -> references--;
       return 1;
     }
     //otherwise we didn't find a node with the value and nothing was markedToDelete for deletion,

@@ -5,14 +5,23 @@
 #include "Nodes.h"
 #include "JobQueue.h"
 
+extern searchLayer_t** numaLayers; 
+extern int numberNumaZones;
+struct DataLayerThread {
+	pthread_t runner;
+	char running;
+	char finished;
+} remover;
+
+
 //Driver Functions
 int lazyFind(searchLayer_t* numask, int val);
 int lazyAdd(searchLayer_t* numask, int val);
 int lazyRemove(searchLayer_t* numask, int val);
 
-//Helper Functions
-inline node_t* getPreviousElement(inode_t* sentinel, const int val);
-inline void dispatchSignal(int val, Job operation);
-inline int validateLink(node_t* previous, node_t* current);
+//Background functions
+void* backgroundRemoval(void* input);
+void startDataLayerThread(node_t* sentinel);
+void stopDataLayerThread();
 
 #endif

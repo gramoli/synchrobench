@@ -6,10 +6,11 @@
 
 //constructor that initializes data fields of the index node and its lock,
 //but does not link the node to other towers
-inode_t* constructIndexNode(int val, int topLevel, int zone) {
+inode_t* constructIndexNode(int val, int topLevel, node_t* dataLayer, int zone) {
 	numa_allocator_t* allocator = allocators[zone];
 	inode_t* node = (inode_t*)(nalloc(allocator, sizeof(inode_t)));
 	node -> next = (inode_t**)(nalloc(allocator, topLevel * sizeof(inode_t*)));
+	node -> dataLayer = dataLayer;
 	node -> val = val;
 	node -> topLevel = topLevel;
 	node -> markedToDelete = 0;
@@ -20,8 +21,8 @@ inode_t* constructIndexNode(int val, int topLevel, int zone) {
 
 //constructor that initializes data fields of the index node and its lock, as well as
 //pointing each level of the tower to the provided next node
-inode_t* constructLinkedIndexNode(int val, int topLevel, int zone, inode_t* next) {
-	inode_t* node = constructIndexNode(val, topLevel, zone);
+inode_t* constructLinkedIndexNode(int val, int topLevel,node_t* dataLayer, int zone, inode_t* next) {
+	inode_t* node = constructIndexNode(val, topLevel, dataLayer, zone);
 	for (int i = 0; i < topLevel; i++) {
 		node -> next[i] = next;
 	}
@@ -30,12 +31,13 @@ inode_t* constructLinkedIndexNode(int val, int topLevel, int zone, inode_t* next
 
 //constructor that initializes the data fields of the data layer node, 
 //but does not link it to another node
-node_t* constructNode(int val) {
+node_t* constructNode(int val, int initialReferences) {
 	node_t* node = (node_t*)malloc(sizeof(node_t));
 	node -> val = val;
 	node -> next = NULL;
 	node -> markedToDelete = 0;
-	node -> references = 0;
+	node -> references = initialReferences; //QUESTION: is this okay? instantiating number of references before actual additions
+	node -> fresh = 1; //automatically marked as fresh on construction
 	pthread_mutex_init(&node -> lock, NULL);
 	return node;
 }

@@ -14,13 +14,13 @@
 #include <numa.h>
 #include <sched.h>
 
-searchLayer_t* constructSearchLayer(int zone, inode_t* sentinel, job_queue_t* q) {
+searchLayer_t* constructSearchLayer(inode_t* sentinel, int zone) {
 	searchLayer_t* numask = (searchLayer_t*)malloc(sizeof(searchLayer_t));
-	numask -> finished = 0;
-	numask -> running = 1;
-	numask -> numaZone = zone;
 	numask -> sentinel = sentinel;
-	numask -> updates = q;
+	numask -> numaZone = zone;
+	numask -> updates = constructJobQueue();
+	numask -> finished = 0;
+	numask -> running = 0;
 	numask -> sleep_time = 0;
 }
 
@@ -28,12 +28,13 @@ searchLayer_t* destructSearchLayer(searchLayer_t* numask) {
 	if (numask -> finished == 0) {
 		stop(numask);
 	}
+	destructJobQueue(numask -> updates);
 	free(numask);
 }
 
 void start(searchLayer_t* numask, int sleep_time) {
 	numask -> sleep_time = sleep_time;
-	if (numask -> running = 0) {
+	if (numask -> running == 0) {
 		numask -> running = 1;
 		numask -> finished = 0;
 		pthread_create(&numask -> helper, NULL, updateNumaZone, (void*)numask);

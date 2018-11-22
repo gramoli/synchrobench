@@ -17,6 +17,7 @@ typedef struct node {
   	struct node* next; //stores the next data layer node
   	volatile int markedToDelete; //stores whether marked for deletion
   	volatile int references; //stores the number of pointers pointing to the data layer node form the numa zones
+  	volatile int fresh; //identifies whether the node was recently removed/inserted, and needs to be propogated to index layers
   	pthread_mutex_t lock; //node-specific mutex
 } node_t;
 
@@ -34,16 +35,8 @@ typedef struct inode {
 	pthread_mutex_t lock; //node-specific mutex
 } inode_t;
 
-inode_t* constructIndexNode(int val, int topLevel, int zone);
-inode_t* constructLinkedIndexNode(int val, int topLevel, int zone, inode_t* next);
-
-//base skip list
-typedef struct skipList {
-	struct node* head;
-} skipList_t;
-
-skipList_t* constructSkipList();
-size_t getSize(skipList_t* set);
+inode_t* constructIndexNode(int val, int topLevel, node_t* dataLayer, int zone);
+inode_t* constructLinkedIndexNode(int val, int topLevel, node_t* dataLayer, int zone, inode_t* next);
 
 //Helper Methods
 int floor_log_2(unsigned int n);
