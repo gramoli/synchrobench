@@ -11,6 +11,7 @@ struct DataLayerThread {
 	pthread_t runner;
 	volatile char running;
 	volatile char finished;
+	int sleep_time;
 } remover;
 
 

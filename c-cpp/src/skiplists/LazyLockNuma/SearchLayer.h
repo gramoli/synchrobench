@@ -10,8 +10,8 @@ typedef struct searchLayer {
 	pthread_t helper;
 	int numaZone;
 	job_queue_t* updates;
-	char finished;
-	char running;
+	volatile char finished;
+	volatile char running;
 	int sleep_time;
 } searchLayer_t;
 

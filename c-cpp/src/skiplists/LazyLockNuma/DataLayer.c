@@ -4,6 +4,7 @@
 #include "DataLayer.h"
 #include <pthread.h>
 #include <assert.h>
+#include <unistd.h>
 
 //Helper Functions
 inline node_t* getElement(inode_t* sentinel, const int val);
@@ -100,6 +101,7 @@ int lazyRemove(searchLayer_t* numask, int val) {
 void* backgroundRemoval(void* input) {
 	node_t* sentinel = (node_t*)input;
 	while (remover.finished == 0) {
+		usleep(remover.sleep_time);
 		node_t* previous = sentinel;
 		node_t* current = sentinel -> next;
 		while (current -> next != NULL) {
@@ -129,6 +131,7 @@ void* backgroundRemoval(void* input) {
 }
 
 void startDataLayerThread(node_t* sentinel) {
+	remover.sleep_time = 100000;
 	if (remover.running == 0) {
 		remover.running = 1;
 		remover.finished = 0;
