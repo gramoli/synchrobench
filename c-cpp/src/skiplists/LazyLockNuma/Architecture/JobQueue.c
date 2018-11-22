@@ -3,16 +3,17 @@
 
 #include "JobQueue.h"
 
-q_node_t* constructQNode(int val, Job operation) {
+q_node_t* constructQNode(int val, Job operation, node_t* node) {
 	q_node_t* new_job = (q_node_t*)malloc(sizeof(q_node_t));
 	new_job -> val = val;
 	new_job -> operation = operation;
+	new_job -> node = node;
 	return new_job;
 }
 
 job_queue_t* constructJobQueue() {
 	job_queue_t* jobs = (job_queue_t*)malloc(sizeof(job_queue_t));
-	jobs -> sentinel = constructQNode(0, NONE);
+	jobs -> sentinel = constructQNode(0, NONE, NULL);
 	jobs -> tail = jobs -> head = jobs -> sentinel;
 	return jobs;
 }
@@ -26,8 +27,8 @@ void destructJobQueue(job_queue_t* jobs) {
 	}
 }
 
-void push(job_queue_t* jobs, int val, Job operation) {
-	q_node_t* new_job = constructQNode(val, operation);
+void push(job_queue_t* jobs, int val, Job operation, node_t* node) {
+	q_node_t* new_job = constructQNode(val, operation, node);
 	jobs -> tail -> next = new_job;
 	jobs -> tail = new_job;
 }
@@ -40,6 +41,7 @@ q_node_t* pop(job_queue_t* jobs) {
 	jobs -> head = jobs -> head -> next;
 	front -> val = jobs -> head -> val;
     front -> operation = jobs -> head -> operation;
+    front -> node = jobs -> head -> node;
 	return front;
 }
 

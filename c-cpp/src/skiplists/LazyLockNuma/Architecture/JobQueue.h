@@ -13,10 +13,11 @@ typedef enum job {
 typedef struct q_node {
 	int val;
 	Job operation;
+	node_t* node;
 	struct q_node* next;
 } q_node_t;
 
-q_node_t* constructQNode(int val, Job operation);
+q_node_t* constructQNode(int val, Job operation, node_t* node);
 
 typedef struct job_queue {
 	q_node_t* head;
@@ -26,7 +27,7 @@ typedef struct job_queue {
 
 job_queue_t* constructJobQueue();
 void destructJobQueue(job_queue_t* jobs);
-void push(job_queue_t* jobs, int val, Job operation);
+void push(job_queue_t* jobs, int val, Job operation, node_t* node);
 q_node_t* pop(job_queue_t* jobs);
 
 

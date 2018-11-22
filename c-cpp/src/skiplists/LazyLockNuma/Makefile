@@ -3,38 +3,38 @@ ROOT = ../../..
 include $(ROOT)/common/Makefile.common
 
 BINS = $(BINDIR)/lazy-numa
-CXX = g++
-
+EXTRA_PATHS = -I./Architecture -I../../atomic_ops
+EXTRA_FLAGS = -lpthread
 .PHONY:	all clean
 
 all:	main
 
-nohotspot_ops.o: skiplist.h nohotspot_ops.h search.h
-	$(CXX) $(CFLAGS) -c -o $(BUILDIR)/nohotspot_ops.o nohotspot_ops.cpp -std=c++11 -I.
+Allocator.o: ./Architecture/Allocator.h
+	$(CC) $(CFLAGS) $(EXTRA_PATHS) -c -o $(BUILDIR)/Allocator.o ./Architecture/Allocator.c
 
-skiplist.o: skiplist.h queue.h allocator.h
-	$(CXX) $(CFLAGS) -c -o $(BUILDIR)/skiplist.o skiplist.cpp -std=c++11 -I.
-	
-queue.o: queue.h
-	$(CXX) $(CFLAGS) -c -o $(BUILDIR)/queue.o queue.cpp -std=c++11 -I.
+Nodes.o: ./Architecture/Nodes.h ./Architecture/Allocator.h
+	$(CC) $(CFLAGS) $(EXTRA_PATHS) $(EXTRA_FLAGS) -c -o $(BUILDIR)/Nodes.o ./Architecture/Nodes.c
 
-background.o: background.h skiplist.h search.h
-	$(CXX) $(CFLAGS) -c -o $(BUILDIR)/background.o background.cpp -std=c++11 -I.
+JobQueue.o: ./Architecture/JobQueue.h ./Architecture/Nodes.h ./Architecture/Allocator.h
+	$(CC) $(CFLAGS) $(EXTRA_PATHS) $(EXTRA_FLAGS) -c -o $(BUILDIR)/JobQueue.o ./Architecture/JobQueue.c
 
-intset.o: intset.h nohotspot_ops.h search.h
-	$(CXX) $(CFLAGS) -c -o $(BUILDIR)/intset.o intset.cpp -std=c++11 -I.
+SkipListLazyLock.o: SkipListLazyLock.h ./Architecture/Nodes.h
+	$(CC) $(CFLAGS) $(EXTRA_PATHS) $(EXTRA_FLAGS) -c -o $(BUILDIR)/SkipListLazyLock.o SkipListLazyLock.c
+
+SearchLayer.o: SearchLayer.h ./Architecture/Nodes.h ./Architecture/JobQueue.h
+	$(CC) $(CFLAGS) $(EXTRA_PATHS) $(EXTRA_FLAGS) -c -o $(BUILDIR)/SearchLayer.o SearchLayer.c
+
+DataLayer.o: DataLayer.h SearchLayer.h ./Architecture/Nodes.h ./Architecture/JobQueue.h
+	$(CC) $(CFLAGS) $(EXTRA_PATHS) $(EXTRA_FLAGS) -c -o $(BUILDIR)/DataLayer.o DataLayer.c
+
+Set.o: Set.h DataLayer.h ./Architecture/Allocator.h
+	$(CC) $(CFLAGS) $(EXTRA_PATHS) $(EXTRA_FLAGS) -c -o $(BUILDIR)/Set.o Set.c
+
+test.o: test.c Set.h
+	$(CC) $(CFLAGS) $(EXTRA_PATHS) $(EXTRA_FLAGS) -c -o $(BUILDIR)/test.o test.c
 	
-search.o: search.h skiplist.h queue.h 
-	$(CXX) $(CFLAGS) -c -o $(BUILDIR)/search.o search.cpp -std=c++11 -I.
-	
-allocator.o: allocator.h
-	$(CXX) $(CFLAGS) -c -o $(BUILDIR)/allocator.o allocator.cpp -std=c++11 -I -lnuma.
-	
-test.o: intset.h skiplist.h search.h nohotspot_ops.h background.h allocator.h
-	$(CXX) $(CFLAGS) -c -o $(BUILDIR)/test.o test.cpp -std=c++11 -I.
-	
-main: intset.o skiplist.o search.o nohotspot_ops.o test.o background.o allocator.o queue.o
-	$(CXX) $(CFLAGS) $(BUILDIR)/background.o $(BUILDIR)/queue.o $(BUILDIR)/skiplist.o $(BUILDIR)/intset.o $(BUILDIR)/nohotspot_ops.o $(BUILDIR)/search.o $(BUILDIR)/allocator.o $(BUILDIR)/test.o -o $(BINS) -std=c++11 $(LDFLAGS) -I. -lnuma
+main: Allocator.o Nodes.o JobQueue.o SkipListLazyLock.o SearchLayer.o DataLayer.o Set.o test.o
+	$(CC) $(CFLAGS) $(EXTRA_PATHS) $(EXTRA_FLAGS) $(BUILDIR)/Allocator.o $(BUILDIR)/Nodes.o $(BUILDIR)/JobQueue.o $(BUILDIR)/SkipListLazyLock.o $(BUILDIR)/SearchLayer.o $(BUILDIR)/DataLayer.o $(BUILDIR)/Set.o $(BUILDIR)/test.o -o $(BINS) $(LDFLAGS) -lnuma
 	
 clean:
 	-rm -f $(BINS)

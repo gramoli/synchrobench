@@ -74,7 +74,7 @@ int runJob(inode_t* sentinel, q_node_t* job, int zone) {
 		return 0;
 	}
 	else if (job -> operation == INSERTION) {
-		add(sentinel, job -> val, zone);
+		add(sentinel, job -> val, job -> node, zone);
 	}
 	else if (job -> operation == REMOVAL) {
 		removeNode(sentinel, job -> val, zone);

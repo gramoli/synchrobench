@@ -1,5 +1,5 @@
-#ifndef SET_H
-#define SET_H
+#ifndef SET_C
+#define SET_C
 
 #include "Set.h"
 

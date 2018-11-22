@@ -1,8 +1,5 @@
 /*
- * test.cpp: application test file
- *
- *
- * Built off No Hotspot Skip List test.c (2013)
+ * test.c: application test file
  *
  * Synchrobench is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,7 +13,9 @@
  */
 
 //NUMA Skip List Package
-#include "set.h"
+#define _GNU_SOURCE
+#include "Set.h"
+#include <sched.h>
 
 //Testing Support
 #include <assert.h>
@@ -52,14 +51,15 @@
 #define ATOMIC_CAS_MB(a, e, v)          (AO_compare_and_swap_full((VOLATILE AO_t *)(a), (AO_t)(e), (AO_t)(v)))
 #define ATOMIC_FETCH_AND_INC_FULL(a)    (AO_fetch_and_add1_full((VOLATILE AO_t *)(a)))
 
-#define TRANSACTIONAL                   d->unit_tx
+#define TRANSACTIONAL                   d -> unit_tx
+#define VOLATILE						volatile
 
 #define VAL_MIN                         INT_MIN
 #define VAL_MAX                         INT_MAX
 
 inline long rand_range(long r); /* declared in test.c */
 
-VOLATILE AO_t stop;
+VOLATILE AO_t stop_condition;
 unsigned int global_seed;
 #ifdef TLS
 __thread unsigned int *rng_seed;
@@ -76,57 +76,56 @@ typedef struct barrier {
 
 void barrier_init(barrier_t *b, int n)
 {
-	pthread_cond_init(&b->complete, NULL);
-	pthread_mutex_init(&b->mutex, NULL);
-	b->count = n;
-	b->crossing = 0;
+	pthread_cond_init(&b -> complete, NULL);
+	pthread_mutex_init(&b -> mutex, NULL);
+	b -> count = n;
+	b -> crossing = 0;
 }
 
 void barrier_cross(barrier_t *b)
 {
 	pthread_mutex_lock(&b->mutex);
 	/* One more thread through */
-	b->crossing++;
+	b -> crossing++;
 	/* If not all here, wait */
-	if (b->crossing < b->count) {
-		pthread_cond_wait(&b->complete, &b->mutex);
+	if (b -> crossing < b -> count) {
+		pthread_cond_wait(&b -> complete, &b -> mutex);
 	} else {
-		pthread_cond_broadcast(&b->complete);
+		pthread_cond_broadcast(&b -> complete);
 		/* Reset for next time */
-		b->crossing = 0;
+		b -> crossing = 0;
 	}
-	pthread_mutex_unlock(&b->mutex);
+	pthread_mutex_unlock(&b -> mutex);
 }
 
 //Numa Skip List Requirements
 extern searchLayer_t** numaLayers;
 extern numa_allocator_t** allocators;
 extern int numberNumaZones;
-extern int levelmax;
+extern unsigned int levelmax;
 extern struct DataLayerThread remover; 
-struct zone_init_args {
+typedef struct zone_init_args {
 	int 		numa_zone;
 	node_t* 	head;
 	node_t*		tail;
 	unsigned	allocator_size;
-};
+} zone_init_args_t;
 
-/* zone_init() - initializes the queue and search layer object for a NUMA zone	*/
+//zone_init() - pthread function that initializes the queue and search layer object for a NUMA zone
 void* zone_init(void* args) {
-	zone_init_args* zia = (zone_init_args*)args;
+	zone_init_args_t* zia = (zone_init_args_t*)args;
 
 	cpu_set_t cpuset;
 	CPU_ZERO(&cpuset);
-	CPU_SET(zia->numa_zone, &cpuset);
+	CPU_SET(zia -> numa_zone, &cpuset);
 	sleep(1);
 	pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
-	numa_set_preferred(zia->numa_zone);
+	numa_set_preferred(zia -> numa_zone);
 
 	allocators[zia -> numa_zone] = constructAllocator(zia -> allocator_size);
 	inode_t* tail = constructIndexNode(INT_MAX, levelmax, zia -> tail, zia -> numa_zone);
 	inode_t* head = constructLinkedIndexNode(INT_MIN, levelmax, zia -> head, zia -> numa_zone, tail);
-	job_queue_t* updates = constructJobQueue();
-	numaLayers[zia -> numa_zone] = constructSearchLayer(zia -> numa_zone, head, updates);
+	numaLayers[zia -> numa_zone] = constructSearchLayer(head, zia -> numa_zone);
 	free(zia);
 	return NULL;
 }
@@ -142,7 +141,6 @@ void* zone_init(void* args) {
 inline long rand_range(long r) {
 	int m = RAND_MAX;
 	int d, v = 0;
-
 	do {
 		d = (m > r ? r : m);
 		v += 1 + (int)(d * ((double)rand()/((double)(m)+1.0)));
@@ -155,7 +153,6 @@ inline long rand_range(long r) {
 inline long rand_range_re(unsigned int *seed, long r) {
 	int m = RAND_MAX;
 	int d, v = 0;
-
 	do {
 		d = (m > r ? r : m);
 		v += 1 + (int)(d * ((double)rand_r(seed)/((double)(m)+1.0)));
@@ -199,7 +196,7 @@ void* test(void *data) {
 
 	thread_data_t *d = (thread_data_t *)data;
 
-	// run test thread on correct NUMA zone
+	//run test thread on correct NUMA zone
 	searchLayer_t* sl = d -> sl;
 	int cur_zone = sl -> numaZone;
 	numa_run_on_node(cur_zone);
@@ -214,9 +211,9 @@ void* test(void *data) {
 	unext = (rand_range_re(&d->seed, 100) - 1 < d->update);
 
 //#ifdef ICC
-	while (stop == 0) {
+	while (stop_condition == 0) {
 //#else
-//while (AO_load_full(&stop) == 0) {
+//while (AO_load_full(&stop_condition) == 0) {
 //#endif
 		if (unext) { // update
 
@@ -287,9 +284,9 @@ void* test(void *data) {
 		}
 
 //#ifdef ICC
-//	}
-//#else
 	}
+//#else
+//}
 //#endif /* ICC */
 
 	/* Free transaction */
@@ -329,7 +326,7 @@ int main(int argc, char **argv)
 	pthread_t *threads;
 	pthread_attr_t attr;
 	barrier_t barrier;
-	struct timeval start, end;
+	struct timeval startTime, endTime;
 	struct timespec timeout;
 	int duration = DEFAULT_DURATION;
 	int initial = DEFAULT_INITIAL;
@@ -487,8 +484,8 @@ int main(int argc, char **argv)
 	levelmax = floor_log_2((unsigned int) initial);
 
 	//create sentinel node on NUMA zone 0
-	node_t* tail = constructNode(INT_MAX);
-	node_t* head = constructLinkedNode(INT_MIN, tail);
+	node_t* tail = constructNode(INT_MAX, numberNumaZones);
+	node_t* head = constructLinkedNode(INT_MIN, numberNumaZones, tail);
 
 	//create search layers
 	numaLayers = (searchLayer_t**)malloc(numberNumaZones * sizeof(searchLayer_t*));
@@ -496,25 +493,25 @@ int main(int argc, char **argv)
 	pthread_t* thds = (pthread_t*)malloc(numberNumaZones * sizeof(pthread_t));
 
 	//create allocators
-	allocators = (numa_allocator_t**)malloc(numberNumaZones * sizeof(numa_allocator*));
+	allocators = (numa_allocator_t**)malloc(numberNumaZones * sizeof(numa_allocator_t*));
 	unsigned num_expected_nodes = (unsigned)(16 * initial * (1.0 + (update / 100.0)));
 	unsigned buffer_size = CACHE_LINE_SIZE * num_expected_nodes;
 
+	//initialize search layer dependencies
 	for (int i = 0; i < numberNumaZones; ++i) {
-		zone_init_args* zia = (zone_init_args*)malloc(sizeof(zone_init_args));
-		zia->numa_zone = i;
-		zia->head = head;
-		zia->tail = tail;
-		zia->allocator_size = buffer_size;
+		zone_init_args_t* zia = (zone_init_args_t*)malloc(sizeof(zone_init_args_t));
+		zia -> numa_zone = i;
+		zia -> head = head;
+		zia -> tail = tail;
+		zia -> allocator_size = buffer_size;
 		pthread_create(&thds[i], NULL, zone_init, (void*)zia);
 	}
 
-	for(int i = 0; i < numberNumaZones; ++i) {
-		void *retval;
-		pthread_join(thds[i], &retval);
+	for (int i = 0; i < numberNumaZones; ++i) {
+		pthread_join(thds[i], NULL);
 	}
 
-	stop = 0;
+	stop_condition = 0;
 
         global_seed = rand();
 #ifdef TLS
@@ -533,11 +530,11 @@ int main(int argc, char **argv)
 	//TM_STARTUP();
 	// Populate set
 	printf("Adding %d entries to set\n", initial);
-	i = 0;
-	initial_populate = true;
+	//i = 0;
+	//initial_populate = 1;
 
 	// start data-layer-helper thread
-	bool test_complete = false;
+	char test_complete = 0;
 	startDataLayerThread(head);
 
 	//start pernuma layer helper with 100000ms sleep time
@@ -554,7 +551,7 @@ int main(int argc, char **argv)
 		} else {
             val = rand_range_re(&global_seed, range);
 		}
-		if (sl_add(numaLayeres[cur_zone], val)) {
+		if (sl_add(numaLayers[cur_zone], val)) {
 			last = val;
 			i++;
 			if(i %(initial / 4) == 0 && cur_zone != 3) {
@@ -566,7 +563,7 @@ int main(int argc, char **argv)
 	size = sl_size(head);
 	printf("Set size     : %d\n", size);
 	printf("Level max    : %d\n", levelmax);
-	initial_populate = false;
+	//initial_populate = 0;
 
 	barrier_init(&barrier, nb_threads + 1);
 	pthread_attr_init(&attr);
@@ -595,7 +592,7 @@ int main(int argc, char **argv)
 		data[i].nb_aborts_double_write = 0;
 		data[i].max_retries = 0;
 		data[i].seed = rand();
-		data[i].sl = searchLayer_ts[sl_index++];
+		data[i].sl = numaLayers[sl_index++];
 		data[i].barrier = &barrier;
 		data[i].failures_because_contention = 0;
 		if (pthread_create(&threads[i], &attr, test, (void *)(&data[i])) != 0) {
@@ -607,7 +604,7 @@ int main(int argc, char **argv)
 
 	pthread_attr_destroy(&attr);
 
-	// Catch some signals
+	//Catch some signals
 	if (signal(SIGHUP, catcher) == SIG_ERR ||
 			//signal(SIGINT, catcher) == SIG_ERR ||
 			signal(SIGTERM, catcher) == SIG_ERR) {
@@ -615,11 +612,11 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	// Start threads
+	//Start threads
 	barrier_cross(&barrier);
 
 	printf("STARTING...\n");
-	gettimeofday(&start, NULL);
+	gettimeofday(&startTime, NULL);
 	if (duration > 0) {
 		nanosleep(&timeout, NULL);
 	} else {
@@ -628,12 +625,12 @@ int main(int argc, char **argv)
 	}
 
 //#ifdef ICC
-	stop = 1;
+	stop_condition = 1;
 //#else
-//	AO_store_full(&stop, 1);
+//	AO_store_full(&stop_condition, 1);
 //#endif /* ICC */
 
-	gettimeofday(&end, NULL);
+	gettimeofday(&endTime, NULL);
 	printf("STOPPING...\n");
 
 	// Wait for thread completion
@@ -644,7 +641,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	duration = (end.tv_sec * 1000 + end.tv_usec / 1000) - (start.tv_sec * 1000 + start.tv_usec / 1000);
+	duration = (endTime.tv_sec * 1000 + endTime.tv_usec / 1000) - (startTime.tv_sec * 1000 + startTime.tv_usec / 1000);
 	aborts = 0;
 	aborts_locked_read = 0;
 	aborts_locked_write = 0;
@@ -737,7 +734,7 @@ int main(int argc, char **argv)
 
 	printf("Cleaning up...\n");
 	// Stop background threads
-	test_complete = true;
+	test_complete = 1;
 	for(int i = 0; i < numberNumaZones; ++i) {
 		stop(numaLayers[i]);
 	}

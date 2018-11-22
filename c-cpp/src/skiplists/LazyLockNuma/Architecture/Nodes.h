@@ -9,7 +9,7 @@
 #define INT_MAX 2147483647
 
 extern numa_allocator_t** allocators;
-extern int levelmax;
+extern unsigned int levelmax;
 
 //data layer node
 typedef struct node {
@@ -21,8 +21,8 @@ typedef struct node {
   	pthread_mutex_t lock; //node-specific mutex
 } node_t;
 
-node_t* constructNode(int val);
-node_t* constructLinkedNode(int val, node_t* next);
+node_t* constructNode(int val, int intitialReferences);
+node_t* constructLinkedNode(int val, int intitialReferences, node_t* next);
 
 //index layer node
 typedef struct inode {

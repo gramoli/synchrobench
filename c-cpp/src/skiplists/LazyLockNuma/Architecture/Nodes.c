@@ -44,8 +44,8 @@ node_t* constructNode(int val, int initialReferences) {
 
 //constructor that initializes the data fields of the data layer node node, 
 //and also links it to another node
-node_t* constructLinkedNode(int val, node_t* next) {
-	node_t* node = constructNode(val);
+node_t* constructLinkedNode(int val, int initialReferences, node_t* next) {
+	node_t* node = constructNode(val, initialReferences);
 	node -> next = next;
 	return node;
 }

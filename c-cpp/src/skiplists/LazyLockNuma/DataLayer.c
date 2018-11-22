@@ -7,7 +7,7 @@
 
 //Helper Functions
 inline node_t* getElement(inode_t* sentinel, const int val);
-inline void dispatchSignal(int val, Job operation);
+inline void dispatchSignal(int val, node_t* dataLayer, Job operation);
 inline int validateLink(node_t* previous, node_t* current);
 
 inline node_t* getElement(inode_t* sentinel, const int val) {
@@ -22,10 +22,10 @@ inline node_t* getElement(inode_t* sentinel, const int val) {
 	return previous -> dataLayer;
 }
 
-inline void dispatchSignal(int val, Job operation) {
+inline void dispatchSignal(int val, node_t* dataLayer, Job operation) {
 	assert(numaLayers != NULL);
 	for (int i = 0; i < numberNumaZones; i++) {
-		push(numaLayers[i] -> updates, val, operation);
+		push(numaLayers[i] -> updates, val, operation, dataLayer);
 	}
 }
 
@@ -99,17 +99,17 @@ int lazyRemove(searchLayer_t* numask, int val) {
 
 void* backgroundRemoval(void* input) {
 	node_t* sentinel = (node_t*)input;
-	while (remover -> finished == 0) {
+	while (remover.finished == 0) {
 		node_t* previous = sentinel;
 		node_t* current = sentinel -> next;
 		while (current -> next != NULL) {
 			if (current -> fresh) {
 				current -> fresh = 0; //unset as fresh, need a CAS here
 				if (current -> markedToDelete) {
-					dispatchSignal(current -> val, REMOVAL);
+					dispatchSignal(current -> val, current, REMOVAL);
 				}
 				else {
-					dispatchSignal(current -> val, INSERTION);
+					dispatchSignal(current -> val, current, INSERTION);
 				}
 			}
 			if (current -> markedToDelete && current -> references == 0) {
@@ -129,18 +129,18 @@ void* backgroundRemoval(void* input) {
 }
 
 void startDataLayerThread(node_t* sentinel) {
-	if (remover -> running == 0) {
-		remover -> running = 1;
-		remover -> finished = 0;
-		pthread_create(&remover -> runner, NULL, backgroundRemoval, (void*)sentinel);
+	if (remover.running == 0) {
+		remover.running = 1;
+		remover.finished = 0;
+		pthread_create(&remover.runner, NULL, backgroundRemoval, (void*)sentinel);
 	}
 }
 
 void stopDataLayerThread() {
-	if (remover -> running) {
-		remover -> finished = 1;
-		pthread_join(remover -> runner, NULL);
-		remover -> running = 0;
+	if (remover.running) {
+		remover.finished = 1;
+		pthread_join(remover.runner, NULL);
+		remover.running = 0;
 	}
 }
 
