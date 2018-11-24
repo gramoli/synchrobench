@@ -26,9 +26,7 @@ searchLayer_t* constructSearchLayer(inode_t* sentinel, int zone) {
 }
 
 searchLayer_t* destructSearchLayer(searchLayer_t* numask) {
-	if (numask -> finished == 0) {
-		stop(numask);
-	}
+	stop(numask);
 	destructJobQueue(numask -> updates);
 	free(numask);
 }
