@@ -44,7 +44,9 @@ void start(searchLayer_t* numask, int sleep_time) {
 void stop(searchLayer_t* numask) {
 	if (numask -> running) {
 		numask -> finished = 1;
+		printf("Waiting to finish\n");
 		pthread_join(numask -> helper, NULL);
+		printf("Finished\n");
 		numask -> running = 0;
 	}
 }
@@ -62,6 +64,7 @@ void* updateNumaZone(void* args) {
 	pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
 
 	while (numask -> finished == 0) {
+		printf("iteration here \n");
 		usleep(numask -> sleep_time);
 		while (numask -> finished == 0 && runJob(sentinel, pop(updates), numask -> numaZone)) {}
 	}
