@@ -23,6 +23,7 @@ int add(inode_t *sentinel, int val, node_t* dataLayer, int zone) {
 
   //if the value doesn't already exist, create a new index node and return true
   //otherwise return false
+  printf("entering critical inseriton\n");
   inode_t* candidate = current;
   if (candidate -> val != val) {
     const int topLevel = getRandomLevel(sentinel -> topLevel);
@@ -31,8 +32,10 @@ int add(inode_t *sentinel, int val, node_t* dataLayer, int zone) {
       insertion -> next[i] = successors[i];
       predecessors[i] -> next[i] = insertion;
     }
+    printf("return 1\n");
     return 1;
   }
+  printf("return 0\n");
   return 0;
 }
 
