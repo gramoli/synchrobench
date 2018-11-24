@@ -17,8 +17,8 @@ int sl_remove(searchLayer_t* numask, int val) {
 
 int sl_size(node_t* sentinel) {
 	int size = -1;
-	node_t* runner = sentinel;
-	while (runner -> next != NULL) {
+	node_t* runner = sentinel -> next;
+	while (runner != NULL) {
 		runner = runner -> next;
 		size++;
 	}

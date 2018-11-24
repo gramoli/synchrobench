@@ -2,6 +2,7 @@
 #define DATA_LAYER_C
 
 #include "DataLayer.h"
+#include "Atomic.h"
 #include <pthread.h>
 #include <assert.h>
 #include <unistd.h>
@@ -106,7 +107,7 @@ void* backgroundRemoval(void* input) {
 		node_t* current = sentinel -> next;
 		while (current -> next != NULL) {
 			if (current -> fresh) {
-				current -> fresh = 0; //unset as fresh, need a CAS here
+				current -> fresh = 0; //unset as fresh, need a CAS here? only thread operating on structure
 				if (current -> markedToDelete) {
 					dispatchSignal(current -> val, current, REMOVAL);
 				}
@@ -114,7 +115,7 @@ void* backgroundRemoval(void* input) {
 					dispatchSignal(current -> val, current, INSERTION);
 				}
 			}
-			if (current -> markedToDelete && current -> references == 0) {
+			else if (current -> markedToDelete && current -> references == 0) {
 				pthread_mutex_lock(&previous -> lock);
 				pthread_mutex_lock(&current -> lock);
 				if (validateLink(previous, current)) {

@@ -14,7 +14,6 @@ struct DataLayerThread {
 	int sleep_time;
 } remover;
 
-
 //Driver Functions
 int lazyFind(searchLayer_t* numask, int val);
 int lazyAdd(searchLayer_t* numask, int val);
