@@ -58,7 +58,7 @@ int removeNode(inode_t *sentinel, int val, int zone) {
   //otherwise return false
   inode_t* candidate = current;
   if (candidate -> val == val) {
-    for (int i = 0; i < sentinel -> topLevel; i++) {
+    for (int i = 0; i < candidate -> topLevel; i++) {
         predecessors[i] -> next[i] = successors[i] -> next[i];
     }
     FAD(&candidate -> dataLayer -> references); // Question: is this correct?

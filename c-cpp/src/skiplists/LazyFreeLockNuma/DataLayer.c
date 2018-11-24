@@ -103,6 +103,7 @@ void* backgroundRemoval(void* input) {
 	node_t* sentinel = (node_t*)input;
 	while (remover.finished == 0) {
 		usleep(remover.sleep_time);
+		printf("Attempting iteration\n");
 		node_t* previous = sentinel;
 		node_t* current = sentinel -> next;
 		while (current -> next != NULL) {
@@ -116,13 +117,18 @@ void* backgroundRemoval(void* input) {
 				}
 			}
 			else if (current -> markedToDelete && current -> references == 0) {
+				int valid = 0;
 				pthread_mutex_lock(&previous -> lock);
 				pthread_mutex_lock(&current -> lock);
-				if (validateLink(previous, current)) {
+				if ((valid = validateLink(previous, current)) != 0) {
 					previous -> next = current -> next;
 				}
 				pthread_mutex_unlock(&previous -> lock);
 				pthread_mutex_unlock(&current -> lock);
+				if (valid) {
+					current = current -> next;
+					continue;
+				}
 			}
 			previous = current;
 			current = current -> next;
