@@ -212,10 +212,10 @@ void* test(void *data) {
 
 #ifdef ICC
 	while (stop_condition == 0) {
-#else
-	while (AO_load_full(&stop_condition) == 0) {
-#endif
-		printf("running something\n");
+//#else
+//	while (AO_load_full(&stop_condition) == 0) {
+//#endif
+		fprintf(stderr, "running something\n");
 		if (unext) { // update
 
 			if (last < 0) { // add
@@ -229,7 +229,7 @@ void* test(void *data) {
 				d->nb_add++;
 
 			} else { // remove
-				printf("remove\n");
+				fprintf(stderr, "remove\n");
 				if (d->alternate) { // alternate mode (default)
 					if (sl_remove(sl, last)) {
 						d->nb_removed++;
@@ -249,7 +249,7 @@ void* test(void *data) {
 			}
 
 		} else { // read
-			printf("contains\n");
+			fprintf(stderr, "contains\n");
 			if (d->alternate) {
 				if (d->update == 0) {
 					if (last < 0) {
