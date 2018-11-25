@@ -7,7 +7,7 @@
 
 extern searchLayer_t** numaLayers; 
 extern int numberNumaZones;
-struct DataLayerThread {
+volatile struct DataLayerThread {
 	pthread_t runner;
 	volatile char running;
 	volatile char finished;
