@@ -103,7 +103,7 @@ void* backgroundRemoval(void* input) {
 	node_t* sentinel = (node_t*)input;
 	while (remover.finished == 0) {
 		usleep(remover.sleep_time);
-		printf("Attempting iteration\n");
+		printf("%d\n", remover.finished);
 		node_t* previous = sentinel;
 		node_t* current = sentinel -> next;
 		while (current -> next != NULL) {
