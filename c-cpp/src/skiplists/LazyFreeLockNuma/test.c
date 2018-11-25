@@ -210,16 +210,18 @@ void* test(void *data) {
 	/* Is the first op an update? */
 	unext = (rand_range_re(&d->seed, 100) - 1 < d->update);
 
-//#ifdef ICC
+#ifdef ICC
 	while (stop_condition == 0) {
-//#else
-//while (AO_load_full(&stop_condition) == 0) {
-//#endif
+#else
+	while (AO_load_full(&stop_condition) == 0) {
+#endif
+		printf("running something\n");
 		if (unext) { // update
 
 			if (last < 0) { // add
 
 				val = rand_range_re(&d->seed, d->range);
+				printf("add\n");
 				if (sl_add(sl, val)) {
 					d->nb_added++;
 					last = val;
@@ -227,7 +229,7 @@ void* test(void *data) {
 				d->nb_add++;
 
 			} else { // remove
-
+				printf("remove\n");
 				if (d->alternate) { // alternate mode (default)
 					if (sl_remove(sl, last)) {
 						d->nb_removed++;
@@ -247,7 +249,7 @@ void* test(void *data) {
 			}
 
 		} else { // read
-
+			printf("contains\n");
 			if (d->alternate) {
 				if (d->update == 0) {
 					if (last < 0) {
