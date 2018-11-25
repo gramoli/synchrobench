@@ -13,7 +13,6 @@
 #include <atomic_ops.h>
 #include <numa.h>
 #include <sched.h>
-#include <stdio.h>
 
 searchLayer_t* constructSearchLayer(inode_t* sentinel, int zone) {
 	searchLayer_t* numask = (searchLayer_t*)malloc(sizeof(searchLayer_t));
@@ -44,9 +43,7 @@ void start(searchLayer_t* numask, int sleep_time) {
 void stop(searchLayer_t* numask) {
 	if (numask -> running) {
 		numask -> finished = 1;
-		printf("Waiting to finish\n");
 		pthread_join(numask -> helper, NULL);
-		printf("Finished\n");
 		numask -> running = 0;
 	}
 }

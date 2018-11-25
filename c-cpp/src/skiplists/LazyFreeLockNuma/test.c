@@ -289,7 +289,6 @@ void* test(void *data) {
 
 	/* Free transaction */
 	//TM_THREAD_EXIT();
-fprintf(stderr, "DONE\n");
 	return NULL;
 }
 
