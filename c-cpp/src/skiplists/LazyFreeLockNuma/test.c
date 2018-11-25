@@ -215,13 +215,11 @@ void* test(void *data) {
 //#else
 //	while (AO_load_full(&stop_condition) == 0) {
 //#endif
-		fprintf(stderr, "running something\n");
 		if (unext) { // update
 
 			if (last < 0) { // add
 
 				val = rand_range_re(&d->seed, d->range);
-				printf("add\n");
 				if (sl_add(sl, val)) {
 					d->nb_added++;
 					last = val;
@@ -229,7 +227,6 @@ void* test(void *data) {
 				d->nb_add++;
 
 			} else { // remove
-				fprintf(stderr, "remove\n");
 				if (d->alternate) { // alternate mode (default)
 					if (sl_remove(sl, last)) {
 						d->nb_removed++;
@@ -249,7 +246,6 @@ void* test(void *data) {
 			}
 
 		} else { // read
-			fprintf(stderr, "contains\n");
 			if (d->alternate) {
 				if (d->update == 0) {
 					if (last < 0) {
@@ -293,7 +289,7 @@ void* test(void *data) {
 
 	/* Free transaction */
 	//TM_THREAD_EXIT();
-
+fprintf(stderr, "DONE\n");
 	return NULL;
 }
 
