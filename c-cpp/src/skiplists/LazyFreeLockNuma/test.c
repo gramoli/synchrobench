@@ -210,7 +210,7 @@ void* test(void *data) {
 	/* Is the first op an update? */
 	unext = (rand_range_re(&d->seed, 100) - 1 < d->update);
 
-#ifdef ICC
+//#ifdef ICC
 	while (stop_condition == 0) {
 //#else
 //	while (AO_load_full(&stop_condition) == 0) {
