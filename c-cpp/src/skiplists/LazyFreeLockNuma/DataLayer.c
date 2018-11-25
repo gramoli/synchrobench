@@ -138,8 +138,8 @@ void* backgroundRemoval(void* input) {
 }
 
 void startDataLayerThread(node_t* sentinel) {
-	remover.sleep_time = 10000;
 	if (remover.running == 0) {
+		remover.sleep_time = 10000;
 		remover.running = 1;
 		remover.finished = 0;
 		pthread_create(&remover.runner, NULL, backgroundRemoval, (void*)sentinel);
@@ -148,7 +148,7 @@ void startDataLayerThread(node_t* sentinel) {
 
 void stopDataLayerThread() {
 	if (remover.running) {
-		remover.finished = 1;
+		FAI(&remover.finished);
 		pthread_join(remover.runner, NULL);
 		remover.running = 0;
 	}
