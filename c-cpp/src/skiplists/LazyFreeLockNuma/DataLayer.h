@@ -13,7 +13,6 @@ typedef struct dataLayerThread_t {
 	volatile char finished;
 	int sleep_time;
 } dataLayerThread_t;
-dataLayerThread_t *remover = NULL;
 
 
 //Driver Functions

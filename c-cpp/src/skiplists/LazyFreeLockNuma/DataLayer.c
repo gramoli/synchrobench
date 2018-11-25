@@ -7,6 +7,8 @@
 #include <assert.h>
 #include <unistd.h>
 
+dataLayerThread_t *remover = NULL;
+
 //Helper Functions
 inline node_t* getElement(inode_t* sentinel, const int val);
 inline void dispatchSignal(int val, node_t* dataLayer, Job operation);
