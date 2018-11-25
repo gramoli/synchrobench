@@ -738,7 +738,6 @@ int main(int argc, char **argv)
 	// Stop background threads and destruct
 	test_complete = 1;
 	stopDataLayerThread();
-	printf("%d\n", remover -> finished);
 	for(int i = 0; i < numberNumaZones; i++) {
 		printf("finished %d\n", i);
 		destructSearchLayer(numaLayers[i]);

@@ -102,10 +102,10 @@ int lazyRemove(searchLayer_t* numask, int val) {
 }
 
 void* backgroundRemoval(void* input) {
-	node_t* sentinel = (node_t*)input;
-	while ((volatile char)remover -> finished == 0) {
-		usleep(remover -> sleep_time);
-		printf("%d\n", remover -> finished);
+	dataLayerThread_t* thread = (dataLayerThread_t*)input;
+	node_t* sentinel = thread -> sentinel;
+	while ((volatile char)thread -> finished == 0) {
+		usleep(thread -> sleep_time);
 		node_t* previous = sentinel;
 		node_t* current = sentinel -> next;
 		while (current -> next != NULL) {
@@ -144,6 +144,7 @@ static dataLayerThread_t* constructDataLayerThread() {
 	thread -> running = 0;
 	thread -> finished = 0;
 	thread -> sleep_time = 10000;
+	thread -> sentinel = NULL;
 	return thread;
 }
 
@@ -154,13 +155,15 @@ void startDataLayerThread(node_t* sentinel) {
 	if (remover -> running == 0) {
 		remover -> running = 1;
 		remover -> finished = 0;
-		pthread_create(&remover -> runner, NULL, backgroundRemoval, (void*)sentinel);
+		remover -> sentinel = sentinel;
+		pthread_create(&remover -> runner, NULL, backgroundRemoval, (void*)remover);
 	}
 }
 
 void stopDataLayerThread() {
 	if (remover -> running) {
-		CAS(&remover -> finished, remover -> finished, 1); //add a while loop around this to ensure it happens
+		remover -> finished = 1;
+		//CAS(&remover -> finished, remover -> finished, 1); //add a while loop around this to ensure it happens
 		pthread_join(remover -> runner, NULL);
 		remover -> running = 0;
 	}

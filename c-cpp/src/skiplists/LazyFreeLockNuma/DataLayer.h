@@ -12,6 +12,7 @@ typedef struct dataLayerThread_t {
 	volatile char running;
 	volatile char finished;
 	int sleep_time;
+	node_t* sentinel;
 } dataLayerThread_t;
 
 
