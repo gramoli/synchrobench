@@ -737,11 +737,11 @@ int main(int argc, char **argv)
 	printf("Cleaning up...\n");
 	// Stop background threads and destruct
 	test_complete = 1;
+	stopDataLayerThread();
 	for(int i = 0; i < numberNumaZones; i++) {
 		printf("finished %d\n", i);
 		destructSearchLayer(numaLayers[i]);
 	}
-	stopDataLayerThread();
 
 	// Cleanup STM
 	//TM_SHUTDOWN();
