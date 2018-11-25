@@ -103,7 +103,7 @@ extern searchLayer_t** numaLayers;
 extern numa_allocator_t** allocators;
 extern int numberNumaZones;
 extern unsigned int levelmax;
-extern struct DataLayerThread remover; 
+extern dataLayerThread_t* remover; 
 typedef struct zone_init_args {
 	int 		numa_zone;
 	node_t* 	head;
@@ -738,7 +738,7 @@ int main(int argc, char **argv)
 	// Stop background threads and destruct
 	test_complete = 1;
 	stopDataLayerThread();
-	printf("%d\n", remover.finished);
+	printf("%d\n", remover -> finished);
 	for(int i = 0; i < numberNumaZones; i++) {
 		printf("finished %d\n", i);
 		destructSearchLayer(numaLayers[i]);

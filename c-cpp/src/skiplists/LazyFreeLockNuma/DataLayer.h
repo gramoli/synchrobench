@@ -7,12 +7,14 @@
 
 extern searchLayer_t** numaLayers; 
 extern int numberNumaZones;
-volatile struct DataLayerThread {
+typedef struct dataLayerThread_t {
 	pthread_t runner;
 	volatile char running;
 	volatile char finished;
 	int sleep_time;
-} remover;
+} dataLayerThread_t;
+dataLayerThread_t *remover = NULL;
+
 
 //Driver Functions
 int lazyFind(searchLayer_t* numask, int val);

@@ -101,9 +101,9 @@ int lazyRemove(searchLayer_t* numask, int val) {
 
 void* backgroundRemoval(void* input) {
 	node_t* sentinel = (node_t*)input;
-	while (remover.finished == 0) {
-		usleep(remover.sleep_time);
-		printf("%d\n", remover.finished);
+	while ((volatile char)remover -> finished == 0) {
+		usleep(remover -> sleep_time);
+		printf("%d\n", remover -> finished);
 		node_t* previous = sentinel;
 		node_t* current = sentinel -> next;
 		while (current -> next != NULL) {
@@ -137,20 +137,30 @@ void* backgroundRemoval(void* input) {
 	return NULL;
 }
 
+static dataLayerThread_t* constructDataLayerThread() {
+	dataLayerThread_t* thread = (dataLayerThread_t*)malloc(sizeof(dataLayerThread_t));
+	thread -> running = 0;
+	thread -> finished = 0;
+	thread -> sleep_time = 10000;
+	return thread;
+}
+
 void startDataLayerThread(node_t* sentinel) {
-	if (remover.running == 0) {
-		remover.sleep_time = 10000;
-		remover.running = 1;
-		remover.finished = 0;
-		pthread_create(&remover.runner, NULL, backgroundRemoval, (void*)sentinel);
+	if (remover == NULL) {
+		remover = constructDataLayerThread();
+	}
+	if (remover -> running == 0) {
+		remover -> running = 1;
+		remover -> finished = 0;
+		pthread_create(&remover -> runner, NULL, backgroundRemoval, (void*)sentinel);
 	}
 }
 
 void stopDataLayerThread() {
-	if (remover.running) {
-		FAI(&remover.finished);
-		pthread_join(remover.runner, NULL);
-		remover.running = 0;
+	if (remover -> running) {
+		CAS(&remover -> finished, remover -> finished, 1); //add a while loop around this to ensure it happens
+		pthread_join(remover -> runner, NULL);
+		remover -> running = 0;
 	}
 }
 
