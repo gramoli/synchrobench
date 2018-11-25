@@ -565,7 +565,7 @@ int main(int argc, char **argv)
 	size = sl_size(head);
 	printf("Set size     : %d\n", size);
 	printf("Level max    : %d\n", levelmax);
-	//initial_populate = 0;
+	//initial_populate = 0
 
 	barrier_init(&barrier, nb_threads + 1);
 	pthread_attr_init(&attr);
@@ -636,11 +636,13 @@ int main(int argc, char **argv)
 	printf("STOPPING...\n");
 
 	// Wait for thread completion
+	printf("joining application threads\n");
 	for (i = 0; i < nb_threads; i++) {
 		if (pthread_join(threads[i], NULL) != 0) {
 			fprintf(stderr, "Error waiting for thread completion\n");
 			exit(1);
 		}
+		printf("joined %d\n", i);
 	}
 
 	duration = (endTime.tv_sec * 1000 + endTime.tv_usec / 1000) - (startTime.tv_sec * 1000 + startTime.tv_usec / 1000);

@@ -19,9 +19,11 @@ int sl_size(node_t* sentinel) {
 	int size = -1;
 	node_t* runner = sentinel -> next;
 	while (runner != NULL) {
+		printf("%d ", runner -> val);
 		runner = runner -> next;
 		size++;
 	}
+	printf("\n");
 	return size;
 }
 
