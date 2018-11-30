@@ -104,7 +104,7 @@ int lazyRemove(searchLayer_t* numask, int val) {
 void* backgroundRemoval(void* input) {
 	dataLayerThread_t* thread = (dataLayerThread_t*)input;
 	node_t* sentinel = thread -> sentinel;
-	while ((volatile char)thread -> finished == 0) {
+	while (thread -> finished == 0) {
 		usleep(thread -> sleep_time);
 		node_t* previous = sentinel;
 		node_t* current = sentinel -> next;
