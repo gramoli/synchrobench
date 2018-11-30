@@ -71,21 +71,29 @@ void* zone_init(void* args) {
 
 typedef struct thread_data {
   searchLayer_t* numask;
+  int threadId;
 } thread_data_t;
 
-void* test1(void* data) {
-  thread_data_t* data = (thread_data_t*)data;
+void* test1(void* args) {
+  thread_data_t* data = (thread_data_t*)args;
   searchLayer_t* numask = data -> numask;
-  for (int i = 0; i < 24; i++) {
-    sl_add(numask, rand() % 100);
+  int threadId = data -> threadId;
+  for (int i = 0; i < 500; i++) {
+    int val = rand() % 500;
+    sl_add(numask, val);
+    fprintf(stderr, "Adding %d from %i thread\n", val, threadId);
   }
 
-  for (int i = 0; i < 24; i++) {
-    sl_remove(numask, rand() % 100);
+  for (int i = 0; i < 500; i++) {
+    int val = rand() % 500;
+    sl_remove(numask, val);
+    fprintf(stderr, "Removing %d from %i thread\n", val, threadId);
   }
 
-  for (int i = 0; i < 24; i++) {
-    sl_contains(numask, rand() % 100);
+  for (int i = 0; i < 500; i++) {
+    int val = rand() % 500;
+    sl_contains(numask, val);
+    fprintf(stderr, "Finding %d from %i thread\n", val, threadId);
   }
 }
 
@@ -104,7 +112,7 @@ void* test1(void* data) {
 //8) Finally Initialize Application Threads
 
 int main(int argc, char** argv) {
-  int initial = 100;
+  int initial = 500;
   int numThreads = 2;
   levelmax = floor_log_2((unsigned int) initial);
   numberNumaZones = MAX_NUMA_ZONES;
@@ -146,7 +154,7 @@ int main(int argc, char** argv) {
 
   //start pernuma layer helper with 100000ms sleep time
   for(int i = 0; i < numberNumaZones; ++i) {
-    start(numaLayers[i], 100000);
+    start(numaLayers[i], 10000);
   }
 
   int initialSize = sl_size(head);
@@ -157,21 +165,34 @@ int main(int argc, char** argv) {
   pthread_t *threads = (pthread_t *)malloc(numThreads * sizeof(pthread_t));
   thread_data_t* data = (thread_data_t *)malloc(numThreads * sizeof(thread_data_t));
   for (int i = 0; i < numThreads; i++) {
+    printf("Initialized %d thread\n", i);
     data[i].numask = numaLayers[i % numberNumaZones];
-    pthread_create(&threads[i], NULL, test, (void*)(&data[i]));
+    data[i].threadId = i;
+    pthread_create(&threads[i], NULL, test1, (void*)(&data[i]));
   }
   printf("Initialized all application threads\n");
 
   for (int i = 0; i < numThreads; i++) {
-    printf("Applicaiton thread %d completed\n", i);
     pthread_join(threads[i], NULL);
+    printf("Applicaiton thread %d completed\n", i);
   }
   printf("All application threads joined\n");
 
+  stopDataLayerThread();
+  printf("Data Layer Thread Stopped\n");
+  for(int i = 0; i < numberNumaZones; i++) {
+    destructSearchLayer(numaLayers[i]);
+    printf("Destructed Search Layer %d\n", i);
+  }
+
+  printf("Printing Final List\n");
   node_t* runner = head;
   while (runner != NULL) {
     printf("%d ", runner -> val);
+    runner = runner -> next;
   }
   printf("\n");
+
   printf("Completed Test\n");
+  return 0;
 }

@@ -6,6 +6,7 @@
 #include <pthread.h>
 #include <assert.h>
 #include <unistd.h>
+#include <stdio.h>
 
 dataLayerThread_t *remover = NULL;
 
@@ -34,7 +35,7 @@ inline void dispatchSignal(int val, node_t* dataLayer, Job operation) {
 }
 
 inline int validateLink(node_t* previous, node_t* current) {
-	return (previous -> markedToDelete == 0 && current -> markedToDelete == 0) && previous -> next == current;
+	return previous -> next == current;
 }
 
 int lazyFind(searchLayer_t* numask, int val) {
@@ -109,6 +110,7 @@ void* backgroundRemoval(void* input) {
 		node_t* previous = sentinel;
 		node_t* current = sentinel -> next;
 		while (current -> next != NULL) {
+			fprintf(stderr, "Value: %d Fresh: %d References %d markedToDelete %d\n", current -> val, current -> fresh, current -> references, current -> markedToDelete);
 			if (current -> fresh) {
 				current -> fresh = 0; //unset as fresh, need a CAS here? only thread operating on structure
 				if (current -> markedToDelete) {
@@ -120,8 +122,11 @@ void* backgroundRemoval(void* input) {
 			}
 			else if (current -> markedToDelete && current -> references == 0) {
 				int valid = 0;
+				fprintf(stderr, "Trying to get previous\n");
 				pthread_mutex_lock(&previous -> lock);
+				fprintf(stderr, "Trying to get Current\n");
 				pthread_mutex_lock(&current -> lock);
+				fprintf(stderr, "I have both\n");
 				if ((valid = validateLink(previous, current)) != 0) {
 					previous -> next = current -> next;
 				}
