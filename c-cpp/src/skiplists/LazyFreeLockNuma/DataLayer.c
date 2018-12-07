@@ -63,7 +63,7 @@ int lazyAdd(searchLayer_t* numask, int val) {
 				pthread_mutex_unlock(&current -> lock);
 				return 0;
 			}
-			node_t* insertion = constructNode(val, numberNumaZones);
+			node_t* insertion = constructNode(val, numberNumaZones); //automatically set as fresh
 			insertion -> next = current;
 			previous -> next = insertion;
 			pthread_mutex_unlock(&previous -> lock);
@@ -84,6 +84,16 @@ int lazyRemove(searchLayer_t* numask, int val) {
 			previous = current;
 			current = current -> next;
 		}
+
+		if (current -> val != val || current -> markedToDelete == 1) {
+			return 0;
+		}
+
+		//incorporate atomicity here with CAS
+		current -> markedToDelete = 1;
+		current -> fresh = 1;
+		
+		/*
 		pthread_mutex_lock(&previous -> lock);
 		pthread_mutex_lock(&current -> lock);
 		if (validateLink(previous, current)) {
@@ -99,6 +109,7 @@ int lazyRemove(searchLayer_t* numask, int val) {
 		}
 		pthread_mutex_unlock(&previous -> lock);
 		pthread_mutex_unlock(&current -> lock);
+		*/
 	}
 }
 
@@ -110,7 +121,7 @@ void* backgroundRemoval(void* input) {
 		node_t* previous = sentinel;
 		node_t* current = sentinel -> next;
 		while (current -> next != NULL) {
-			fprintf(stderr, "Value: %d Fresh: %d References %d markedToDelete %d\n", current -> val, current -> fresh, current -> references, current -> markedToDelete);
+			if (current -> markedToDelete) fprintf(stderr, "Value: %d Fresh: %d References %d markedToDelete %d\n", current -> val, current -> fresh, current -> references, current -> markedToDelete);
 			if (current -> fresh) {
 				current -> fresh = 0; //unset as fresh, need a CAS here? only thread operating on structure
 				if (current -> markedToDelete) {
@@ -122,11 +133,8 @@ void* backgroundRemoval(void* input) {
 			}
 			else if (current -> markedToDelete && current -> references == 0) {
 				int valid = 0;
-				fprintf(stderr, "Trying to get previous\n");
 				pthread_mutex_lock(&previous -> lock);
-				fprintf(stderr, "Trying to get Current\n");
 				pthread_mutex_lock(&current -> lock);
-				fprintf(stderr, "I have both\n");
 				if ((valid = validateLink(previous, current)) != 0) {
 					previous -> next = current -> next;
 				}
