@@ -6,6 +6,7 @@
 #include <pthread.h>
 #include <assert.h>
 #include <unistd.h>
+#include <stdio.h>
 
 dataLayerThread_t *remover = NULL;
 

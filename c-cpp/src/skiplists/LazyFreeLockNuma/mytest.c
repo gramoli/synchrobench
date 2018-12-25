@@ -202,7 +202,7 @@ int main(int argc, char** argv) {
   printf("Printing Final List\n");
   node_t* runner = head;
   while (runner != NULL) {
-    printf("%d ", runner -> val);
+    printf("%d, %d, %d --", runner -> val, runner -> markedToDelete, runner -> references);
     runner = runner -> next;
   }
   printf("\n");
