@@ -76,42 +76,21 @@ int lazyAdd(searchLayer_t* numask, int val) {
 }
 
 int lazyRemove(searchLayer_t* numask, int val) {
-	char retry = 1;
-	while (retry) {
-		node_t* previous = getElement(numask -> sentinel, val);
-		node_t* current = previous -> next;
-		while (current -> val < val) {
-			previous = current;
-			current = current -> next;
-		}
-
-		if (current -> val != val || current -> markedToDelete == 1) {
-			fprintf(stderr, "Val %d Marked %d\n", current -> val, current -> markedToDelete);
-			return 0;
-		}
-
-		//incorporate atomicity here with CAS
-		current -> markedToDelete = 1;
-		current -> fresh = 1;
-		return 1;
-		/*
-		pthread_mutex_lock(&previous -> lock);
-		pthread_mutex_lock(&current -> lock);
-		if (validateLink(previous, current)) {
-			if (current -> val != val) {
-				pthread_mutex_unlock(&previous -> lock);
-				pthread_mutex_unlock(&current -> lock);
-				return 0;
-			}
-			current -> markedToDelete = 1;
-			pthread_mutex_unlock(&previous -> lock);
-			pthread_mutex_unlock(&current -> lock);
-			return 1;
-		}
-		pthread_mutex_unlock(&previous -> lock);
-		pthread_mutex_unlock(&current -> lock);
-		*/
+	node_t* previous = getElement(numask -> sentinel, val);
+	node_t* current = previous -> next;
+	while (current -> val < val) {
+		previous = current;
+		current = current -> next;
 	}
+
+	if (current -> val != val || current -> markedToDelete == 1) {
+		fprintf(stderr, "Val %d Marked %d\n", current -> val, current -> markedToDelete);
+		return 0;
+	}
+	//incorporate atomicity here with CAS
+	current -> markedToDelete = 1;
+	current -> fresh = 1;
+	return 1;
 }
 
 void* backgroundRemoval(void* input) {
@@ -123,6 +102,7 @@ void* backgroundRemoval(void* input) {
 		node_t* current = sentinel -> next;
 		while (current -> next != NULL) {
 			if (current -> fresh) {
+				fprintf(stderr, "Fresh node\n");
 				current -> fresh = 0; //unset as fresh, need a CAS here? only thread operating on structure
 				if (current -> markedToDelete) {
 					dispatchSignal(current -> val, current, REMOVAL);
