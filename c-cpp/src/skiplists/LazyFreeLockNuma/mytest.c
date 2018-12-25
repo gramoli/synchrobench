@@ -126,6 +126,10 @@ void* test1(void* args) {
 //8) Finally Initialize Application Threads
 
 int main(int argc, char** argv) {
+  printf("Sizes\n");
+  printf("Size of SearchLayer: %d\n", sizeof(searchLayer_t));
+  printf("Size of IndexLayer Node: %d\n", sizeof(inode_t));
+  printf("Size of DataLayer Node: %d\n", sizeof(node_t));
   int initial = 512;
   int numThreads = 1;
   levelmax = floor_log_2((unsigned int) initial);
