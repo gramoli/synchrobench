@@ -78,22 +78,36 @@ void* test1(void* args) {
   thread_data_t* data = (thread_data_t*)args;
   searchLayer_t* numask = data -> numask;
   int threadId = data -> threadId;
-  for (int i = 0; i < 500; i++) {
-    int val = rand() % 500;
+
+  size_t size = iterations = 1000000;
+  int *insertions = (int*)malloc(iterations * sizeof(int));
+  for (int i = 0; i < iterations; i++) {
+    int val = rand() % iterations;
+    insertions[i] = val;
     sl_add(numask, val);
     fprintf(stderr, "Adding %d from %i thread\n", val, threadId);
   }
 
-  for (int i = 0; i < 500; i++) {
-    int val = rand() % 500;
-    sl_remove(numask, val);
-    fprintf(stderr, "Removing %d from %i thread\n", val, threadId);
+  for (int i = 0; i < iterations; i++) {
+    int val = insertions[i];
+    if (sl_contains(numask, val) != 1) {
+      fprintf(stderr, "FAILURE: Finding %d from %i thread\n", val, threadId);
+    }
+    
   }
 
-  for (int i = 0; i < 500; i++) {
-    int val = rand() % 500;
-    sl_contains(numask, val);
-    fprintf(stderr, "Finding %d from %i thread\n", val, threadId);
+  for (int i = 0; i < iterations; i++) {
+    int val = insertions[i];
+    if (sl_remove(numask, val) != 1) {
+      fprintf(stderr, "FAILURE: Removing %d from %i thread\n", val, threadId);
+    }
+  }
+
+  for (int i = 0; i < iterations; i++) {
+    int val = insertions[i];
+    if (sl_contains(numask, val) != 0) {
+      fprintf(stderr, "FAILURE: Finding %d from %i thread\n", val, threadId);
+    }
   }
 }
 
