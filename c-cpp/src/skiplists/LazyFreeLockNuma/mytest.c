@@ -92,8 +92,8 @@ void* test1(void* args) {
     if (sl_contains(numask, val) != 1) {
       fprintf(stderr, "FAILURE: Finding %d from %i thread\n", val, threadId);
     }
-    
   }
+  numaLayers[i] -> finished = 0;
   usleep(10000);
   for (int i = 0; i < iterations; i++) {
     int val = insertions[i];
