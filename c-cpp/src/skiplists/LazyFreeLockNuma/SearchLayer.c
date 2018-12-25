@@ -67,7 +67,7 @@ void* updateNumaZone(void* args) {
 		while (numask -> finished == 0 && runJob(sentinel, pop(updates), numask -> numaZone)) {}
 	}
 	while (sentinel != NULL) {
-		printf("%20d  ", sentinel -> val);
+		printf("%11d %d\n", sentinel -> val, numask -> numaZone);
 		sentinel = sentinel -> next[0];
 	}
 	return NULL;
