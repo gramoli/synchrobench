@@ -79,7 +79,7 @@ void* test1(void* args) {
   searchLayer_t* numask = data -> numask;
   int threadId = data -> threadId;
 
-  size_t iterations = 10000;
+  size_t iterations = 512;
   int *insertions = (int*)malloc(iterations * sizeof(int));
   for (int i = 0; i < iterations; i++) {
     int val = rand() % (iterations * 50);
@@ -126,7 +126,7 @@ void* test1(void* args) {
 //8) Finally Initialize Application Threads
 
 int main(int argc, char** argv) {
-  int initial = 10000;
+  int initial = 512;
   int numThreads = 1;
   levelmax = floor_log_2((unsigned int) initial);
   numberNumaZones = numThreads;
