@@ -91,7 +91,7 @@ int lazyRemove(searchLayer_t* numask, int val) {
 		//incorporate atomicity here with CAS
 		current -> markedToDelete = 1;
 		current -> fresh = 1;
-		
+		return 1;
 		/*
 		pthread_mutex_lock(&previous -> lock);
 		pthread_mutex_lock(&current -> lock);
