@@ -79,7 +79,7 @@ void* test1(void* args) {
   searchLayer_t* numask = data -> numask;
   int threadId = data -> threadId;
 
-  size_t iterations = 20;
+  size_t iterations = 10000;
   int *insertions = (int*)malloc(iterations * sizeof(int));
   for (int i = 0; i < iterations; i++) {
     int val = rand() % (iterations * 50);
@@ -129,7 +129,7 @@ int main(int argc, char** argv) {
   int initial = 50000;
   int numThreads = 1;
   levelmax = floor_log_2((unsigned int) initial);
-  numberNumaZones = MAX_NUMA_ZONES;
+  numberNumaZones = numThreads;
 
   //create sentinel node on NUMA zone 0
   node_t* tail = constructNode(INT_MAX, numberNumaZones);
