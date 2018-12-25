@@ -62,8 +62,9 @@ int removeNode(inode_t *sentinel, int val, int zone) {
     for (int i = 0; i < candidate -> topLevel; i++) {
         predecessors[i] -> next[i] = successors[i] -> next[i];
     }
-    fprintf("Removing\n");
-    FAD(&candidate -> dataLayer -> references); // Question: is this correct?
+    
+    candidate -> dataLayer -> references = candidate -> dataLayer -> references - 1;
+    //FAD(&candidate -> dataLayer -> references); // Question: is this correct?
     //candidate -> dataLayer = NULL; //QUESTION: will this be a problem and is it needed?
     return 1;
   }
