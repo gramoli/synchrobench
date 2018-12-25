@@ -85,6 +85,7 @@ int lazyRemove(searchLayer_t* numask, int val) {
 		}
 
 		if (current -> val != val || current -> markedToDelete == 1) {
+			fprintf(stderr, "Val %d Marked %d\n", current -> val, current -> markedToDelete);
 			return 0;
 		}
 

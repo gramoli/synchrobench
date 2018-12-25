@@ -79,10 +79,10 @@ void* test1(void* args) {
   searchLayer_t* numask = data -> numask;
   int threadId = data -> threadId;
 
-  size_t iterations = 50000;
+  size_t iterations = 20;
   int *insertions = (int*)malloc(iterations * sizeof(int));
   for (int i = 0; i < iterations; i++) {
-    int val = rand() % (iterations * 5);
+    int val = rand() % (iterations * 50);
     insertions[i] = val;
     sl_add(numask, val);
   }
