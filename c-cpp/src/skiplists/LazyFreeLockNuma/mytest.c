@@ -79,7 +79,7 @@ void* test1(void* args) {
   searchLayer_t* numask = data -> numask;
   int threadId = data -> threadId;
 
-  size_t iterations = 512;
+  size_t iterations = 12000;
   int *insertions = (int*)malloc(iterations * sizeof(int));
   for (int i = 0; i < iterations; i++) {
     int val = rand() % (iterations * 50);
@@ -130,7 +130,7 @@ int main(int argc, char** argv) {
   printf("Size of SearchLayer: %d\n", sizeof(searchLayer_t));
   printf("Size of IndexLayer Node: %d\n", sizeof(inode_t));
   printf("Size of DataLayer Node: %d\n", sizeof(node_t));
-  int initial = 512;
+  int initial = 12000;
   int numThreads = 1;
   levelmax = floor_log_2((unsigned int) initial);
   numberNumaZones = numThreads;
