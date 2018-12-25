@@ -126,7 +126,7 @@ void* test1(void* args) {
 //8) Finally Initialize Application Threads
 
 int main(int argc, char** argv) {
-  int initial = 50000;
+  int initial = 10000;
   int numThreads = 1;
   levelmax = floor_log_2((unsigned int) initial);
   numberNumaZones = numThreads;

@@ -3,7 +3,6 @@
 
 #include "SkipListLazyLock.h"
 #include "Atomic.h"
-#include <stdio.h>
 
 //Inserts a value into the skip list if it doesn't already exist
 int add(inode_t *sentinel, int val, node_t* dataLayer, int zone) {
@@ -63,7 +62,6 @@ int removeNode(inode_t *sentinel, int val, int zone) {
         predecessors[i] -> next[i] = successors[i] -> next[i];
     }
     FAD(&candidate -> dataLayer -> references); // Question: is this correct?
-    fprintf(stderr, "%d %d\n", candidate -> dataLayer -> val, candidate -> dataLayer -> references);
     //candidate -> dataLayer = NULL; //QUESTION: will this be a problem and is it needed?
     return 1;
   }

@@ -6,6 +6,7 @@
 #include <pthread.h>
 #include <assert.h>
 #include <unistd.h>
+#include <stdio.h>
 
 dataLayerThread_t *remover = NULL;
 
@@ -99,6 +100,7 @@ void* backgroundRemoval(void* input) {
 		node_t* previous = sentinel;
 		node_t* current = sentinel -> next;
 		while (current -> next != NULL) {
+			fprintf(stderr, "%d %d %d %d\n", current -> val, current -> fresh, current -> markedToDelete, current -> references);
 			if (current -> fresh) {
 				current -> fresh = 0; //unset as fresh, need a CAS here? only thread operating on structure
 				if (current -> markedToDelete) {
