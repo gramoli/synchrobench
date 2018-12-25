@@ -108,6 +108,7 @@ void* test1(void* args) {
       fprintf(stderr, "FAILURE: Finding %d from %i thread\n", val, threadId);
     }
   }
+  free(insertions);
 }
 
 
@@ -125,7 +126,7 @@ void* test1(void* args) {
 //8) Finally Initialize Application Threads
 
 int main(int argc, char** argv) {
-  int initial = 50000 * 10;
+  int initial = 50000;
   int numThreads = 1;
   levelmax = floor_log_2((unsigned int) initial);
   numberNumaZones = MAX_NUMA_ZONES;
@@ -166,7 +167,7 @@ int main(int argc, char** argv) {
   startDataLayerThread(head);
 
   //start pernuma layer helper with 100000ms sleep time
-  for(int i = 0; i < numberNumaZones; ++i) {
+  for (int i = 0; i < numberNumaZones; ++i) {
     start(numaLayers[i], 10000);
   }
 
