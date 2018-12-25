@@ -131,7 +131,7 @@ int main(int argc, char** argv) {
   printf("Size of IndexLayer Node: %d\n", sizeof(inode_t));
   printf("Size of DataLayer Node: %d\n", sizeof(node_t));
   int initial = 12000;
-  int numThreads = 1;
+  int numThreads = 4;
   levelmax = floor_log_2((unsigned int) initial);
   numberNumaZones = numThreads;
 
