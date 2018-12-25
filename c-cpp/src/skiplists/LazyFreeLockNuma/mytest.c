@@ -86,7 +86,7 @@ void* test1(void* args) {
     insertions[i] = val;
     sl_add(numask, val);
   }
-
+  usleep(10000);
   for (int i = 0; i < iterations; i++) {
     int val = insertions[i];
     if (sl_contains(numask, val) != 1) {
@@ -94,14 +94,14 @@ void* test1(void* args) {
     }
     
   }
-
+  usleep(10000);
   for (int i = 0; i < iterations; i++) {
     int val = insertions[i];
     if (sl_remove(numask, val) != 1) {
       fprintf(stderr, "FAILURE: Removing %d from %i thread\n", val, threadId);
     }
   }
-
+  usleep(10000);
   for (int i = 0; i < iterations; i++) {
     int val = insertions[i];
     if (sl_contains(numask, val) != 0) {
