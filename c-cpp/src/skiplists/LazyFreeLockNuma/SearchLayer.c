@@ -45,6 +45,15 @@ void stop(searchLayer_t* numask) {
 		numask -> finished = 1;
 		pthread_join(numask -> helper, NULL);
 		numask -> running = 0;
+
+		job_queue_t* updates = numask -> updates;
+		q_node_t* job = pop(updates);
+		int size = 0;
+		while (job != NULL) {
+			size++;
+			job = pop(updates);
+		}
+		fprintf(stderr, "%d jobs left-------------\n\n\n", size);
 	}
 }
 
