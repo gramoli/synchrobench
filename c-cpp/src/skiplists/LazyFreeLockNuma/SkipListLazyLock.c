@@ -61,7 +61,7 @@ int removeNode(inode_t *sentinel, int val, int zone) {
     for (int i = 0; i < candidate -> topLevel; i++) {
         predecessors[i] -> next[i] = successors[i] -> next[i];
     }
-    FAD(&candidate -> dataLayer -> references); // Question: is this correct?
+    __sync_fetch_and_sub(&candidate -> dataLayer -> references, 1); // Question: is this correct?
     //candidate -> dataLayer = NULL; //QUESTION: will this be a problem and is it needed?
     return 1;
   }
