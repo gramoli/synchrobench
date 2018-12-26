@@ -79,7 +79,7 @@ void* test1(void* args) {
   searchLayer_t* numask = data -> numask;
   int threadId = data -> threadId;
 
-  size_t iterations = 512;
+  size_t iterations = 100000;
   int *insertions = (int*)malloc(iterations * sizeof(int));
   for (int i = 0; i < iterations; i++) {
     int val = rand() % (iterations * 50);
@@ -93,7 +93,7 @@ void* test1(void* args) {
       fprintf(stderr, "FAILURE: Finding %d from %i thread\n", val, threadId);
     }
   }
-  numaLayers[threadId] -> finished = 1;
+
   usleep(10000);
   for (int i = 0; i < iterations; i++) {
     int val = insertions[i];
@@ -105,7 +105,7 @@ void* test1(void* args) {
   for (int i = 0; i < iterations; i++) {
     int val = insertions[i];
     if (sl_contains(numask, val) != 0) {
-      fprintf(stderr, "FAILURE: Finding %d from %i thread\n", val, threadId);
+      fprintf(stderr, "FAILURE: Should Not Have Found %d from %i thread\n", val, threadId);
     }
   }
   free(insertions);
@@ -130,8 +130,8 @@ int main(int argc, char** argv) {
   printf("Size of SearchLayer: %d\n", sizeof(searchLayer_t));
   printf("Size of IndexLayer Node: %d\n", sizeof(inode_t));
   printf("Size of DataLayer Node: %d\n", sizeof(node_t));
-  int initial = 512;
-  int numThreads = 1;
+  int initial = 100000;
+  int numThreads = 4;
   levelmax = floor_log_2((unsigned int) initial);
   numberNumaZones = numThreads;
 

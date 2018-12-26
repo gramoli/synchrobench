@@ -14,8 +14,6 @@
 #include <numa.h>
 #include <sched.h>
 
-#include <stdio.h>
-
 searchLayer_t* constructSearchLayer(inode_t* sentinel, int zone) {
 	searchLayer_t* numask = (searchLayer_t*)malloc(sizeof(searchLayer_t));
 	numask -> sentinel = sentinel;
@@ -66,10 +64,7 @@ void* updateNumaZone(void* args) {
 		usleep(numask -> sleep_time);
 		while (numask -> finished == 0 && runJob(sentinel, pop(updates), numask -> numaZone)) {}
 	}
-	while (sentinel != NULL) {
-		printf("%11d %d\n", sentinel -> val, numask -> numaZone);
-		sentinel = sentinel -> next[0];
-	}
+
 	return NULL;
 }
 
