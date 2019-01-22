@@ -86,7 +86,7 @@ int lazyRemove(searchLayer_t* numask, int val) {
 		return 0;
 	}
 	//incorporate atomicity here with CAS
-	if (CAS(&current -> markedToDelete, 0, 1) == 0) {
+	if (__sync_val_compare_and_swap(&current -> markedToDelete, 0, 1) == 0) {
 		current -> fresh = 1;
 		return 1;
 	}
