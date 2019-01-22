@@ -86,9 +86,11 @@ int lazyRemove(searchLayer_t* numask, int val) {
 		return 0;
 	}
 	//incorporate atomicity here with CAS
-	current -> markedToDelete = 1;
-	current -> fresh = 1;
-	return 1;
+	if (CAS(&current -> markedToDelete, 0, 1) == 0) {
+		current -> fresh = 1;
+		return 1;
+	}
+	return 0;
 }
 
 void* backgroundRemoval(void* input) {
