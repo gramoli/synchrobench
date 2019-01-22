@@ -19,8 +19,10 @@ int sl_size(node_t* sentinel) {
 	int size = -1;
 	node_t* runner = sentinel -> next;
 	while (runner != NULL) {
+		if (!runner -> markedToDelete) {
+			size++;
+		}
 		runner = runner -> next;
-		size++;
 	}
 	return size;
 }
