@@ -31,6 +31,16 @@ searchLayer_t* destructSearchLayer(searchLayer_t* numask) {
 	free(numask);
 }
 
+int searchLayerSize(searchLayer_t* numask) {
+	inode_t* runner = numask -> sentinel;
+	int size = -2;
+	while (runner != NULL) {
+		size++;
+		runner = runner -> next[0];
+	}
+	return size;
+}
+
 void start(searchLayer_t* numask, int sleep_time) {
 	numask -> sleep_time = sleep_time;
 	if (numask -> running == 0) {

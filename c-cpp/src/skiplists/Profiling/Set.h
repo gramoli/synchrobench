@@ -2,6 +2,7 @@
 #define SET_H
 
 #include "DataLayer.h"
+#include "SearchLayer.h"
 #include "Allocator.h"
 
 searchLayer_t** numaLayers;

@@ -559,6 +559,13 @@ int main(int argc, char **argv)
 		}
 	}
 
+	for (int i = 0; i < numberNumaZones; i++) {
+		while (searchLayerSize(numaLayers[i]) < initial) {}
+		printf("Index Layer %d filled\n", i);
+	}
+	
+	usleep(10);
+
 	size = sl_size(head);
 	printf("Set size     : %d\n", size);
 	printf("Level max    : %d\n", levelmax);

@@ -22,6 +22,7 @@ int runJob(inode_t* sentinel, q_node_t* job, int zone);
 //helper functions
 searchLayer_t* constructSearchLayer(inode_t* sentinel, int zone);
 searchLayer_t* destructSearchLayer(searchLayer_t* searcher);
+int searchLayerSize(searchLayer_t* numask);
 void start(searchLayer_t* numask, int sleep_time);
 void stop(searchLayer_t* numask);
 
