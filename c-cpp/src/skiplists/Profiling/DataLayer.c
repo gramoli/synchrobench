@@ -39,12 +39,9 @@ inline int validateLink(node_t* previous, node_t* current) {
 
 int lazyFind(searchLayer_t* numask, int val) {
 	node_t* current = getElement(numask -> sentinel, val);
-	int time_spent = 0;
 	while (current -> val < val) {
-		time_spent++;
-		current = current -> next; //85% here
+		current = current -> next;
 	}
-	fprintf(stderr, "Find %d", time_spent);
 	return current -> val == val && current -> markedToDelete == 0;
 }
 
@@ -53,13 +50,10 @@ int lazyAdd(searchLayer_t* numask, int val) {
 	while (retry) {
 		node_t* previous = getElement(numask -> sentinel, val);
 		node_t* current = previous -> next;
-		int time_spent = 0;
-		while (current -> val < val) { 
+		while (current -> val < val) {
 			previous = current;
-			current = current -> next; //70% here
-			time_spent++;
+			current = current -> next;
 		}
-		fprintf(stderr, "Add %d", time_spent);
 		pthread_mutex_lock(&previous -> lock);
 		pthread_mutex_lock(&current -> lock);
 		if (validateLink(previous, current)) {
@@ -83,13 +77,11 @@ int lazyAdd(searchLayer_t* numask, int val) {
 int lazyRemove(searchLayer_t* numask, int val) {
 	node_t* previous = getElement(numask -> sentinel, val);
 	node_t* current = previous -> next;
-	int time_spent = 0;
-	while (current -> val < val) { //56% here
+	while (current -> val < val) {
 		previous = current;
 		current = current -> next;
-		time_spent++;
 	}
-	fprintf(stderr, "Removal %d", time_spent);
+
 	if (current -> val != val || current -> markedToDelete == 1) {
 		return 0;
 	}
