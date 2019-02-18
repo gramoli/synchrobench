@@ -11,7 +11,7 @@
 dataLayerThread_t *remover = NULL;
 
 //Helper Functions
-inline node_t* getElement(inode_t* sentinel, const int val);
+inline node_t* getElement(inode_t* sentinel, const int val, volatile long* ap_local_accesses, volatile long* ap_foreign_accesses, int index_ignore, int zone);
 inline void dispatchSignal(int val, node_t* dataLayer, Job operation);
 inline int validateLink(node_t* previous, node_t* current);
 
@@ -42,11 +42,11 @@ inline int validateLink(node_t* previous, node_t* current) {
 }
 
 int lazyFind(searchLayer_t* numask, int val) {
-	node_t* current = getElement(numask -> sentinel, val, &numask -> ap_local_accesses, &numask -> ap_foreign_accesses, numask -> index_ignore, numask -> zone);
-	zone_access_check(numask -> zone, current, &numask -> ap_local_accesses, &numask -> ap_foreign_accesses, numask -> index_ignore);
+	node_t* current = getElement(numask -> sentinel, val, &numask -> ap_local_accesses, &numask -> ap_foreign_accesses, numask -> index_ignore, numask -> numaZone);
+	zone_access_check(numask -> numaZone, current, &numask -> ap_local_accesses, &numask -> ap_foreign_accesses, numask -> index_ignore);
 	while (current -> val < val) {
 		current = current -> next;
-		zone_access_check(numask -> zone, current, &numask -> ap_local_accesses, &numask -> ap_foreign_accesses, numask -> index_ignore);
+		zone_access_check(numask -> numaZone, current, &numask -> ap_local_accesses, &numask -> ap_foreign_accesses, numask -> index_ignore);
 	}
 	return current -> val == val && current -> markedToDelete == 0;
 }
@@ -54,14 +54,14 @@ int lazyFind(searchLayer_t* numask, int val) {
 int lazyAdd(searchLayer_t* numask, int val) {
 	char retry = 1;
 	while (retry) {
-		node_t* previous = getElement(numask -> sentinel, val, &numask -> ap_local_accesses, &numask -> ap_foreign_accesses, numask -> index_ignore, numask -> zone);
-		zone_access_check(numask -> zone, previous, &numask -> ap_local_accesses, &numask -> ap_foreign_accesses, numask -> index_ignore);
+		node_t* previous = getElement(numask -> sentinel, val, &numask -> ap_local_accesses, &numask -> ap_foreign_accesses, numask -> index_ignore, numask -> numaZone);
+		zone_access_check(numask -> numaZone, previous, &numask -> ap_local_accesses, &numask -> ap_foreign_accesses, numask -> index_ignore);
 		node_t* current = previous -> next;
-		zone_access_check(numask -> zone, current, &numask -> ap_local_accesses, &numask -> ap_foreign_accesses, numask -> index_ignore);
+		zone_access_check(numask -> numaZone, current, &numask -> ap_local_accesses, &numask -> ap_foreign_accesses, numask -> index_ignore);
 		while (current -> val < val) {
 			previous = current;
 			current = current -> next;
-			zone_access_check(numask -> zone, current, &numask -> ap_local_accesses, &numask -> ap_foreign_accesses, numask -> index_ignore);
+			zone_access_check(numask -> numaZone, current, &numask -> ap_local_accesses, &numask -> ap_foreign_accesses, numask -> index_ignore);
 		}
 		pthread_mutex_lock(&previous -> lock);
 		pthread_mutex_lock(&current -> lock);
@@ -72,7 +72,7 @@ int lazyAdd(searchLayer_t* numask, int val) {
 				return 0;
 			}
 			node_t* insertion = constructNode(val, numberNumaZones); //automatically set as fresh
-			zone_access_check(numask -> zone, insertion, &numask -> ap_local_accesses, &numask -> ap_foreign_accesses, numask -> index_ignore);
+			zone_access_check(numask -> numaZone, insertion, &numask -> ap_local_accesses, &numask -> ap_foreign_accesses, numask -> index_ignore);
 			insertion -> next = current;
 			previous -> next = insertion;
 			pthread_mutex_unlock(&previous -> lock);
@@ -85,14 +85,14 @@ int lazyAdd(searchLayer_t* numask, int val) {
 }
 
 int lazyRemove(searchLayer_t* numask, int val) {
-	node_t* previous = getElement(numask -> sentinel, val, &numask -> ap_local_accesses, &numask -> ap_foreign_accesses, numask -> index_ignore, numask -> zone);
-	zone_access_check(numask -> zone, previous, &numask -> ap_local_accesses, &numask -> ap_foreign_accesses, numask -> index_ignore);
+	node_t* previous = getElement(numask -> sentinel, val, &numask -> ap_local_accesses, &numask -> ap_foreign_accesses, numask -> index_ignore, numask -> numaZone);
+	zone_access_check(numask -> numaZone, previous, &numask -> ap_local_accesses, &numask -> ap_foreign_accesses, numask -> index_ignore);
 	node_t* current = previous -> next;
-	zone_access_check(numask -> zone, current, &numask -> ap_local_accesses, &numask -> ap_foreign_accesses, numask -> index_ignore);
+	zone_access_check(numask -> numaZone, current, &numask -> ap_local_accesses, &numask -> ap_foreign_accesses, numask -> index_ignore);
 	while (current -> val < val) {
 		previous = current;
 		current = current -> next;
-		zone_access_check(numask -> zone, current, &numask -> ap_local_accesses, &numask -> ap_foreign_accesses, numask -> index_ignore);
+		zone_access_check(numask -> numaZone, current, &numask -> ap_local_accesses, &numask -> ap_foreign_accesses, numask -> index_ignore);
 	}
 
 	if (current -> val != val || current -> markedToDelete == 1) {
