@@ -22,6 +22,9 @@ searchLayer_t* constructSearchLayer(inode_t* sentinel, int zone) {
 	numask -> finished = 0;
 	numask -> running = 0;
 	numask -> sleep_time = 0;
+	numask -> bg_local_accesses = 0;
+	numask -> bg_foreign_accesses = 0;
+	numask -> index_ignore = 0;
 	return numask;
 }
 
@@ -72,21 +75,21 @@ void* updateNumaZone(void* args) {
 
 	while (numask -> finished == 0) {
 		usleep(numask -> sleep_time);
-		while (numask -> finished == 0 && runJob(sentinel, pop(updates), numask -> numaZone)) {}
+		while (numask -> finished == 0 && runJob(sentinel, pop(updates), numask -> numaZone, numask)) {}
 	}
 
 	return NULL;
 }
 
-int runJob(inode_t* sentinel, q_node_t* job, int zone) {
+int runJob(inode_t* sentinel, q_node_t* job, int zone, searchLayer_t* numask) {
 	if (job == NULL) {
 		return 0;
 	}
 	else if (job -> operation == INSERTION) {
-		add(sentinel, job -> val, job -> node, zone);
+		add(sentinel, job -> val, job -> node, zone, &numask->bg_local_accesses, &numask->bg_foreign_accesses, numask -> index_ignore);
 	}
 	else if (job -> operation == REMOVAL) {
-		removeNode(sentinel, job -> val, zone);
+		removeNode(sentinel, job -> val, zone, &numask->bg_local_accesses, &numask->bg_foreign_accesses, numask -> index_ignore);
 	}
 	return 1;
 }

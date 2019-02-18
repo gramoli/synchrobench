@@ -12,6 +12,9 @@ all:	main
 Allocator.o: ./Architecture/Allocator.h
 	$(CC) $(CFLAGS) $(EXTRA_PATHS) -c -o $(BUILDIR)/Allocator.o ./Architecture/Allocator.c
 
+Profiler.o: ./Architecture/Profiler.h
+	$(CC) $(CFLAGS) $(EXTRA_PATHS) -c -o $(BUILDIR)/Profiler.o ./Architecture/Profiler.c
+
 Nodes.o: ./Architecture/Nodes.h ./Architecture/Allocator.h
 	$(CC) $(CFLAGS) $(EXTRA_PATHS) $(EXTRA_FLAGS) -c -o $(BUILDIR)/Nodes.o ./Architecture/Nodes.c
 
@@ -33,8 +36,8 @@ Set.o: Set.h DataLayer.h ./Architecture/Allocator.h
 test.o: test.c Set.h
 	$(CC) $(CFLAGS) $(EXTRA_PATHS) $(EXTRA_FLAGS) -c -o $(BUILDIR)/test.o test.c
 	
-main: Allocator.o Nodes.o JobQueue.o SkipListLazyLock.o SearchLayer.o DataLayer.o Set.o test.o
-	$(CC) $(CFLAGS) $(EXTRA_PATHS) $(EXTRA_FLAGS) $(BUILDIR)/Allocator.o $(BUILDIR)/Nodes.o $(BUILDIR)/JobQueue.o $(BUILDIR)/SkipListLazyLock.o $(BUILDIR)/SearchLayer.o $(BUILDIR)/DataLayer.o $(BUILDIR)/Set.o $(BUILDIR)/test.o -o $(BINS) $(LDFLAGS) -lnuma
+main: Allocator.o Profiler.o Nodes.o JobQueue.o SkipListLazyLock.o SearchLayer.o DataLayer.o Set.o test.o
+	$(CC) $(CFLAGS) $(EXTRA_PATHS) $(EXTRA_FLAGS) $(BUILDIR)/Allocator.o $(BUILDIR)/Profiler.o $(BUILDIR)/Nodes.o $(BUILDIR)/JobQueue.o $(BUILDIR)/SkipListLazyLock.o $(BUILDIR)/SearchLayer.o $(BUILDIR)/DataLayer.o $(BUILDIR)/Set.o $(BUILDIR)/test.o -o $(BINS) $(LDFLAGS) -lnuma
 	
 clean:
 	-rm -f $(BINS)

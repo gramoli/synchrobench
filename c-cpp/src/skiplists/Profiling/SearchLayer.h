@@ -13,11 +13,14 @@ typedef struct searchLayer {
 	volatile char finished;
 	volatile char running;
 	int sleep_time;
+	int bg_local_accesses;
+	int bg_foreign_accesses;
+	int index_ignore;
 } searchLayer_t;
 
 //driver functions
 void* updateNumaZone(void* args);
-int runJob(inode_t* sentinel, q_node_t* job, int zone);
+int runJob(inode_t* sentinel, q_node_t* job, int zone, searchLayer_t* numask);
 
 //helper functions
 searchLayer_t* constructSearchLayer(inode_t* sentinel, int zone);
