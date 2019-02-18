@@ -13,9 +13,11 @@ typedef struct searchLayer {
 	volatile char finished;
 	volatile char running;
 	int sleep_time;
-	int bg_local_accesses;
-	int bg_foreign_accesses;
 	int index_ignore;
+	volatile int bg_local_accesses;
+	volatile int bg_foreign_accesses;
+	volatile long ap_local_accesses;
+	volatile long ap_foreign_accesses;
 } searchLayer_t;
 
 //driver functions

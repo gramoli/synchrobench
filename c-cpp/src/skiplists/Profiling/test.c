@@ -740,12 +740,26 @@ int main(int argc, char **argv)
 	printf("  #failures   : %lu\n",  failures_because_contention);
 	printf("Max retries   : %lu\n", max_retries);
 
-	printf("Cleaning up...\n");
+	int app_local = 0;
+	int app_foreign = 0;
+	int bkg_local = 0;
+	int bkg_foreign = 0;
+	for (int i = 0; i < numberNumaZones; ++i) {
+		bkg_local += numaLayers[i]->bg_local_accesses;
+		bkg_foreign += numaLayers[i]->bg_foreign_accesses;
+		app_local += numaLayers[i]->ap_local_accesses;
+		app_foreign += numaLayers[i]->ap_foreign_accesses;
+	}
+	printf("Application threads: %f%% local\n", (app_local * 100.0)/(app_local + app_foreign));
+	printf("	#local accesses:   %d\n", app_local);
+	printf("	#foreign accesses: %d\n", app_foreign);
+	printf("Background threads: %f%% local\n", (bkg_local * 100.0)/(bkg_local + bkg_foreign));
+	printf("	#local accesses:   %d\n", bkg_local);
+	printf("	#foreign accesses: %d\n", bkg_foreign);
 	// Stop background threads and destruct
 	test_complete = 1;
 	stopDataLayerThread();
 	for(int i = 0; i < numberNumaZones; i++) {
-		printf("finished %d\n", i);
 		destructSearchLayer(numaLayers[i]);
 	}
 
