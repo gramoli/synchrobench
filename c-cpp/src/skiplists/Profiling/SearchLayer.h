@@ -14,8 +14,8 @@ typedef struct searchLayer {
 	volatile char running;
 	int sleep_time;
 	int index_ignore;
-	volatile int bg_local_accesses;
-	volatile int bg_foreign_accesses;
+	volatile long bg_local_accesses;
+	volatile long bg_foreign_accesses;
 	volatile long ap_local_accesses;
 	volatile long ap_foreign_accesses;
 } searchLayer_t;

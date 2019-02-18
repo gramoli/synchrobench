@@ -6,7 +6,7 @@
 #include "Profiler.h"
 
 //Inserts a value into the skip list if it doesn't already exist
-int add(inode_t *sentinel, int val, node_t* dataLayer, int zone, volatile int* bg_local_accesses, volatile int* bg_foreign_accesses, int index_ignore) {
+int add(inode_t *sentinel, int val, node_t* dataLayer, int zone, volatile long* bg_local_accesses, volatile long* bg_foreign_accesses, int index_ignore) {
   //store the result of a traversal through the skip list while searching for the target
   inode_t *predecessors[sentinel -> topLevel], *successors[sentinel -> topLevel];
   inode_t *previous = sentinel, *current = NULL;
@@ -43,7 +43,7 @@ int add(inode_t *sentinel, int val, node_t* dataLayer, int zone, volatile int* b
 }
 
 //removes a value in the skip list when present
-int removeNode(inode_t *sentinel, int val, int zone, volatile int* bg_local_accesses, volatile int* bg_foreign_accesses, int index_ignore) {
+int removeNode(inode_t *sentinel, int val, int zone, volatile long* bg_local_accesses, volatile long* bg_foreign_accesses, int index_ignore) {
   //store the result of a traversal through the skip list while searching for a value
   inode_t *predecessors[sentinel -> topLevel], *successors[sentinel -> topLevel];
   inode_t *previous = sentinel, *current = NULL;
