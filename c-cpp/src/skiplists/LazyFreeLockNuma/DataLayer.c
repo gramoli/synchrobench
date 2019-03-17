@@ -57,7 +57,7 @@ int lazyAdd(searchLayer_t* numask, int val) {
 		pthread_mutex_lock(&previous -> lock);
 		pthread_mutex_lock(&current -> lock);
 		if (validateLink(previous, current)) {
-			if (current -> val == val) {
+			if (current -> val == val) { //incorrect! need to check if markedToDelete, then we good
 				pthread_mutex_unlock(&previous -> lock);
 				pthread_mutex_unlock(&current -> lock);
 				return 0;
