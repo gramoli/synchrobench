@@ -116,6 +116,7 @@ void* backgroundRemoval(void* input) {
 				pthread_mutex_lock(&current -> lock);
 				if ((valid = validateLink(previous, current)) != 0) {
 					previous -> next = current -> next;
+					FREE_NODE(current);
 				}
 				pthread_mutex_unlock(&previous -> lock);
 				pthread_mutex_unlock(&current -> lock);
@@ -155,7 +156,6 @@ void startDataLayerThread(node_t* sentinel) {
 void stopDataLayerThread() {
 	if (remover -> running) {
 		remover -> finished = 1;
-		//CAS(&remover -> finished, remover -> finished, 1); //add a while loop around this to ensure it happens
 		pthread_join(remover -> runner, NULL);
 		remover -> running = 0;
 	}

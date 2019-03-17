@@ -7,6 +7,7 @@
 typedef enum job {
 	INSERTION,
 	REMOVAL,
+	MEMORY_COLLECTION,
 	NONE
 } Job;
 
