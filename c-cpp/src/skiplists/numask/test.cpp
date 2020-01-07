@@ -573,7 +573,7 @@ int main(int argc, char **argv)
 		if (sl_add_old(search_layers[cur_zone], val, 0)) {
 			last = val;
 			i++;
-			if(i %(initial / 4) == 0 && cur_zone != 3) {
+			if(i %(initial / num_numa_zones) == 0 && cur_zone != num_numa_zones - 1) {
 				numa_run_on_node(++cur_zone);
 			}
 		}
