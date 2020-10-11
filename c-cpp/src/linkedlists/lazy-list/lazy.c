@@ -54,7 +54,7 @@ inline node_l_t *get_marked_ref(node_l_t *n) {
  * points to curr to verify that the entries are adjacent and present in the list.
  */
 inline int parse_validate(node_l_t *pred, node_l_t *curr) {
-	return (!is_marked_ref((long) pred) && !is_marked_ref((long) curr) && (pred->next == curr));
+	return (!is_marked_ref((long) pred->next) && !is_marked_ref((long) curr->next) && (pred->next == curr));
 }
 
 int parse_find(intset_l_t *set, val_t val) {
