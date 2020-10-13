@@ -95,7 +95,8 @@ public class LazyLinkedListSortedSet<E extends Comparable<E>> implements Composi
 	@Override
 	public void clear() {
 		MAXID.set(0);
-		THREADMAP.clear();
+		list.clean(0);	
+   		THREADMAP.clear();
 	}
 
 	@Override
