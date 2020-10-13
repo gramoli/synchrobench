@@ -258,7 +258,7 @@ public class Test {
 			}
 			test.execute(Parameters.warmUp * 1000, true);
 			// give time to the JIT
-			Thread.sleep(1000);
+			Thread.sleep(100);
 			if (Parameters.detailedStats)
 				test.recordPreliminaryStats();
 			test.clear();
@@ -279,7 +279,7 @@ public class Test {
 		for (int i = 0; i < Parameters.iterations; i++) {
 			if (!firstIteration) {
 				// give time to the JIT
-				Thread.sleep(1000);
+				Thread.sleep(100);
 				test.resetStats();
 				test.clear();
 				org.deuce.transaction.estmstats.Context.threadIdCounter.set(0);
