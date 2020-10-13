@@ -15,10 +15,10 @@ public class Parameters {
     	numSnapshots = 0,
     	range = 2048,
 	size = 1024,
-	warmUp = 5,
+	warmUp = 0,
     	iterations = 1;
     
-    public static boolean detailedStats = true;
+    public static boolean detailedStats = false;
 
     public static String benchClassName = new String("skiplists.lockfree.NonBlockingFriendlySkipListMap");
 }
