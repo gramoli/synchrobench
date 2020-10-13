@@ -265,6 +265,16 @@ public class Test {
 			test.resetStats();
 		}
 
+		// check that the structure is empty 
+		switch(test.benchType) {
+			case INTSET:
+				assert test.setBench.size() == 0 : "Warmup corrupted the data structure, rerun with -W 0.";	
+			case MAP:
+				assert test.mapBench.size() == 0 : "Warmup corrupted the data structure, rerun with -W 0.";
+			case SORTEDSET:
+				assert test.sortedBench.size() == 0 : "Warmup corrupted the data structure, rerun with -W 0.";
+		}
+
 		// running the bench
 		for (int i = 0; i < Parameters.iterations; i++) {
 			if (!firstIteration) {
@@ -489,6 +499,7 @@ public class Test {
 	 * Print the statistics on the standard output
 	 */
 	private void printBasicStats() {
+		int s = 0;
 		for (short threadNum = 0; threadNum < Parameters.numThreads; threadNum++) {
 			switch(benchType) {
 			case INTSET:
@@ -546,8 +557,7 @@ public class Test {
 		System.out.println("  Elapsed time (s):         \t" + elapsedTime);
 		System.out.println("  Operations:               \t" + total
 				+ "\t( 100 %)");
-		System.out
-				.println("    effective updates:     \t"
+		System.out.println("    effective updates:     \t"
 						+ (numAdd + numRemove + numAddAll + numRemoveAll)
 						+ "\t( "
 						+ formatDouble(((double) (numAdd + numRemove
@@ -578,18 +588,24 @@ public class Test {
 				+ " %)");
 		switch(benchType) {
 		case INTSET:
-			System.out.println("  Final size:              \t" + setBench.size());
-			if (Parameters.numWriteAlls == 0) System.out.println("  Expected size:           \t" + (Parameters.size+numAdd-numRemove));
+			s = setBench.size();
+			//System.out.println("  Final size:              \t" + setBench.size());
+			//if (Parameters.numWriteAlls == 0) System.out.println("  Expected size:           \t" + (Parameters.size+numAdd-numRemove));
 			break;
 		case MAP:
-			System.out.println("  Final size:              \t" + mapBench.size());
-			if (Parameters.numWriteAlls == 0) System.out.println("  Expected size:           \t" + (Parameters.size+numAdd-numRemove));
+			s = mapBench.size();
+			//System.out.println("  Final size:              \t" + mapBench.size());
+			//if (Parameters.numWriteAlls == 0) System.out.println("  Expected size:           \t" + (Parameters.size+numAdd-numRemove));
 			break;
 		case SORTEDSET:
-			System.out.println("  Final size:              \t" + sortedBench.size());
-			if (Parameters.numWriteAlls == 0) System.out.println("  Expected size:           \t" + (Parameters.size+numAdd-numRemove));
+			s = sortedBench.size();
+			//System.out.println("  Final size:              \t" + sortedBench.size());
+			//if (Parameters.numWriteAlls == 0) System.out.println("  Expected size:           \t" + (Parameters.size+numAdd-numRemove));
 			break;
 		}
+		System.out.println("  Final size:              \t" + sortedBench.size());
+		assert s == (Parameters.size+numAdd-numRemove) : "Final size does not reflect the modifications.";
+		
 		//System.out.println("  Other size:              \t" + map.size());
 
 		// TODO what should print special for maint data structures
