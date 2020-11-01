@@ -67,24 +67,29 @@ int parse_find(intset_l_t *set, val_t val) {
 
 int parse_insert(intset_l_t *set, val_t val) {
 	node_l_t *curr, *pred, *newnode;
-	int result;
+	int result, validated, notVal;
 	
-	pred = set->head;
-	curr = get_unmarked_ref(pred->next);
-	while (curr->val < val) {
-		pred = curr;
-		curr = get_unmarked_ref(curr->next);
+	while (1) {
+		pred = set->head;
+		curr = get_unmarked_ref(pred->next);
+		while (curr->val < val) {
+			pred = curr;
+			curr = get_unmarked_ref(curr->next);
+		}
+		LOCK(&pred->lock);
+		LOCK(&curr->lock);
+		validated = parse_validate(pred, curr);
+		notVal = (curr->val != val);
+		result = (validated && notVal);
+		if (result) {
+			newnode = new_node_l(val, curr, 0);
+			pred->next = newnode;
+		} 
+		UNLOCK(&curr->lock);
+		UNLOCK(&pred->lock);
+		if(validated)
+			return result;
 	}
-	LOCK(&pred->lock);
-	LOCK(&curr->lock);
-	result = (parse_validate(pred, curr) && (curr->val != val));
-	if (result) {
-		newnode = new_node_l(val, curr, 0);
-		pred->next = newnode;
-	} 
-	UNLOCK(&curr->lock);
-	UNLOCK(&pred->lock);
-	return result;
 }
 
 /*
@@ -98,22 +103,26 @@ int parse_insert(intset_l_t *set, val_t val) {
  */
 int parse_delete(intset_l_t *set, val_t val) {
 	node_l_t *pred, *curr;
-	int result;
-	
-	pred = set->head;
-	curr = get_unmarked_ref(pred->next);
-	while (curr->val < val) {
-		pred = curr;
-		curr = get_unmarked_ref(curr->next);
+	int result, validated, isVal;
+	while(1) {
+		pred = set->head;
+		curr = get_unmarked_ref(pred->next);
+		while (curr->val < val) {
+			pred = curr;
+			curr = get_unmarked_ref(curr->next);
+		}
+		LOCK(&pred->lock);
+		LOCK(&curr->lock);
+		validated = parse_validate(pred, curr);
+		isVal = val == curr->val;
+		result = validated && isVal;
+		if (result) {
+			curr->next = get_marked_ref(curr->next);
+			pred->next = get_unmarked_ref(curr->next);
+		}
+		UNLOCK(&curr->lock);
+		UNLOCK(&pred->lock);
+		if(validated)
+			return result;
 	}
-	LOCK(&pred->lock);
-	LOCK(&curr->lock);
-	result = (parse_validate(pred, curr) && (val == curr->val));
-	if (result) {
-		curr->next = get_marked_ref(curr->next);
-		pred->next = get_unmarked_ref(curr->next);
-	}
-	UNLOCK(&curr->lock);
-	UNLOCK(&pred->lock);
-	return result;
 }
