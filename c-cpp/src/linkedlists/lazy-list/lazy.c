@@ -62,7 +62,7 @@ int parse_find(intset_l_t *set, val_t val) {
 	curr = set->head;
 	while (curr->val < val)
 		curr = get_unmarked_ref(curr->next);
-	return ((curr->val == val) && !is_marked_ref((long) curr));
+	return ((curr->val == val) && !is_marked_ref((long) curr->next));
 }
 
 int parse_insert(intset_l_t *set, val_t val) {
