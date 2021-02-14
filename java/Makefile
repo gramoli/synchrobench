@@ -87,7 +87,7 @@ check-notx:
 	${JAVA} ${JAVAOPT} \
 	-cp bin \
 	contention.benchmark.Test \
-	-W 2 -w 20 -a 0 -s 0 -l 2000 -t 1 -i 4096 -r 8192 -b linkedlists.lockbased.LazyLinkedListSortedSet 
+	-W 0 -w 20 -a 0 -s 0 -l 2000 -t 1 -i 4096 -r 8192 -b linkedlists.lockbased.LazyLinkedListSortedSet 
 
 clean:
 	rm -rf bin/*
