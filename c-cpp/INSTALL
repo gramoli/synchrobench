@@ -1,0 +1,103 @@
+INSTALL
+-------  
+   To install the C/C++ version of Synchrobench, go to the  
+   directory 'synchrobench/c-cpp' and type: 
+   
+   make
+
+   This will create a bin directory a series of binaries whose
+   names correspond to {SYNC}-{ALGORITHM}:
+
+   * ESTM-hashtable
+   * ESTM-linkedlist
+   * ESTM-rbtree
+   * ESTM-skiplist
+   * MUTEX-hashtable
+   * MUTEX-linkedlist
+   * MUTEX-skiplist
+   * lockfree-fraser-skiplist
+   * lockfree-hashtable
+   * lockfree-rotating-skiplist
+   * sequential-hahtable
+   * sequential-linkedlist
+   * sequential-rbtree
+   * sequential-skiplist
+
+LANGUAGE STANDARD REVISIONS
+------------------------
+   Most data structures compile with GNU89 however some require GNU11 features 
+   only supported with: GCC from version 4.9 and Clang from version 3.6.
+
+SYNCHRONIZATIONS
+----------------
+   
+   Synchrobench uses locks, read-modify-write (e.g., CAS) RCU 
+   (read-copy-update), TM (transactional memory) to synchronize
+   data structure algorithms. There exist many ways of 
+   implementing these synchornization techniques, the default 
+   ones are:
+  
+   * For locks: pthread-mutex
+   * For lock-freedom: exclusively CAS (and FAI)
+   * For TM: the E-STM v0.3.0 software TM library
+   * For RCU: a user-level library
+
+   Synchrobench can use other implementations:
+   
+   * To compile the lock-based data structures with spinlocks
+     instead of mutexes, type:
+  
+     make spinlock
+  
+   * To compile the TM-based data structures with other TM 
+     algorithms, download the existing libraries and modify 
+     include/tm.h accordingly. The C/C++ version of 
+     Synchrobench  has been successfully used with TL2 v0.9.6
+     TinySTM v0.9.8 to v1.0.0 and SwissTM.
+  
+   * Most CAS are taken from the HP atomic ops library but could
+     be replaced by C11/C++11 intrinsics.
+
+OPTIONS
+-------
+
+   For DEBUG mode type: 
+
+   make clean; VERSION=DEBUG make
+   
+   To use a memory manager with limited contention, get the TCMalloc library
+   and type:
+ 
+   make clean; MALLOC=TC make
+
+RUN
+---
+
+   1. Executables for queues, hash tables, linked lists, trees, skip lists
+      are located in 'bin'.
+   2. Use parameter "--help" for the full list of parameters
+      Ex: ./bin/lockfree-rotating-skiplist --help
+
+DATA STRUCTURES
+---------------
+
+   The main data structures implement a set or dictionary:
+   * linkedlist is a sorted linked list
+   * skiplist
+   * rbtree is a red-black tree
+
+   There are additional data structures that could have only been used
+   on x86_64 platforms.
+
+   For example, you can compile the speculation-friendly tree using
+   either no synchronization technique (sequential) or TMs by adding
+   sftree to the list of benchmarks in the makefile:
+    
+   BENCHS = sftree
+
+   You can also compile the citrus tree that uses RCU for 
+   synchronization by adding tree-lock to the list of benchmarks
+   in the makefile:
+
+   BENCHS = tree-lock
+ 

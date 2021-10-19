@@ -1,0 +1,52 @@
+INSTALL
+-------
+Set path to your local atomic_ops library in [estm]/Makefile
+And execute the makefile:
+
+> make
+
+REQUIRED
+--------
+1. Library atomic_ops http://www.hpl.hp.com/research/linux/atomic_ops/
+2. On SPARC, add the patch for compare-and-swap to the library directory.
+
+OVERVIEW
+--------
+e-STM is the first software transactional memory supporting elastic 
+transactions. Elastic transactions are a variant of the 
+transactional model. Upon conflict detection, an elastic 
+transaction might drop what it did so far within a separate 
+transaction that immediately commits, and initiate a new 
+transaction which might itself be elastic.
+
+Elastic transactions are a complementary alternative to traditional 
+transactions, particularly appealing when implementing search 
+structures. Both forms of transactions can safely be combined 
+within the same application. e-STM builds upon tinySTM 
+(http://tmware.org/tinystm) and replacing normal transaction
+by elastic ones increase performance by 36% (on average). Our 
+measurements are taken from the micro-benchmarks that come 
+with the current distribution.
+
+TEST
+----
+Compile benchmarks:
+
+> make bench
+
+Example of benchmarks:
+If you want to execute insert/delete/search (90%/5%/5%) operations on a skip list
+implementation of an integer set with an average size of 1024 (-i1024) elements, 
+using 32 threads and using elastic transactions for all operations (-x4)
+
+> ./bench/lf-skiplist -x4 -u10 -i1024 -n32
+
+32 threads execute 10% updates on 1024 elements.  
+
+e-STM has been tested on an 
+- 1.6GHz Intel Core 2 Duo Mac OS X.
+
+CONTACT
+-------
+vincent.gramoli@epfl.ch
+http://lpd.epfl.ch/gramoli/php/estm.php

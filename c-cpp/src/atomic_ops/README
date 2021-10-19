@@ -1,0 +1,2 @@
+This directory contains a stripped-down (support only gcc) version of libatomic_ops by Hans Boehm.
+The official release is available from http://www.hpl.hp.com/research/linux/atomic_ops/.

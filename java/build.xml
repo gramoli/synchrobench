@@ -1,0 +1,90 @@
+<project name="CompositionalPackage" default="compile" basedir=".">
+  
+	<property name="deuce" value="mydeuce" />
+        <property name="version" value="0.1" />
+        <property name="src" value="src" />
+        <property name="benchsrc" value="src" />
+        <property name="bin" value="bin" />
+        <property name="lib" value="lib" />
+        <property name="dist" value="dist" />
+        <property name="benchname" value="compositional-deucestm-${version}" />
+
+        <target name="init">
+                <mkdir dir="${bin}" />
+        </target>
+
+
+	<target name="version">
+	  <echo message="ant.java.version=${ant.java.version}" />
+          <condition property="isJava8">
+        	<equals arg1="${ant.java.version}" arg2="1.8" />
+          </condition>
+	  <condition  property="isJava6OrJava7">
+      	      <or>
+               <equals arg1="${ant.java.version}" arg2="1.6"/>
+               <equals arg1="${ant.java.version}" arg2="1.7"/>
+              </or>
+          </condition>
+	</target>
+
+	<target name="compileJava8" depends="version" if="isJava8">
+	        <javac srcdir="${src}" destdir="${bin}" classpath="${deuce}:lib/junit.jar">
+                        <exclude name="" />
+                        <compilerarg value="-XDignore.symbol.file"/>
+                </javac>
+ 	</target>
+
+	<target name="compileJava7" depends="version" if="isJava6OrJava7">
+	        <javac srcdir="${src}" destdir="${bin}" classpath="${deuce}:lib/junit.jar">
+			<exclude name="linkedlists/lockfree/NodeLinked.java" />
+			<exclude name="linkedlists/lockfree/NonBlockingLinkedListSetRTTI.java" />
+			<exclude name="linkedlists/lockfree/NodeMarked.java" />
+			<exclude name="linkedlists/lockbased/NodeStampLock.java" />
+			<exclude name="linkedlists/lockbased/VersionedListSetStampLock.java" />
+			<exclude name="arrays/lockbased/Vector.java" />
+			<exclude name="arrays/transactional/Vector.java" />
+			<exclude name="arrays/sequential/SequentialVector.java" />
+			<exclude name="arrays/lockbased/Vector.java" />
+			<exclude name="trees/lockbased/CATreeMapAVL.java" />
+			<exclude name="trees/lockbased/catreeutils/*" />
+                        <compilerarg value="-XDignore.symbol.file"/>
+                </javac>
+ 	</target>
+
+       <target name="compile" depends="init,compileJava7,compileJava8">
+                
+           <fail message="Unsupported Java version: ${ant.java.version}. Make sure that the Java version is 1.6 or greater."> 
+	    <condition>
+    	     <not>
+      	      <or>
+               <equals arg1="${ant.java.version}" arg2="1.6"/>
+               <equals arg1="${ant.java.version}" arg2="1.7"/>
+               <equals arg1="${ant.java.version}" arg2="1.8"/>
+              </or>
+             </not>
+            </condition>
+	   </fail>
+
+		<!--javac srcdir="${src}" destdir="${bin}" classpath="${deuce}:lib/junit.jar">
+                        <exclude name="" />
+			<compilerarg value="-XDignore.symbol.file"/>
+                </javac-->
+        </target>
+
+	<target name="jarbench" depends="compile">
+	  <jar basedir="${bin}" excludes="org/**" destfile="${lib}/${benchname}.jar"> 
+	    <manifest>
+	      <attribute name="Main-Class" value="contention.benchmark.Test" />
+	      </manifest>
+	    </jar>
+	  </target>
+
+	<target name="jardeuce" depends="compile">
+	  <jar basedir="${bin}/org" destfile="${lib}/${deuce}.jar">
+	    <manifest>
+	      <attribute name="Main-Class" value="org.deuce.transform.asm.Agent" />
+	      </manifest>
+	    </jar>
+	  </target>
+
+</project>

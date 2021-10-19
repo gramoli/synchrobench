@@ -1,0 +1,143 @@
+2015-09-21 Vincent Gramoli <vincent.gramoli@sydney.edu.au>
+	* Added the Fomitchev and Ruppert linked list with
+	C11 stdatomic  
+	* Added the Selfish linked list with C11 stdatomic
+
+2014-11-18 Vincent Gramoli <vincent.gramoli@sydney.edu.au>
+        * Added the Java version of Synchrobench
+
+2014-07-16 Vincent Gramoli <vincent.gramoli@sydney.edu.au>
+        * Added the (rcu-based) citrus tree from PODC 2014
+
+[1.1.0-alpha release]
+
+2014-05-10 Vincent Gramoli <vincent.gramoli@sydney.edu.au>
+        * Added the rotating skip list code 
+        * Added back the sequential/transactional skip list
+        * Commenting out the speculation-friendly tree no-rotation flag
+
+2014-01-20 Vincent Gramoli <vincent.gramoli@sydney.edu.au>
+        * Cleaned patch files
+	* Replaced Fraser's skip list
+
+[1.0.0 release]
+
+2012-02-10 Vincent Gramoli <vincent.gramoli@sydney.edu.au>
+	* Added speculation-friendly tree algorithm
+	* Renamed the suite as synchrobench
+
+2011-07-28 Vincent Gramoli <vincent.gramoli@sydney.edu.au>
+	* Adding VERSION for DEBUG mode
+        * Removing test2 of rbtree and adding 
+	rbtree verification at the end upon DEBUG mode 
+
+[0.4.1 release]
+
+2011-07-01 Vincent Gramoli <vincent.gramoli@sydney.edu.au>
+        * Adding normal mode of E-STM in linkedlist, 
+	deque, skiplist, hashtable benchs
+        
+[0.4.0 release]
+
+2011-06-29 Vincent Gramoli <vincent.gramoli@sydney.edu.au>
+        * Declaring the result variable in txs
+        * Add atomic_ops library
+	* Separate build files
+	* Cleanup Makefiles
+
+[0.3.9 release]
+
+2011-06-18 Vincent Gramoli <vincent.gramoli@sydney.edu.au>
+        * Adding the choice between elastic and normal transactions
+        for the add operation in the red-black tree algorithm
+
+[0.3.8 release] 
+
+2011-03-04 Vincent Gramoli <vincent.gramoli@sydney.edu.au>
+        * Fix freeing the memory in the lock-coupling 
+	linked list upon removal in alternate mode
+
+[0.3.7 release] 
+
+2010-11-28 Vincent Gramoli <vincent.gramoli@sydney.edu.au>
+        * Fix the deallocation of memory in skiplist benchmark
+
+[0.3.6 release] 
+
+2010-02-23 Vincent Gramoli <vincent.gramoli@sydney.edu.au>
+        * double-ended queue sequential and STM-based benchs.
+        * rbtree wrappers for sequential and STM-based benchs.
+
+2010-01-03 Vincent Gramoli <vincent.gramoli@sydney.edu.au>
+        * update ratio made effective: a failed remove/add is a read-only
+	  tx no longer an update tx.
+
+[0.3.5 release] 
+
+2009-11-18  Vincent Gramoli  <vincent.gramoli@sydney.edu.au>	
+	* Fixed deque index in rightpush functions.
+	* Removed "break" points in the sequential code.
+
+[0.3.4 release] 
+
+2009-11-04  Vincent Gramoli  <vincent.gramoli@sydney.edu.au>
+	* Allowing spinlocks instead of mutexes in the lock-coupling 
+          linked list.
+	* Fixing lock coupling search of the linked list that wrongly 
+          acquired a single lock before releasing another: memory is 
+          cleanly freed.
+	* Extra function calls in the sequential case have been inlined.
+
+[0.3.3 release] 
+
+2009-09-25  Vincent Gramoli  <vincent.gramoli@sydney.edu.au>
+	* Always remove a randomly generated value.
+	  This produced update workloads executing faster than 
+	  read-only workloads.
+
+[0.3.2 release] 
+
+2009-09-25  Vincent Gramoli  <vincent.gramoli@sydney.edu.au>
+	* Herlihy's double-ended queue implementation.
+
+[0.3.1 release] 
+
+2009-09-25  Vincent Gramoli  <vincent.gramoli@sydney.edu.au>
+	* STM red-black tree benchmark added: it reuses the code of TL2 
+	  red-black tree but consecutive insert and delete do not get
+	  the same value (by default). Inserting/deleting the same 
+	  value consecutively is known as minimizing the tree 
+	  rebalancing (main source of contention). 
+	* red-black tree "-a" option allows consecutive insert and 
+	  deletes to have the same value as a parameter.
+
+[0.3.0 release]
+
+2009-09-01  Vincent Gramoli  <vincent.gramoli@sydney.edu.au>
+        * Fixing memory leaks
+
+2009-08-20  Vincent Gramoli  <vincent.gramoli@sydney.edu.au>
+        * Fixing some uninitialization bug of hashtable
+
+[0.2.0 release]
+
+2009-06-15  Vincent Gramoli  <vincent.gramoli@sydney.edu.au>
+        * Fixing the problem of RAND_MAX=32768 on Niagara 2
+        * Fixing some bad random generators
+
+2007-06-10  Vincent Gramoli  <vincent.gramoli@sydney.edu.au>
+	* Adapting hash table and skip list tests
+
+2007-04-25  Vincent Gramoli  <vincent.gramoli@sydney.edu.au>
+	* Added red-black tree test.
+
+2009-02-02  Vincent Gramoli  <vincent.gramoli@sydney.edu.au>
+	* Added skip list test.
+	* Added hash table test w/ move and sum operations.
+
+[0.1.0 release]
+
+2009-05-01 Vincent Gramoli  <vincent.gramoli@sydney.edu.au>
+       * First release with lock-based, lock-free, stm-based hashtable,
+         linked list.
+

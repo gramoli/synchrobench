@@ -1,0 +1,108 @@
+################
+# Local settings
+################
+
+# Paths
+SOLARIS_CC ?= gcc
+
+# Version
+ifeq ($(VERSION),DEBUG)
+     CFLAGS 	+= -g -DDEBUG -O0
+else
+     CFLAGS 	+= -O3 -DNDEBUG
+endif
+
+ROOT ?= .
+SBROOT ?= ../../..
+SRCDIR = $(ROOT)/src
+INCDIR = $(ROOT)/include
+LIBDIR = $(ROOT)/lib
+
+# Path to LIBATOMIC_OPS (or to gcc-specific libatomic_ops)
+ifdef LIBAO_HOME
+  LIBAO_INC = $(LIBAO_HOME)/include
+else
+  LIBAO_INC = $(SBROOT)/src/atomic_ops 
+endif
+
+TMLIB = $(LIBDIR)/lib$(TM).a
+TM = stm
+
+#############################
+# Platform dependent settings
+#############################
+#
+# gcc thread-local storage requires "significant 
+# support from the linker (ld), dynamic linker
+# (ld.so), and system libraries (libc.so and libpthread.so), so it is
+# not available everywhere." source: gcc-doc.
+
+ifndef OS_NAME
+    OS_NAME = $(shell uname -s)
+endif
+
+ifeq ($(OS_NAME), Darwin)
+    OS = MacOS
+    DEFINES += -UTLS
+endif
+
+ifeq ($(OS_NAME), Linux)
+    OS = Linux
+    DEFINES += -DTLS
+endif
+
+ifeq ($(OS_NAME), SunOS)
+    OS = Solaris
+    CC = $(SOLARIS_CC)
+    DEFINES += -DTLS
+    AR = /usr/ccs/bin/ar
+endif
+
+#################################
+# Architecture dependent settings
+#################################
+
+ifndef ARCH
+    ARCH_NAME = $(shell uname -m)
+endif
+
+ifeq ($(ARCH_NAME), i386)
+    ARCH = x86
+    CFLAGS += -m32
+    LDFLAGS += -m32
+endif
+
+ifeq ($(ARCH_NAME), i686)
+    ARCH = x86
+    CFLAGS += -m32
+    LDFLAGS += -m32
+endif
+
+ifeq ($(ARCH_NAME), x86_64)
+    ARCH = x86_64
+    CFLAGS += -m64
+    LDFLAGS += -m64
+endif
+
+ifeq ($(ARCH_NAME), sun4v)
+    ARCH = sparc64
+    CFLAGS += -DSPARC=1 -DINLINED=1 -mt -fast -m64
+    LDFLAGS += -lrt -m64
+endif
+
+#################
+# Global settings
+#################
+
+CFLAGS += -Wall
+CFLAGS += -I$(LIBAO_INC) -I$(ROOT)/include
+LDFLAGS += -L$(ROOT)/lib -lstm -lpthread 
+
+#################
+# MEMORY MGMT
+#################
+
+ifeq ($(MALLOC), TC)
+  LDFLAGS += -ltcmalloc
+  CFLAGS += -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free
+endif

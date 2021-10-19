@@ -1,0 +1,44 @@
+[0.2.0 release]
+
+2007-06-19  Vincent Gramoli  <vincent.gramoli@epfl.ch>
+        * Common interface TX_START/TX_LOAD/TX_STORE/TX_END
+	  for any type of transactions (elastic/normal)
+
+2007-06-10  Vincent Gramoli  <vincent.gramoli@epfl.ch>
+	* Removed ro mode
+	* Adapting hash table and skip list tests	
+
+[0.1.8 release]
+
+2007-06-10  Vincent Gramoli  <vincent.gramoli@epfl.ch>
+	* Enhance efficiency for elastic functions.
+	* stm_normal_load/store for normal transactions.
+	* Removed support for stm_unit_write 
+	  (elastic_store switches to tx type to normal).
+
+[0.1.7 release]
+
+2007-05-23  Vincent Gramoli  <vincent.gramoli@epfl.ch>
+	* Debug of function stm_elastic_load.
+	* Added stm_elastic_store functions.
+
+2007-05-20  Vincent Gramoli  <vincent.gramoli@epfl.ch>
+        * Added stm_unit_load/stm_unit_write to stm.c
+	* Upgrade normal transactions to tinySTM-v0.9.9
+
+[0.1.4 release]
+
+2007-04-25  Vincent Gramoli  <vincent.gramoli@epfl.ch>
+	* Added red-black tree test.
+
+2009-02-02  Vincent Gramoli  <vincent.gramoli@epfl.ch>
+	* Added skip list test.
+	* Added hash table test w/ move and sum operations.
+
+2008-12-01  Vincent Gramoli  <vincent.gramoli@epfl.ch>
+	* Added -x option for unit load/store.
+
+[0.1.0 release]
+
+2008-11-01  Vincent Gramoli  <vincent.gramoli@epfl.ch>
+	* Initial release.

@@ -1,0 +1,89 @@
+INSTALL
+-------  
+   To install the Java version of Synchrobench, go to the directory
+   'synchrobench/java', make sure you have Apache ant and Java 6+ nstalled, 
+   modify the path to your rt.jar in the Makefile and type:
+   
+   make
+
+   This will create a bin directory with a series of binaries
+   whose names correspond to {DATASTRUCTURES}.{SYNC}.{ALGO} as in:
+
+   * skiplists.lockfree.NonBlockingFriendlySkipListMap
+
+Getting Apache ant
+------------------
+   You can get the binaries from http://ant.apache.org/bindownload.cgi
+   Unarchive the binaries:
+     tar -cvzf apache-ant-X.Y.Z-bin.tar.gz
+   Export the path to the binary
+     export PATH=${PATH}:/ant-X.Y.Z/bin 
+
+rt.jar
+------
+   To use the transactional data structures, you should instrument
+   rt.jar or classes.jar from your JDK at the Makefile line that 
+   corresponds to your OS (e.g., Darwin for Mac OS, Linux, SunOS).
+   Here are some locations found depending on the OS and Java versions
+   * Mac OS X:  
+     /Library/Java/JavaVirtualMachines/jdk1.8.0_20.jdk/Contents/Home/jre/lib/rt.jar
+     /System/Library/Frameworks/JavaVM.framework/Versions/1.6/Classes/classes.jar
+   * Ubuntu:
+     /usr/lib/jvm/java-1.7.0-openjdk-amd64/jre/lib/rt.jar
+   * Solaris: 
+     /usr/lib/jvm/java-6-sun-1.6.0.20/jre/lib/rt.jar
+
+Java versions
+-------------
+   Most data structures compile with Java 1.6 and 1.7, however, the versioned 
+   list uses the StampedLock from Java 1.8. So if you do not use Java 1.8 few
+   data structures will not be compiled.  
+
+
+SYNCHRONIZATIONS
+----------------
+   
+   The Java version of Synchrobench uses locks, read-modify-write 
+   (e.g., CAS), copy-on-write (COW) and TM (transactional memory) to 
+   synchronize data structure algorithms. There exist many ways of 
+   implementing these synchronization techniques, the default 
+   ones are:
+  
+   * For locks: synchronized or re-entrant locks
+   * For lock-freedom: exclusively CAS
+   * For TM: the Java E-STM software TM library
+   * For COW: the java.util.concurrent.CopyOnWriteArraySet wrapper
+
+   Synchrobench can use other TM implementations:
+   
+   * You can specify it by changing the JVM argument when running the 
+     transactional version. 
+   * Check the Makefile to see how the 
+     "make check" specifies these parameters and replace 
+     estmmvcc by estm for ESTM, lsa for LSA
+     and tl2 for TL2. 
+   * For more information about the bytecode instrumentation framework
+     and other compatible STMs take a look at Deuce STM 
+     (https://sites.google.com/site/deucestm/).
+
+RUN
+---
+
+   1. Classes for queues, hash tables, linked lists, trees, skip lists
+      are located in 'bin'. You must run the benchmark located in 
+      bin/contention/benchmark/Test and pass it the benchmark class name
+      as a parameter with '-b':
+
+      java -cp bin contention.benchmark.Test -b skiplists.lockfree.NonBlockingFriendlySkipListMap
+
+   2. Use parameter "--help" for the full list of parameters
+
+      java -cp bin contention.benchmark.Test --help
+
+
+DATA STRUCTURES
+---------------
+
+   The main data structures implement a Set or a Map.
+
+ 

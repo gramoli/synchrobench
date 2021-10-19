@@ -1,0 +1,96 @@
+################
+# Local settings
+################
+
+# Paths
+COMPUTER=/home/tcrain/work
+
+3264BIT=libatomic
+#3264BIT=libatomic64
+
+#LIBAO_HOME ?= ${COMPUTER}/txfriendly/dev/source/${3264BIT}
+LIBAO_HOME ?= ../../atomic_ops
+
+
+SOLARIS_CC ?= /home/gramoli/gcc/bin/gcc
+ROOT ?= .
+SRCDIR = $(ROOT)/src
+INCDIR = $(ROOT)/include
+LIBDIR = $(ROOT)/lib
+
+TMLIB = $(LIBDIR)/lib$(TM).a
+
+# Debug/optimization flags
+#CFLAGS += -g -DNDEBUG
+CFLAGS += -O3 -DNDEBUG
+
+TM = stm
+
+#############################
+# Platform dependent settings
+#############################
+#
+# GCC thread-local storage requires "significant 
+# support from the linker (ld), dynamic linker
+# (ld.so), and system libraries (libc.so and libpthread.so), so it is
+# not available everywhere." source: GCC-doc.
+
+ifndef OS_NAME
+    OS_NAME = $(shell uname -s)
+endif
+
+ifeq ($(OS_NAME), Darwin)
+    OS = MacOS
+    DEFINES += -UTLS
+endif
+
+ifeq ($(OS_NAME), Linux)
+    OS = Linux
+    DEFINES += -DTLS
+endif
+
+ifeq ($(OS_NAME), SunOS)
+    OS = Solaris
+    CC = $(SOLARIS_CC)
+    DEFINES += -DTLS
+endif
+
+#################################
+# Architecture dependent settings
+#################################
+
+ifndef ARCH
+    ARCH_NAME = $(shell uname -m)
+endif
+
+ifeq ($(ARCH_NAME), i386)
+    ARCH = x86
+    CFLAGS += -m32
+    LDFLAGS += -m32
+endif
+
+ifeq ($(ARCH_NAME), i686)
+    ARCH = x86
+    CFLAGS += -m32
+    LDFLAGS += -m32
+endif
+
+ifeq ($(ARCH_NAME), x86_64)
+    ARCH = x86_64
+    CFLAGS += -m64
+    LDFLAGS += -m64
+endif
+
+ifeq ($(ARCH_NAME), sun4v)
+    ARCH = sparc64
+    CFLAGS += -DSPARC=1 -DINLINED=1 -mt -fast -m64
+    LDFLAGS += -lrt -m64
+endif
+
+#################
+# Global settings
+#################
+
+CFLAGS += -Wall
+CFLAGS += -I$(LIBAO_HOME) -I$(ROOT)/include
+LDFLAGS += -L$(LIBAO_HOME)/lib -L$(ROOT)/lib -latomic_ops -lstm -lpthread

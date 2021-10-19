@@ -1,0 +1,82 @@
+ The Lock-Free Library
+ =====================
+
+
+1. Building
+-----------
+Edit the Makefile and set ARCH to the appropriate value.
+Type 'make'.
+
+
+2. What you get
+---------------
+'stm_fraser.c' is an object-based STM with the programming API defined
+in 'stm.h'. 'mcas.c' is an implementation of multi-word
+compare-and-swap.
+
+These are used to build a number of search structures: skip lists,
+binary search trees, and red-black trees. The executables are named as
+follows:
+
+ bst_lock_fraser      --- BST implementation using per-node locks.
+                          No locking for read operations.
+ bst_lock_kung        --- BST implementation using per-node locks.
+                          No locking for read operations.
+ bst_lock_manber      --- BST implementation using per-node locks.
+                          No locking for read operations.
+ bst_mcas             --- BST implementation based on MCAS.
+
+ rb_lock_concurrentwriters --- Red-black trees with concurrent writers.
+                               Based on MCS multi-reader locks.
+ rb_lock_serialisedwriters --- Red-black trees with serialised writers.
+                               Based on MCS multi-reader locks.
+ rb_lock_mutex        --- Red-black trees with concurrent writers, and
+                          no locking for read operations. Very fast!
+ rb_stm_fraser        --- Red-black trees using Fraser's STM.
+ rb_stm_herlihy       --- Red-black trees using Herlihy et al's STM.
+ rb_stm_lock          --- Red-black trees using 2-phase-locking STM.
+
+ skip_lock_perlist    --- Skip lists with a single global lock.
+                          No locking for read operations.
+ skip_lock_pernode    --- Skip lists with a lock per node.
+                          No locking for read operations.
+ skip_lock_perpointer --- Skip lists with a lock per pointer.
+                          No locking for read operations.
+ skip_cas             --- Skip lists built directly from CAS.
+ skip_mcas            --- Skip lists based on MCAS.
+ skip_stm_fraser      --- Skip lists using Fraser's STM.
+ skip_stm_herlihy     --- Skip lists using Herlihy et al's STM.
+ skip_stm_lock        --- Skip lists using 2-phase-locking STM.
+
+Each executable is run as: 
+ <executable> <num_threads> <read_proportion> <key power>
+
+'executable' is one of the above implementations.
+
+'num_threads' indicates the degree of parallelism.
+
+'read_proportion' determines what proportion of the random workload is
+lookups as opposed to updates or removals. The proportion is out of 256.
+
+'key_power' indicates the key range. Key range is 2 ^ 'key_power'.
+Since updates and removals are equally probable, the mean set size 
+will be 2 ^ ('key power' - 1).
+
+
+3. Verifying correctness
+------------------------
+To check that each implementation correctly behaves as a 'set' ought
+to, you can define DO_WRITE_LOG in 'set_harness.c'. This will cause
+each implementation to produce a log describing each operation that
+was executed, and its result.
+
+This can be run through 'replay' which will serach for a linearisable
+schedule.
+
+
+4. Distribution license
+-----------------------
+The license is GPL. See the file COPYING for details.
+
+
+ -- Keir Fraser, 25th September 2003
