@@ -13,7 +13,7 @@ linkedlist-lock.o:
 	$(CC) $(CFLAGS) -c -o $(BUILDIR)/linkedlist-lock.o linkedlist-lock.c
 
 lazy.o: linkedlist-lock.h linkedlist-lock.o
-	$(CC) $(CFLAGS) -c -o $(BUILDIR)/lazy.o lazy.c	 
+	$(CC) $(CFLAGS) -c -o $(BUILDIR)/lazy.o delete.c	 
 
 coupling.o: linkedlist-lock.h linkedlist-lock.o
 	$(CC) $(CFLAGS) -c -o $(BUILDIR)/coupling.o coupling.c

@@ -426,7 +426,7 @@ int main(int argc, char **argv)
   barrier_cross(&barrier);
 	
   printf("STARTING...\n");
-  gettimeofday(&start, NULL); 
+  gettimeofday(&start, NULL);
   if (duration > 0) {
     nanosleep(&timeout, NULL);
   } else {
