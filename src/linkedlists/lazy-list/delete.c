@@ -127,13 +127,13 @@ int parse_delete(intset_l_t *set, val_t val) {
 		isVal = val == curr->val;
 		result = validated && isVal;
 		if (result) {
-            /** marking 'curr' as logically deletion */
+            /** marking 'curr' as logically deleted */
 			curr->next = get_marked_ref(curr->next);
             /** physical deletion */
 			pred->next = get_unmarked_ref(curr->next);
             /** free 'curr' and set memory location to NULL */
             free(curr);
-q		}
+		}
 		UNLOCK(&curr->lock);
 		UNLOCK(&pred->lock);
 		if(validated)
