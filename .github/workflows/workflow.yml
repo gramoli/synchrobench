@@ -7,11 +7,13 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
-      - name: Run in container
+      - name: Download dependencies
         run: |
           apt update
           apt install make
           cd java
           make
+      - name: Run tests
+        run: |
+          cd java
           java -cp bin contention.benchmark.Test -b skiplists.lockfree.NonBlockingFriendlySkipListMap
-        
