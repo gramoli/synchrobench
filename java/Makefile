@@ -16,24 +16,7 @@ endif
 
 ANT=ant
 
-#############################
-# Platform dependent settings
-#############################
-ifndef OS_NAME
-    OS_NAME = $(shell uname -s)
-endif
-
-ifeq ($(OS_NAME), Darwin)
-    JDK_RT ?= /System/Library/Frameworks/JavaVM.framework/Versions/1.6/Classes/classes.jar
-endif
-
-ifeq ($(OS_NAME), Linux)
-    JDK_RT ?= /usr/lib/jvm/java-1.7.0/jre/lib/rt.jar
-endif
-
-ifeq ($(OS_NAME), SunOS)
-    JDK_RT ?= /usr/lib/jvm/java-6-sun-1.6.0.20/jre/lib/rt.jar
-endif
+JDK_RT ?= /opt/jdk1.8.0_172/jre/lib/rt.jar
 
 #############################
 # Agent
