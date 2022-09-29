@@ -1,0 +1,13 @@
+jobs:
+  container:
+    runs-on: ubuntu-latest
+    container: frekele/ant:latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - name: Run in container
+        run: |
+          cd java
+          make
+          java -cp bin contention.benchmark.Test -b skiplists.lockfree.NonBlockingFriendlySkipListMap
+        
