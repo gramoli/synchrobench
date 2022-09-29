@@ -1,5 +1,5 @@
 name: CI
-on: [push]
+
 jobs:
   container:
     runs-on: ubuntu-latest
