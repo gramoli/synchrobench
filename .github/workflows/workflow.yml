@@ -3,15 +3,12 @@ on: [push]
 jobs:
   container:
     runs-on: ubuntu-latest
-    container: frekele/ant:latest
+    container: frekele/ant:1.10.3-jdk8
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Run in container
         run: |
-          apt update
-          apt install make
-          cd java
-          make
-          java -cp bin contention.benchmark.Test -b skiplists.lockfree.NonBlockingFriendlySkipListMap
+          find /usr/lib/jvm/ -name "rt.jar" > sources.txt
+
         
