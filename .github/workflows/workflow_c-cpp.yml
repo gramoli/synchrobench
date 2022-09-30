@@ -1,0 +1,18 @@
+name: CI
+on: [push]
+jobs:
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - name: Download dependencies
+        run: |
+          apt update
+          apt install make
+          cd c-cpp
+          make
+      - name: Run tests
+        run: |
+          cd c-cpp
+          ./bin/lockfree-rotating-skiplist
