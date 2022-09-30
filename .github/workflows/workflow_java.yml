@@ -18,4 +18,4 @@ jobs:
       - name: Run tests
         run: |
           cd java
-          java -cp bin contention.benchmark.Test -b linkedlists.lockbased.CoarseGrainedListIntSet
+          java -cp bin contention.benchmark.Test -b linkedlists.lockbased.LazyLinkedListSortedSet
