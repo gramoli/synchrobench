@@ -9,7 +9,7 @@ jobs:
       - name: Download dependencies
         run: |
           sudo apt update
-          sudo apt install make
+          sudo apt install make libnuma-dev
           cd c-cpp
           make
       - name: Run tests

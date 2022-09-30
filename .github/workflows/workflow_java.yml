@@ -10,7 +10,7 @@ jobs:
       - name: Download dependencies
         run: |
           apt update
-          apt install make libnuma-dev
+          apt install make
           cd java
           make
       - name: Run tests
