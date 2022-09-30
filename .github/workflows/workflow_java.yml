@@ -11,6 +11,8 @@ jobs:
         run: |
           apt update
           apt install make
+      - name: Building files
+        run: |
           cd java
           make
       - name: Run tests
