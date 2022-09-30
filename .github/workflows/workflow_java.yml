@@ -16,4 +16,4 @@ jobs:
       - name: Run tests
         run: |
           cd java
-          java -cp bin contention.benchmark.Test -b skiplists.lockfree.NonBlockingFriendlySkipListMap
+          java -cp bin contention.benchmark.Test -b linkedlists.lockbased.CoarseGrainedListIntSet
