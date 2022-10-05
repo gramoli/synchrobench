@@ -19,3 +19,6 @@ jobs:
         run: |
           cd java
           java -cp bin contention.benchmark.Test -b linkedlists.lockbased.LazyLinkedListSortedSet
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@v3
+          
