@@ -1,0 +1,27 @@
+name: CI_JAVA
+on: [push]
+jobs:
+  container:
+    runs-on: ubuntu-latest
+    container: frekele/ant:1.10.3-jdk8
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - name: Download dependencies
+        run: |
+          apt update
+          apt install make
+      - name: Building files
+        run: |
+          cd java
+          make
+      - name: Run tests
+        run: |
+          cd java
+          java -cp bin contention.benchmark.Test -b linkedlists.lockbased.LazyLinkedListSortedSet
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: java/bin/*
+          path: artifact
+          

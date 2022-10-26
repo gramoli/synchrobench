@@ -1,0 +1,20 @@
+name: CI_C-CPP
+on: [push]
+jobs:
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - name: Download dependencies
+        run: |
+          sudo apt update
+          sudo apt install make libnuma-dev
+      - name: Building files
+        run: |
+          cd c-cpp
+          make
+      - name: Run tests
+        run: |
+          cd c-cpp
+          ./bin/lockfree-rotating-skiplist
