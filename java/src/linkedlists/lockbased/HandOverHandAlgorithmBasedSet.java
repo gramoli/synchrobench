@@ -130,6 +130,13 @@ public class HandOverHandAlgorithmBasedSet extends AbstractCompositionalIntSet {
         }
         public int key;
         public Node next;
+        private Lock lock=new ReentrantLock();
+        public void lock ( ) {
+            lock.lock();
+        }
+        public void unlock ( ) {
+            lock.unlock();
+        }
     }
 
     @Override
