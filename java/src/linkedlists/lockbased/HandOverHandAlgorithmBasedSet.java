@@ -1,14 +1,4 @@
 package linkedlists.lockbased;
-
-import contention.abstractions.CompositionalSortedSet;
-
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.SortedSet;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 import contention.abstractions.AbstractCompositionalIntSet;
 
 public class HandOverHandAlgorithmBasedSet extends AbstractCompositionalIntSet {
@@ -36,13 +26,13 @@ public class HandOverHandAlgorithmBasedSet extends AbstractCompositionalIntSet {
         try {
             curr.lock();
             try {
-                while (curr.key<item) {
+                while (curr.value<item) {
                     pred.unlock();
                     pred=curr;
                     curr=pred.next;
                     curr.lock();
                 }
-                if (curr.key==item) {
+                if (curr.value==item) {
                     return false;
                 }
                 Node node=new Node(item);
@@ -72,13 +62,13 @@ public class HandOverHandAlgorithmBasedSet extends AbstractCompositionalIntSet {
         try {
             curr.lock();
             try {
-                while (curr.key<item) {
+                while (curr.value<item) {
                     pred.unlock();
                     pred=curr;
                     curr=pred.next;
                     curr.lock();
                 }
-                if (curr.key==item) {
+                if (curr.value==item) {
                     pred.next=curr.next;
                     return true;
                 }
@@ -106,13 +96,13 @@ public class HandOverHandAlgorithmBasedSet extends AbstractCompositionalIntSet {
         try {
             curr.lock();
             try {
-                while (curr.key<item) {
+                while (curr.value<item) {
                     pred.unlock();
                     pred=curr;
                     curr=pred.next;
                     curr.lock();
                 }
-                return (curr.key==item);
+                return (curr.value==item);
             }
             finally {
                 curr.unlock();
@@ -122,7 +112,7 @@ public class HandOverHandAlgorithmBasedSet extends AbstractCompositionalIntSet {
             pred.unlock();
         }
     }
- 
+ /*
     private class Node {
         Node (int item) {
             key=item;
@@ -138,7 +128,7 @@ public class HandOverHandAlgorithmBasedSet extends AbstractCompositionalIntSet {
             lock.unlock();
         }
     }
-
+ */
     @Override
     public void clear ( ) {
        head=new Node(Integer.MIN_VALUE);
@@ -153,7 +143,7 @@ public class HandOverHandAlgorithmBasedSet extends AbstractCompositionalIntSet {
         int count=0;
 
         Node curr=head.next;
-        while (curr.key!=Integer.MAX_VALUE) {
+        while (curr.value!=Integer.MAX_VALUE) {
             curr=curr.next;
             count++;
         }
