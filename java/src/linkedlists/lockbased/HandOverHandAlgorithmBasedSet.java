@@ -90,45 +90,15 @@ public class HandOverHandAlgorithmBasedSet extends AbstractCompositionalIntSet {
      */
     @Override
     public boolean containsInt (int item) {
-        head.lock();
         Node pred=head;
         Node curr=pred.next;
-        try {
-            curr.lock();
-            try {
-                while (curr.value<item) {
-                    pred.unlock();
-                    pred=curr;
-                    curr=pred.next;
-                    curr.lock();
-                }
-                return (curr.value==item);
-            }
-            finally {
-                curr.unlock();
-            }
+        while (curr.value<item) {
+            pred=curr;
+            curr=pred.next;
         }
-        finally {
-            pred.unlock();
-        }
+        return (curr.value==item);
     }
- /*
-    private class Node {
-        Node (int item) {
-            key=item;
-            next=null;
-        }
-        public int key;
-        public Node next;
-        private Lock lock=new ReentrantLock();
-        public void lock ( ) {
-            lock.lock();
-        }
-        public void unlock ( ) {
-            lock.unlock();
-        }
-    }
- */
+
     @Override
     public void clear ( ) {
        head=new Node(Integer.MIN_VALUE);
