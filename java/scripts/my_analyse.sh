@@ -9,7 +9,7 @@ sizes="100 1000 10000"
 
 cd ..
 
-benchs="linkedlists.lockbased.CoarseGrainedListBasedSet linkedlists.lockbased.HandOverHandListBasedSet linkedlists.lockbased.LazyLinkedListSortedSet"
+benchs="linkedlists.lockbased.CoarseGrainedListBasedSet linkedlists.lockbased.HandOverHandAlgorithmBasedSet linkedlists.lockbased.LazyLinkedListSortedSet"
 
 for size in ${sizes}; do
   for u in ${updates_ratios}; do
