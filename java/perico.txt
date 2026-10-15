@@ -1,0 +1,36 @@
+
+#esta linea es util pa testear que almenos una ejecucion corra
+java$ java -cp bin contention.benchmark.Test -b linkedlists.lockbased.CoarseGrainedListBasedSet -d 2000 -t 4 -u 10 -i 10000 -r 20000 -W 0
+
+#paso 1 volver las pruebas ejecutables
+chmod +x pruebas_de_perez
+
+#paso 2 probar que funcione con un test rápido
+QUICK=1 ./pruebas_de_perez
+
+#paso 3 mirar los logs que estan en 
+corridas_de_perez
+
+#paso 4 limpiar las corridas de perez o borrar el archivo
+
+#paso 5 correr las pruebas
+./pruebas_de_perez
+
+#paso 5.1 el progreso se puede mirar con esta linea desde otra consola diferente a la que se está corriendo el algoritmo
+
+watch -n 5 "grep -c ALG: ~/Desktop/synchrobench_2026/java/corridas_de_perez"
+
+
+#las pruebas se pueden volver un csv 
+awk '
+/^ALG:/ {
+  alg=$2; threads=$5; update=$8; size=$11; range=$14
+}
+/Throughput/ {
+  print alg "," threads "," update "," size "," range "," $3
+}
+BEGIN { print "algorithm,threads,update_ratio,size,range,throughput_ops_s" }
+' corridas_de_perez > throughput.csv
+
+
+
