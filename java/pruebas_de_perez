@@ -3,9 +3,19 @@ OUT=corridas_de_perez
 > "$OUT"
 
 ALGS="CoarseGrainedListBasedSet HandOverHandListBasedSet LazyLinkedListSortedSet"
-THREADS="1 4 6 8 10 12"
-UPDATES="0 10 100"
-SIZES="100 1000 10000"
+
+# Modo rapido: QUICK=1 ./pruebas_de_perez
+if [ "$QUICK" = "1" ]; then
+  THREADS="1"
+  UPDATES="5"
+  SIZES="10"
+  DURATION=20
+else
+  THREADS="1 4 6 8 10 12"
+  UPDATES="0 10 100"
+  SIZES="100 1000 10000"
+  DURATION=2000
+fi
 
 for alg in $ALGS; do
   for size in $SIZES; do
@@ -17,7 +27,7 @@ for alg in $ALGS; do
         echo "=================================================" >> "$OUT"
         java -cp bin contention.benchmark.Test \
           -b linkedlists.lockbased.$alg \
-          -d 2000 -t $t -u $u -i $size -r $range -W 0 \
+          -d $DURATION -t $t -u $u -i $size -r $range -W 0 \
           2>/dev/null >> "$OUT"
       done
     done
