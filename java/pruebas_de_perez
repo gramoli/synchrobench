@@ -1,0 +1,27 @@
+#!/bin/bash
+OUT=corridas_de_perez
+> "$OUT"
+
+ALGS="CoarseGrainedListBasedSet HandOverHandListBasedSet LazyLinkedListSortedSet"
+THREADS="1 4 6 8 10 12"
+UPDATES="0 10 100"
+SIZES="100 1000 10000"
+
+for alg in $ALGS; do
+  for size in $SIZES; do
+    range=$((size * 2))
+    for u in $UPDATES; do
+      for t in $THREADS; do
+        echo "=================================================" >> "$OUT"
+        echo "ALG: $alg | THREADS: $t | UPDATE: $u | SIZE: $size | RANGE: $range" >> "$OUT"
+        echo "=================================================" >> "$OUT"
+        java -cp bin contention.benchmark.Test \
+          -b linkedlists.lockbased.$alg \
+          -d 2000 -t $t -u $u -i $size -r $range -W 0 \
+          2>/dev/null >> "$OUT"
+      done
+    done
+  done
+done
+
+echo "Done. Results saved in $OUT"
