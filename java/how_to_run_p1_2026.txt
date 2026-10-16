@@ -1,0 +1,79 @@
+# ============================================================
+# NOTAS: como correr los experimentos de Synchrobench
+# Todos los comandos se corren desde synchrobench_2026/java
+# NO usar sudo con make ni con los scripts
+# ============================================================
+
+# --- 0. Compilar (Java 8 activo) ---
+java -version
+make
+
+# --- 1. Probar que al menos una ejecucion corra ---
+# (la NullPointerException del final es inofensiva)
+java -cp bin contention.benchmark.Test -b linkedlists.lockbased.CoarseGrainedListBasedSet -d 2000 -t 4 -u 10 -i 10000 -r 20000 -W 0
+
+# --- 2. Volver los scripts ejecutables (solo la primera vez) ---
+chmod +x pruebas_p1_2026 extraer_datos_p1_2026
+
+# --- 3. Prueba rapida: cada algoritmo 1 vez (~15 s, 6 corridas) ---
+QUICK=1 ./pruebas_p1_2026
+
+# Verificar: debe dar 6 y "fallos: 0"
+grep -c Throughput corridas_p1_2026_00
+
+# --- 4. NO hay que borrar nada ---
+# Cada ejecucion crea archivos nuevos con el siguiente numero libre:
+#   corridas_p1_2026_00, _01, _02, ...
+#   errores_p1_2026_NN
+#   sistema_NN.txt
+# Ojo: las pruebas QUICK tambien consumen un numero.
+# Para empezar de cero (opcional):
+#   rm -f corridas_p1_2026_* errores_p1_2026_* sistema_* throughput_*.csv promedios_*.csv
+
+# --- 5. Correr el experimento real ---
+# Por defecto: 6 algoritmos x 5 configs x 6 hilos x 10 reps = 1800 corridas (~90 min)
+# Muestra barra de progreso con % y ETA. Correr directo en la terminal.
+./pruebas_p1_2026
+
+# Variantes:
+#   REPS=3 ./pruebas_p1_2026     (menos repeticiones)
+#   FULL=1 ./pruebas_p1_2026     (los 9 pares size/update: 3240 corridas)
+
+# Para que sobreviva si se cierra la terminal (usar tmux):
+#   sudo apt install tmux
+#   tmux                          (abre sesion, correr el script dentro)
+#   Ctrl+B y luego D              (salir sin detenerlo)
+#   tmux attach                   (volver a verlo)
+
+# --- 5.1 Progreso desde otra consola (opcional, ya hay barra) ---
+# Reemplazar NN por el numero de la ejecucion. Cuenta hasta el total.
+watch -n 5 "grep -c ALG: ~/Desktop/synchrobench_2026/java/corridas_p1_2026_NN"
+
+# --- 5.2 Detener el script ---
+# Ctrl+C (el script tiene trap y mata el java en curso). Si no responde:
+#   pkill -f pruebas_p1_2026
+#   pkill -f contention.benchmark.Test
+
+# --- 6. Verificar que todo salio bien ---
+# Debe coincidir con el total (1800 por defecto)
+grep -c Throughput corridas_p1_2026_NN
+# Errores reales (deberia salir vacio; la NullPointerException se ignora)
+grep -v -e NullPointer -e "at contention" errores_p1_2026_NN | head
+
+# --- 7. Sacar los datos (CSV) ---
+# Sin argumento usa la ejecucion mas reciente; o pasar el numero: 01
+./extraer_datos
+./extraer_datos/ 01
+# Genera:
+#   throughput_NN.csv   una fila por corrida (1800 + encabezado)
+#   promedios_NN.csv    una fila por configuracion: media, stdev, min, max, n
+#                       (180 filas, cada una con n=10)
+
+# --- 8. Detalles del sistema para el reporte ---
+cat sistema_NN.txt
+
+# --- 9. Chequeo de balance add/remove (rango = 2 x tamano) ---
+# No debe imprimir nada. Si aparece un algoritmo, revisar su implementacion.
+awk '/^ALG:/{h=$0} /add successful/{a=$3} /remove succ\./{r=$3; if (a+r>1000) {d=(a-r)/(a+r); if (d<0) d=-d; if (d>0.1) print h, "add="a, "rem="r}}' corridas_p1_2026_NN
+
+
