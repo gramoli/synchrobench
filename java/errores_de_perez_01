@@ -1,0 +1,15 @@
+Exception in thread "main" java.lang.NullPointerException
+	at contention.benchmark.Test.printBasicStats(Unknown Source)
+	at contention.benchmark.Test.main(Unknown Source)
+Exception in thread "main" java.lang.NullPointerException
+	at contention.benchmark.Test.printBasicStats(Unknown Source)
+	at contention.benchmark.Test.main(Unknown Source)
+Exception in thread "main" java.lang.NullPointerException
+	at contention.benchmark.Test.printBasicStats(Unknown Source)
+	at contention.benchmark.Test.main(Unknown Source)
+Exception in thread "main" java.lang.NullPointerException
+	at contention.benchmark.Test.printBasicStats(Unknown Source)
+	at contention.benchmark.Test.main(Unknown Source)
+Exception in thread "main" java.lang.NullPointerException
+	at contention.benchmark.Test.printBasicStats(Unknown Source)
+	at contention.benchmark.Test.main(Unknown Source)

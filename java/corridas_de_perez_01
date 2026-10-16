@@ -1,0 +1,235 @@
+=================================================
+ALG: CoarseGrainedListBasedSet | THREADS: 2 | UPDATE: 10 | SIZE: 1000 | RANGE: 2000 | RUN: 1
+=================================================
+-------------------------------------------------------------------------------
+Synchrobench-java
+A benchmark-suite to evaluate synchronization techniques
+-------------------------------------------------------------------------------
+
+Benchmark parameters
+--------------------
+  Detailed stats:          	disabled
+  Number of threads:       	2
+  Length:                  	300 ms
+  Write ratio:             	10 %
+  WriteAll ratio:          	0 %
+  Snapshot ratio:          	0 %
+  Size:                    	1000 elts
+  Range:                   	2000 elts
+  WarmUp:                  	0 s
+  Iterations:              	1
+  Benchmark:               	linkedlists.lockbased.CoarseGrainedListBasedSet
+Thread #0 finished.
+Thread #1 finished.
+-------------------------------------------------------------------------------
+Benchmark statistics
+-------------------------------------------------------------------------------
+  Average traversal length: 	NaN
+  Struct Modifications:     	0
+  Throughput (ops/s):       	160039.60396039605
+  Elapsed time (s):         	0.303
+  Operations:               	48492	( 100 %)
+    effective updates:     	2422	( 4.99 %)
+    |--add successful:     	1208	( 2.49 %)
+    |--remove succ.:       	1214	( 2.50 %)
+    |--addAll succ.:       	0	( 0.00 %)
+    |--removeAll succ.:    	0	( 0.00 %)
+    size successful:       	0	( 0.00 %)
+    contains succ.:        	22002	( 45.37 %)
+    unsuccessful ops:      	24068	( 49.63 %)
+=================================================
+ALG: HandOverHandListBasedSet | THREADS: 2 | UPDATE: 10 | SIZE: 1000 | RANGE: 2000 | RUN: 1
+=================================================
+-------------------------------------------------------------------------------
+Synchrobench-java
+A benchmark-suite to evaluate synchronization techniques
+-------------------------------------------------------------------------------
+
+Benchmark parameters
+--------------------
+  Detailed stats:          	disabled
+  Number of threads:       	2
+  Length:                  	300 ms
+  Write ratio:             	10 %
+  WriteAll ratio:          	0 %
+  Snapshot ratio:          	0 %
+  Size:                    	1000 elts
+  Range:                   	2000 elts
+  WarmUp:                  	0 s
+  Iterations:              	1
+  Benchmark:               	linkedlists.lockbased.HandOverHandListBasedSet
+Thread #1 finished.
+Thread #0 finished.
+-------------------------------------------------------------------------------
+Benchmark statistics
+-------------------------------------------------------------------------------
+  Average traversal length: 	NaN
+  Struct Modifications:     	0
+  Throughput (ops/s):       	23350.993377483446
+  Elapsed time (s):         	0.302
+  Operations:               	7052	( 100 %)
+    effective updates:     	352	( 4.99 %)
+    |--add successful:     	182	( 2.58 %)
+    |--remove succ.:       	170	( 2.41 %)
+    |--addAll succ.:       	0	( 0.00 %)
+    |--removeAll succ.:    	0	( 0.00 %)
+    size successful:       	0	( 0.00 %)
+    contains succ.:        	3161	( 44.82 %)
+    unsuccessful ops:      	3539	( 50.18 %)
+=================================================
+ALG: LazyLinkedListSortedSet | THREADS: 2 | UPDATE: 10 | SIZE: 1000 | RANGE: 2000 | RUN: 1
+=================================================
+-------------------------------------------------------------------------------
+Synchrobench-java
+A benchmark-suite to evaluate synchronization techniques
+-------------------------------------------------------------------------------
+
+Benchmark parameters
+--------------------
+  Detailed stats:          	disabled
+  Number of threads:       	2
+  Length:                  	300 ms
+  Write ratio:             	10 %
+  WriteAll ratio:          	0 %
+  Snapshot ratio:          	0 %
+  Size:                    	1000 elts
+  Range:                   	2000 elts
+  WarmUp:                  	0 s
+  Iterations:              	1
+  Benchmark:               	linkedlists.lockbased.LazyLinkedListSortedSet
+Thread #0 finished.
+Thread #1 finished.
+-------------------------------------------------------------------------------
+Benchmark statistics
+-------------------------------------------------------------------------------
+  Average traversal length: 	NaN
+  Struct Modifications:     	0
+  Throughput (ops/s):       	335115.13157894736
+  Elapsed time (s):         	0.304
+  Operations:               	101875	( 100 %)
+    effective updates:     	5158	( 5.06 %)
+    |--add successful:     	2608	( 2.56 %)
+    |--remove succ.:       	2550	( 2.50 %)
+    |--addAll succ.:       	0	( 0.00 %)
+    |--removeAll succ.:    	0	( 0.00 %)
+    size successful:       	0	( 0.00 %)
+    contains succ.:        	46705	( 45.85 %)
+    unsuccessful ops:      	50012	( 49.09 %)
+  Final size:              	1058
+=================================================
+ALG: LockCouplingListIntSet | THREADS: 2 | UPDATE: 10 | SIZE: 1000 | RANGE: 2000 | RUN: 1
+=================================================
+-------------------------------------------------------------------------------
+Synchrobench-java
+A benchmark-suite to evaluate synchronization techniques
+-------------------------------------------------------------------------------
+
+Benchmark parameters
+--------------------
+  Detailed stats:          	disabled
+  Number of threads:       	2
+  Length:                  	300 ms
+  Write ratio:             	10 %
+  WriteAll ratio:          	0 %
+  Snapshot ratio:          	0 %
+  Size:                    	1000 elts
+  Range:                   	2000 elts
+  WarmUp:                  	0 s
+  Iterations:              	1
+  Benchmark:               	linkedlists.lockbased.LockCouplingListIntSet
+Thread #1 finished.
+Thread #0 finished.
+-------------------------------------------------------------------------------
+Benchmark statistics
+-------------------------------------------------------------------------------
+  Average traversal length: 	NaN
+  Struct Modifications:     	0
+  Throughput (ops/s):       	21052.805280528053
+  Elapsed time (s):         	0.303
+  Operations:               	6379	( 100 %)
+    effective updates:     	323	( 5.06 %)
+    |--add successful:     	179	( 2.81 %)
+    |--remove succ.:       	144	( 2.26 %)
+    |--addAll succ.:       	0	( 0.00 %)
+    |--removeAll succ.:    	0	( 0.00 %)
+    size successful:       	0	( 0.00 %)
+    contains succ.:        	3017	( 47.30 %)
+    unsuccessful ops:      	3039	( 47.64 %)
+=================================================
+ALG: HoHRelaxedListBasedSet | THREADS: 2 | UPDATE: 10 | SIZE: 1000 | RANGE: 2000 | RUN: 1
+=================================================
+-------------------------------------------------------------------------------
+Synchrobench-java
+A benchmark-suite to evaluate synchronization techniques
+-------------------------------------------------------------------------------
+
+Benchmark parameters
+--------------------
+  Detailed stats:          	disabled
+  Number of threads:       	2
+  Length:                  	300 ms
+  Write ratio:             	10 %
+  WriteAll ratio:          	0 %
+  Snapshot ratio:          	0 %
+  Size:                    	1000 elts
+  Range:                   	2000 elts
+  WarmUp:                  	0 s
+  Iterations:              	1
+  Benchmark:               	linkedlists.lockbased.HoHRelaxedListBasedSet
+Thread #0 finished.
+Thread #1 finished.
+-------------------------------------------------------------------------------
+Benchmark statistics
+-------------------------------------------------------------------------------
+  Average traversal length: 	NaN
+  Struct Modifications:     	0
+  Throughput (ops/s):       	128215.23178807947
+  Elapsed time (s):         	0.302
+  Operations:               	38721	( 100 %)
+    effective updates:     	1908	( 4.93 %)
+    |--add successful:     	945	( 2.44 %)
+    |--remove succ.:       	963	( 2.49 %)
+    |--addAll succ.:       	0	( 0.00 %)
+    |--removeAll succ.:    	0	( 0.00 %)
+    size successful:       	0	( 0.00 %)
+    contains succ.:        	17516	( 45.24 %)
+    unsuccessful ops:      	19297	( 49.84 %)
+=================================================
+ALG: HoHBitLockListBasedSet | THREADS: 2 | UPDATE: 10 | SIZE: 1000 | RANGE: 2000 | RUN: 1
+=================================================
+-------------------------------------------------------------------------------
+Synchrobench-java
+A benchmark-suite to evaluate synchronization techniques
+-------------------------------------------------------------------------------
+
+Benchmark parameters
+--------------------
+  Detailed stats:          	disabled
+  Number of threads:       	2
+  Length:                  	300 ms
+  Write ratio:             	10 %
+  WriteAll ratio:          	0 %
+  Snapshot ratio:          	0 %
+  Size:                    	1000 elts
+  Range:                   	2000 elts
+  WarmUp:                  	0 s
+  Iterations:              	1
+  Benchmark:               	linkedlists.lockbased.HoHBitLockListBasedSet
+Thread #1 finished.
+Thread #0 finished.
+-------------------------------------------------------------------------------
+Benchmark statistics
+-------------------------------------------------------------------------------
+  Average traversal length: 	NaN
+  Struct Modifications:     	0
+  Throughput (ops/s):       	63554.455445544554
+  Elapsed time (s):         	0.303
+  Operations:               	19257	( 100 %)
+    effective updates:     	934	( 4.85 %)
+    |--add successful:     	481	( 2.50 %)
+    |--remove succ.:       	453	( 2.35 %)
+    |--addAll succ.:       	0	( 0.00 %)
+    |--removeAll succ.:    	0	( 0.00 %)
+    size successful:       	0	( 0.00 %)
+    contains succ.:        	8859	( 46.00 %)
+    unsuccessful ops:      	9464	( 49.15 %)
