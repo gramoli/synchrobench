@@ -1,0 +1,7 @@
+algorithm,threads,update_ratio,size,range,run,throughput_ops_s
+CoarseGrainedListBasedSet,2,10,1000,2000,1,288508.30564784055
+HandOverHandListBasedSet,2,10,1000,2000,1,100877.88778877888
+LazyLinkedListSortedSet,2,10,1000,2000,1,621596.0264900662
+LockCouplingListIntSet,2,10,1000,2000,1,68214.52145214521
+HoHRelaxedListBasedSet,2,10,1000,2000,1,378188.7417218543
+HoHBitLockListBasedSet,2,10,1000,2000,1,141405.84415584416

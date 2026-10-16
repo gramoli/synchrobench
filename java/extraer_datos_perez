@@ -1,0 +1,52 @@
+#!/bin/bash
+# Uso: ./extraer_datos_perez        (usa la ultima ejecucion)
+#      ./extraer_datos_perez 02     (usa corridas_de_perez_02)
+
+if [ -n "$1" ]; then
+  ID=$(printf '%02d' $((10#$1)))
+else
+  last=$(ls corridas_de_perez_[0-9][0-9]* 2>/dev/null | sort -V | tail -1)
+  ID=${last##*_}
+fi
+
+IN=corridas_de_perez_$ID
+if [ -z "$ID" ] || [ ! -s "$IN" ]; then
+  echo "No encuentro $IN (o esta vacio)"; exit 1
+fi
+echo "Usando $IN"
+
+CSV=throughput_$ID.csv
+AVG=promedios_$ID.csv
+
+# 1) Una fila por corrida
+awk '
+BEGIN { print "algorithm,threads,update_ratio,size,range,run,throughput_ops_s" }
+/^ALG:/ { alg=$2; threads=$5; update=$8; size=$11; range=$14; run=$17 }
+/Throughput/ { print alg "," threads "," update "," size "," range "," run "," $3 }
+' "$IN" > "$CSV"
+
+# 2) Una fila por configuracion: media, desv. estandar, minimo, maximo, n
+{
+  echo "algorithm,threads,update_ratio,size,mean,stdev,min,max,n"
+  awk -F, 'NR>1 {
+    k=$1","$2","$3","$4; v=$7
+    n[k]++; s[k]+=v; q[k]+=v*v
+    if (!(k in mn) || v<mn[k]) mn[k]=v
+    if (!(k in mx) || v>mx[k]) mx[k]=v
+  }
+  END {
+    for (k in n) {
+      m=s[k]/n[k]
+      var=(n[k]>1) ? (q[k]-n[k]*m*m)/(n[k]-1) : 0
+      if (var<0) var=0
+      printf "%s,%.2f,%.2f,%.2f,%.2f,%d\n", k, m, sqrt(var), mn[k], mx[k], n[k]
+    }
+  }' "$CSV" | sort -t, -k1,1 -k4,4n -k3,3n -k2,2n
+} > "$AVG"
+
+# 3) Verificaciones
+echo "Corridas con throughput: $(( $(wc -l < "$CSV") - 1 ))"
+echo "Configuraciones:         $(( $(wc -l < "$AVG") - 1 ))"
+echo "Archivos: $CSV, $AVG"
+echo "Configuraciones con n distinto de 10 (deberia salir vacio):"
+awk -F, 'NR>1 && $9!=10 {print}' "$AVG"

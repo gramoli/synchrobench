@@ -1,37 +1,97 @@
 #!/bin/bash
-OUT=corridas_de_perez
-> "$OUT"
+# Uso:  QUICK=1 ./pruebas_de_perez   (prueba rapida: cada algoritmo 1 vez)
+#       ./pruebas_de_perez           (5 configs del reporte)
+#       FULL=1 ./pruebas_de_perez    (los 9 pares size/update)
+# Cada ejecucion usa el siguiente numero libre: 00, 01, 02, ...
 
-ALGS="CoarseGrainedListBasedSet HandOverHandListBasedSet LazyLinkedListSortedSet"
+# Busca el siguiente numero disponible
+N=0
+while [ -e "corridas_de_perez_$(printf '%02d' $N)" ]; do N=$((N + 1)); done
+ID=$(printf '%02d' $N)
 
-# Modo rapido: QUICK=1 ./pruebas_de_perez
+OUT=corridas_de_perez_$ID
+ERR=errores_de_perez_$ID
+SYS=sistema_perez_$ID.txt
+> "$OUT"; > "$ERR"
+trap 'echo; echo "Interrumpido"; pkill -P $$; exit 1' INT
+
+ALGS="CoarseGrainedListBasedSet HandOverHandListBasedSet LazyLinkedListSortedSet LockCouplingListIntSet HoHRelaxedListBasedSet HoHBitLockListBasedSet"
+REPS=${REPS:-10}
+
 if [ "$QUICK" = "1" ]; then
-  THREADS="1"
-  UPDATES="5"
-  SIZES="10"
-  DURATION=20
+  THREADS="2"; CONFIGS="1000:10"; DURATION=300; REPS=1
 else
-  THREADS="1 4 6 8 10 12"
-  UPDATES="0 10 100"
-  SIZES="100 1000 10000"
-  DURATION=2000
+  THREADS="1 4 6 8 10 12"; DURATION=2000
+  if [ "$FULL" = "1" ]; then
+    CONFIGS=""
+    for s in 100 1000 10000; do for u in 0 10 100; do CONFIGS="$CONFIGS $s:$u"; done; done
+  else
+    CONFIGS="100:10 1000:10 10000:10 1000:0 1000:100"
+  fi
 fi
 
+# Detalles del sistema para el reporte
+{
+  echo "Date: $(date)"
+  echo "--- OS";     uname -a
+  echo "--- CPU";    lscpu
+  echo "--- Memory"; free -h
+  echo "--- Java";   java -version 2>&1
+} > "$SYS"
+
+N_ALGS=$(echo $ALGS | wc -w); N_CFG=$(echo $CONFIGS | wc -w); N_T=$(echo $THREADS | wc -w)
+TOTAL=$((N_ALGS * N_CFG * N_T * REPS)); COUNT=0; FAILS=0
+START=$(date +%s)
+
+# Barra de progreso: progress <hechas> <total> <texto>
+progress() {
+  local cur=$1 tot=$2 info=$3 width=30
+  local pct=$((cur * 100 / tot))
+  local filled=$((cur * width / tot))
+  local bar rest
+  bar=$(printf '%*s' "$filled" '' | tr ' ' '#')
+  rest=$(printf '%*s' "$((width - filled))" '' | tr ' ' '-')
+  local el=$(( $(date +%s) - START ))
+  local eta=0
+  [ "$cur" -gt 0 ] && eta=$(( el * (tot - cur) / cur ))
+  printf "\r\033[K[%s%s] %3d%% %d/%d ETA %02d:%02d | %s" \
+    "$bar" "$rest" "$pct" "$cur" "$tot" $((eta / 60)) $((eta % 60)) "$info"
+}
+
+echo "Ejecucion $ID -> $OUT"
+echo "Total de corridas: $TOTAL"
+progress 0 "$TOTAL" "iniciando"
+
 for alg in $ALGS; do
-  for size in $SIZES; do
-    range=$((size * 2))
-    for u in $UPDATES; do
-      for t in $THREADS; do
-        echo "=================================================" >> "$OUT"
-        echo "ALG: $alg | THREADS: $t | UPDATE: $u | SIZE: $size | RANGE: $range" >> "$OUT"
-        echo "=================================================" >> "$OUT"
+  for cfg in $CONFIGS; do
+    size=${cfg%%:*}; u=${cfg##*:}; range=$((size * 2))
+    for t in $THREADS; do
+      for run in $(seq 1 $REPS); do
+        COUNT=$((COUNT + 1))
+        progress $((COUNT - 1)) "$TOTAL" "${alg:0:18} t=$t u=$u s=$size r=$run"
+        TMP=$(mktemp)
         java -cp bin contention.benchmark.Test \
           -b linkedlists.lockbased.$alg \
           -d $DURATION -t $t -u $u -i $size -r $range -W 0 \
-          2>/dev/null >> "$OUT"
+          > "$TMP" 2>> "$ERR"
+        {
+          echo "================================================="
+          echo "ALG: $alg | THREADS: $t | UPDATE: $u | SIZE: $size | RANGE: $range | RUN: $run"
+          echo "================================================="
+          cat "$TMP"
+        } >> "$OUT"
+        if ! grep -q Throughput "$TMP"; then
+          printf "\r\033[K  !! FALLO: %s t=%s u=%s size=%s run=%s\n" "$alg" "$t" "$u" "$size" "$run"
+          FAILS=$((FAILS + 1))
+        fi
+        rm -f "$TMP"
       done
     done
   done
 done
 
-echo "Done. Results saved in $OUT"
+progress "$TOTAL" "$TOTAL" "terminado"
+echo
+echo "Done. Corridas: $TOTAL, fallos: $FAILS, tiempo: $(( $(date +%s) - START )) s"
+echo "Resultados: $OUT | errores: $ERR | sistema: $SYS"
+echo "Para extraer los datos: ./extraer_datos_perez $ID"
